@@ -18,6 +18,9 @@ paths:
           schema:
             type: string
             example: "00006400"
+      security:
+        - oauth2: [submit_insolvency_data]
+      
       operationId: createMvlCase
       summary: Create a new MVL insolvency case
       requestBody:
@@ -64,3 +67,14 @@ components:
               type: string
               format: uri
               example: /company/00006400/insolvency/mvl/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
+  
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: This API uses OAuth2 with the correct grants to allow insolvency data submission
+      flows:
+        authorizationCode:
+          tokenUrl: "https://api.companieshouse.gov.uk/oauth2/token"
+          authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
+          scopes:
+            submit_insolvency_data: Submit data
