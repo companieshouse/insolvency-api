@@ -1,0 +1,66 @@
+openapi: 3.0.0
+
+info:
+  title: Insolvency API
+  description: API specification for submiting insolvency data
+  version: 1.0.0-dev
+
+paths:
+  /company/{companyNumber}/insolvency/mvl:
+    post:
+      tags:
+        - "MVL"
+      parameters:
+        - in: path
+          name: companyNumber
+          required: true
+          description: The company number that the case applies to
+          schema:
+            type: string
+            example: "00006400"
+      operationId: createMvlCase
+      summary: Create a new MVL insolvency case
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMVLCase'
+      responses:
+        201:
+          description: Case created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseCreated'
+
+components:
+  schemas:
+    CreateMVLCase:
+      type: object
+      properties:
+        liquidator:
+          type: object
+          properties:
+            name:
+              type: string
+            office_holder:
+              type: number
+            address:
+              type: string
+        date:
+          type: string
+          format: date
+
+    CaseCreated:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        links:
+          type: object
+          properties:
+            case:
+              type: string
+              format: uri
+              example: /company/00006400/insolvency/mvl/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
