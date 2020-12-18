@@ -108,9 +108,11 @@ components:
       properties:
         insolvency_id:
           type: string
-        attachment:
-          type: string
-          format: binary
+        attachments:
+          type: array
+          items:
+            type: string
+            format: binary
         liquidator:
           type: object
           properties:
