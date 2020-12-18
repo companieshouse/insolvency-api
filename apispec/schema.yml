@@ -6,15 +6,15 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /transaction/{transaction_id}/insolvency:
+  /company/{company_number}/insolvencies:
     post:
       tags:
         - "Insolvency"
       parameters:
         - in: path
-          name: transaction_id
+          name: company_number
           required: true
-          description: The transaction that this insolvency case is applied to
+          description: The company number to create an insolvency case for
           schema:
             type: string
       security:
@@ -34,10 +34,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/CaseCreated'
 
-  /transaction/{transaction_id}/insolvency/liquidator:
+  /transactions/{transaction_id}/insolvencies/liquidator:
     post:
       tags:
-        - "Insolvency"
+        - "Transactions"
       parameters:
         - in: path
           name: transaction_id
@@ -55,30 +55,12 @@ paths:
             schema:
               $ref: '#/components/schemas/AppointLiquidatorBody'
       responses:
-        200:
-          description: Liquidator appointed
-
-  /transaction/{transaction_id}:
-    put:
-      tags:
-        - "Transactions"
-      parameters:
-        - in: path
-          name: transaction_id
-          required: true
-          description: The transaction that this insolvency case is applied to
-          schema:
-            type: string
-      security:
-        - oauth2: [submit_insolvency_data]
-      operationId: closeTransaction
-      summary: Close a transaction so that its contents get processed
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TransactionPutBody'
-
+        201:
+          description: Liquidator appointment request received
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointLiquidatorResponse'
 
 components:
   schemas:
@@ -88,6 +70,10 @@ components:
         start_date:
           type: string
           format: date
+        type:
+          type: string
+          enum: [mvl, cvl]
+      required: [type]
 
     CaseCreated:
       type: object
@@ -95,13 +81,14 @@ components:
         id:
           type: string
           format: uuid
+          example: 019a2d58-1d1c-481c-a5c4-a7eed0f92c72
         links:
           type: object
           properties:
-            case:
+            self:
               type: string
               format: uri
-              example: /transaction/{transaction_id}/insolvency/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
+              example: /company/{company_number}/insolvencies/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
 
     AppointLiquidatorBody:
       type: object
@@ -123,16 +110,22 @@ components:
             address:
               type: string
 
-    TransactionPutBody:
+    AppointLiquidatorResponse:
       type: object
       properties:
-        reference:
-          type: string
-        resume_journey_uri:
-          type: string
-        status:
-          type: string
-
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvencies/liquidator/{liquidator_id}
+            attachments:
+              type: object
+              properties:
+                "attachment_id":
+                  type: string
+                  example: "/transactions/{transaction_id}/insolvencies/liquidator/{liquidator_id}/attachments/{attachment_id}"
   
   securitySchemes:
     oauth2:
