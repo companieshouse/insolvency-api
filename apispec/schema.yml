@@ -6,28 +6,26 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /company/{companyNumber}/insolvency/mvl:
+  /transaction/{transaction_id}/insolvency:
     post:
       tags:
-        - "MVL"
+        - "Insolvency"
       parameters:
         - in: path
-          name: companyNumber
+          name: transaction_id
           required: true
-          description: The company number that the case applies to
+          description: The transaction that this insolvency case is applied to
           schema:
             type: string
-            example: "00006400"
       security:
         - oauth2: [submit_insolvency_data]
-      
-      operationId: createMvlCase
-      summary: Create a new MVL insolvency case
+      operationId: createCase
+      summary: Create a new insolvency case
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateMVLCase'
+              $ref: '#/components/schemas/CreateInsolvencyCase'
       responses:
         201:
           description: Case created successfully
@@ -36,21 +34,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/CaseCreated'
 
+  /transaction/{transaction_id}/insolvency/liquidator:
+    post:
+      tags:
+        - "Insolvency"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: appointLiquidator
+      summary: Appoint a liquidator to this case
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AppointLiquidatorBody'
+      responses:
+        200:
+          description: Liquidator appointed
+
+  /transaction/{transaction_id}:
+    put:
+      tags:
+        - "Transactions"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: closeTransaction
+      summary: Close a transaction so that its contents get processed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionPutBody'
+
+
 components:
   schemas:
-    CreateMVLCase:
+    CreateInsolvencyCase:
       type: object
       properties:
-        liquidator:
-          type: object
-          properties:
-            name:
-              type: string
-            office_holder:
-              type: number
-            address:
-              type: string
-        date:
+        start_date:
           type: string
           format: date
 
@@ -66,7 +101,36 @@ components:
             case:
               type: string
               format: uri
-              example: /company/00006400/insolvency/mvl/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
+              example: /transaction/{transaction_id}/insolvency/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
+
+    AppointLiquidatorBody:
+      type: object
+      properties:
+        insolvency_id:
+          type: string
+        attachment:
+          type: string
+          format: binary
+        liquidator:
+          type: object
+          properties:
+            name:
+              type: string
+            office_holder_number:
+              type: number
+            address:
+              type: string
+
+    TransactionPutBody:
+      type: object
+      properties:
+        reference:
+          type: string
+        resume_journey_uri:
+          type: string
+        status:
+          type: string
+
   
   securitySchemes:
     oauth2:
