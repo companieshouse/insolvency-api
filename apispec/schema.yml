@@ -34,6 +34,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateInsolvencyCaseResponse'
 
+  /company/{company_number}/insolvencies/{insolvency_id}/attachments:
+    post:
+      tags:
+        - "Insolvency"
+      parameters:
+        - in: path
+          name: company_number
+          required: true
+          description: The company number to create an insolvency case for
+          schema:
+            type: string
+        - in: path
+          name: insolvency_id
+          required: true
+          description: The insolvency case id
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: submitFileAttachment
+      summary: Send a file attchement for the case
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        200:
+          description: The file was accepted for processing.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  attachment_id:
+                    type: string
+                    format: uuid
+
   /transactions/{transaction_id}/insolvencies/liquidator:
     post:
       tags:
@@ -51,7 +93,7 @@ paths:
       summary: Appoint a liquidator to this case
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: '#/components/schemas/AppointLiquidatorRequest'
       responses:
@@ -99,7 +141,7 @@ components:
           type: array
           items:
             type: string
-            format: binary
+            format: uuid
         liquidator:
           type: object
           properties:
