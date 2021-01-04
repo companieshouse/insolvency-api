@@ -51,7 +51,7 @@ paths:
       summary: Appoint a liquidator to this case
       requestBody:
         content:
-          multipart/form-data:
+          application/json:
             schema:
               $ref: '#/components/schemas/AppointLiquidatorRequest'
       responses:
