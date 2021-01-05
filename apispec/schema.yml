@@ -6,7 +6,7 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /company/{company_number}/insolvencies:
+  /transactions/{transaction_id}/insolvency-cases:
     post:
       tags:
         - "Insolvency"
@@ -37,7 +37,7 @@ paths:
   /transactions/{transaction_id}/insolvencies/liquidator:
     post:
       tags:
-        - "Transactions"
+        - "Insolvency"
       parameters:
         - in: path
           name: transaction_id
@@ -72,7 +72,7 @@ components:
           format: date
         type:
           type: string
-          enum: [mvl, cvl]
+          enum: [members-voluntary-liquidation, creditors-voluntary-liquidation]
       required: [type]
 
     CreateInsolvencyCaseResponse:
