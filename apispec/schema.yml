@@ -6,10 +6,10 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /company/{company_number}/insolvencies:
+  /transactions/{transaction_id}/company/{company_number}/insolvency-cases:
     post:
       tags:
-        - "Insolvency"
+        - "Transactions"
       parameters:
         - in: path
           name: company_number
@@ -34,10 +34,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateInsolvencyCaseResponse'
 
-  /company/{company_number}/insolvencies/{insolvency_id}/attachments:
+  /transactions/{transaction_id}/company/{company_number}/insolvencies/{insolvency_id}/attachments:
     post:
       tags:
-        - "Insolvency"
+        - "Transactions"
       parameters:
         - in: path
           name: company_number
