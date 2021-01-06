@@ -61,6 +61,11 @@ paths:
             schema:
               type: object
               properties:
+                attachment_type:
+                  type: string
+                  enum:
+                    - declaration-of-solvency
+                    - statutory-accounts
                 file:
                   type: string
                   format: binary
