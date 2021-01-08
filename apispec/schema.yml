@@ -9,7 +9,7 @@ paths:
   /transactions/{transaction_id}/insolvency-cases:
     post:
       tags:
-        - "Transactions"
+        - "Insolvency"
       parameters:
         - in: path
           name: company_number
@@ -37,7 +37,7 @@ paths:
   /transactions/{transaction_id}/insolvency-cases/{insolvency_case_id}/attachments:
     post:
       tags:
-        - "Transactions"
+        - "Insolvency"
       parameters:
         - in: path
           name: company_number
