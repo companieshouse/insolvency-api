@@ -6,49 +6,15 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /transactions/{transaction_id}/insolvency-cases:
+  /transactions/{transaction_id}/insolvencies/attachments:
     post:
       tags:
         - "Insolvency"
       parameters:
         - in: path
-          name: company_number
+          name: transaction_id
           required: true
-          description: The company number to create an insolvency case for
-          schema:
-            type: string
-      security:
-        - oauth2: [submit_insolvency_data]
-      operationId: createCase
-      summary: Create a new insolvency case
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateInsolvencyCaseRequest'
-      responses:
-        201:
-          description: Case created successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateInsolvencyCaseResponse'
-
-  /transactions/{transaction_id}/insolvency-cases/{insolvency_case_id}/attachments:
-    post:
-      tags:
-        - "Insolvency"
-      parameters:
-        - in: path
-          name: company_number
-          required: true
-          description: The company number to create an insolvency case for
-          schema:
-            type: string
-        - in: path
-          name: insolvency_id
-          required: true
-          description: The insolvency case id
+          description: The transaction unique reference
           schema:
             type: string
       security:
@@ -59,29 +25,17 @@ paths:
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                attachment_type:
-                  type: string
-                  enum:
-                    - declaration-of-solvency
-                    - statutory-accounts
-                file:
-                  type: string
-                  format: binary
+              $ref: '#/components/schemas/AttachmentRequest'
+
       responses:
         200:
           description: The file was accepted for processing.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  attachment_id:
-                    type: string
-                    format: uuid
+                $ref: '#/components/schemas/AttachmentResponse'
 
-  /transactions/{transaction_id}/insolvency-cases/{insolvency_case_id}/liquidator:
+  /transactions/{transaction_id}/insolvencies/liquidator:
     post:
       tags:
         - "Insolvency"
@@ -111,31 +65,24 @@ paths:
 
 components:
   schemas:
-    CreateInsolvencyCaseRequest:
+    AttachmentRequest:
       type: object
       properties:
-        start_date:
+        attachment_type:
           type: string
-          format: date
-        type:
+          enum:
+            - declaration-of-solvency
+            - statutory-accounts
+        file:
           type: string
-          enum: [members-voluntary-liquidation, creditors-voluntary-liquidation]
-      required: [type]
+          format: binary
 
-    CreateInsolvencyCaseResponse:
+    AttachmentResponse:
       type: object
       properties:
-        id:
+        attachment_id:
           type: string
           format: uuid
-          example: 019a2d58-1d1c-481c-a5c4-a7eed0f92c72
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              format: uri
-              example: /company/{company_number}/insolvencies/019a2d58-1d1c-481c-a5c4-a7eed0f92c72
 
     AppointLiquidatorRequest:
       type: object
