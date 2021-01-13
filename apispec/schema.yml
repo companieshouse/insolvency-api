@@ -6,10 +6,10 @@ info:
   version: 1.0.0-dev
 
 paths:
-  /transactions/{transaction_id}/insolvencies/attachments:
+  /transactions/{transaction_id}/insolvency/attachment:
     post:
       tags:
-        - "Insolvency"
+        - "Attachments"
       parameters:
         - in: path
           name: transaction_id
@@ -35,10 +35,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/AttachmentResponse'
 
-  /transactions/{transaction_id}/insolvencies/liquidator:
+  /transactions/{transaction_id}/insolvency/attachment/{attachment_id}:
+    delete:
+      tags:
+        - "Attachments"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+        - in: path
+          name: attachment_id
+          required: true
+          description: The unique attachment id
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteAttachment
+      summary: Delete an attachment from this transaction
+      responses:
+        200:
+          description: The attachment was deleted
+
+
+  /transactions/{transaction_id}/insolvency/liquidator:
     post:
       tags:
-        - "Insolvency"
+        - "Liquidator"
       parameters:
         - in: path
           name: transaction_id
@@ -56,15 +82,179 @@ paths:
             schema:
               $ref: '#/components/schemas/AppointLiquidatorRequest'
       responses:
-        201:
+        200:
           description: Liquidator appointment request received
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AppointLiquidatorResponse'
 
+  /transactions/{transaction_id}/insolvency/liquidator/{appointment_id}:
+    delete:
+      tags:
+        - "Liquidator"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: appointment_id
+          required: true
+          description: The unique liquidator appointment id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteAppointment
+      summary: Delete the appointment of liquidator from this transaction
+      responses:
+        200:
+          description: The appointment was deleted
+
+  /transactions/{transaction_id}/insolvency/statement-of-affairs:
+    post:
+      tags:
+        - "Statement of Affairs"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: statementOfAffairs
+      summary: Notice of statement of affairs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatementOfAffairsRequest'
+      responses:
+        200:
+          description: Statement of affairs submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatementOfAffairsResponse'
+
+  /transactions/{transaction_id}/insolvency/statement-of-affairs/{statement_id}:
+    delete:
+      tags:
+        - "Statement of Affairs"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+        - in: path
+          name: statement_id
+          required: true
+          description: the id of the statement submitted in this transaction
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteStatementOfAffairs
+      summary: Delete the statement of affairs from this transaction
+      responses:
+        200:
+          description: the statement of affairs and its attachments have been removed from this transaction
+      
 components:
   schemas:
+    Liquidator:
+      type: object
+      properties:
+        ip_code:
+          type: string
+        name:
+          type: string
+        address:
+          type: object
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+          format: email
+        telephone_number:
+          type: string
+        role:
+          type: string
+          enum:
+            - final-liquidator
+            - receiver
+            - receiver-manager
+            - proposed-liquidator
+            - provisional-liquidator
+            - administrative-receiver
+            - practitioner
+            - interim-liquidator
+
+    Address:
+      type: object
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        country:
+          type: string
+        locality:
+          type: string
+        region:
+          type: string
+        postal_code:
+          type: string
+        
+
+    StatementOfAffairsRequest:
+      type: object
+      properties:
+        presenter:
+          type: object
+          properties:
+            name:
+              type: string
+            company_name:
+              type: string
+            address:
+              $ref: '#/components/schemas/Address'
+            telephone_number:
+              type: string
+        statement_date:
+          type: string
+          format: date
+        liquidators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Liquidator'
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    StatementOfAffairsResponse:
+      type: object
+      properties:
+        statement_id:
+          type: string
+          format: uuid
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/statement-of-affairs/{statement_id}
+  
     AttachmentRequest:
       type: object
       properties:
@@ -73,6 +263,10 @@ components:
           enum:
             - declaration-of-solvency
             - statutory-accounts
+            - statement-of-affairs-liquidator
+            - statement-of-affairs-director
+            - statement-of-concurrence
+
         file:
           type: string
           format: binary
@@ -83,43 +277,45 @@ components:
         attachment_id:
           type: string
           format: uuid
-
-    AppointLiquidatorRequest:
-      type: object
-      properties:
-        insolvency_id:
-          type: string
-        attachments:
-          type: array
-          items:
-            type: string
-            format: uuid
-        liquidator:
-          type: object
-          properties:
-            name:
-              type: string
-            office_holder_number:
-              type: number
-            address:
-              type: string
-
-    AppointLiquidatorResponse:
-      type: object
-      properties:
         links:
           type: object
           properties:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvencies/liquidator/{liquidator_id}
-            attachments:
-              type: object
-              properties:
-                "attachment_id":
-                  type: string
-                  example: "/transactions/{transaction_id}/insolvencies/liquidator/{liquidator_id}/attachments/{attachment_id}"
+              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+
+    AppointLiquidatorRequest:
+      type: object
+      properties:
+        company_name:
+          type: string
+        case_type:
+          type: string
+          enum:
+            - members-voluntary-liquidation
+            - creditors-voluntary-liquidation
+        appointed_on:
+          type: string
+          format: date
+        liquidators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Liquidator'
+
+    AppointLiquidatorResponse:
+      type: object
+      properties:
+        appointment_id:
+          type: string
+          format: uuid
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/liquidator/{appointment_id}
   
   securitySchemes:
     oauth2:
