@@ -36,22 +36,37 @@ paths:
                 $ref: '#/components/schemas/AttachmentResponse'
 
   /transactions/{transaction_id}/insolvency/attachment/{attachment_id}:
+    parameters:
+      - in: path
+        name: transaction_id
+        required: true
+        description: The transaction unique reference
+        schema:
+          type: string
+      - in: path
+        name: attachment_id
+        required: true
+        description: The unique attachment id
+        schema:
+          type: string 
+    get:
+      tags:
+        - "Attachments"
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getAttachment
+      summary: Get information about the attachment that was submitted
+      responses:
+        200:
+          description: the attachment resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachmentResourceResponse'
+      
     delete:
       tags:
         - "Attachments"
-      parameters:
-        - in: path
-          name: transaction_id
-          required: true
-          description: The transaction unique reference
-          schema:
-            type: string
-        - in: path
-          name: attachment_id
-          required: true
-          description: The unique attachment id
-          schema:
-            type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: deleteAttachment
@@ -60,6 +75,39 @@ paths:
         200:
           description: The attachment was deleted
 
+  /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download:
+    parameters:
+      - in: path
+        name: transaction_id
+        required: true
+        description: The transaction unique reference
+        schema:
+          type: string
+      - in: path
+        name: attachment_id
+        required: true
+        description: The unique attachment id
+        schema:
+          type: string
+    get:
+      tags:
+        - "Attachments"
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: downloadAttachment
+      summary: Download the attachment
+      responses:
+        200:
+          description: The file will begin to download
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/*:
+              schema:
+                type: string
+                format: binary
 
   /transactions/{transaction_id}/insolvency/liquidator:
     post:
@@ -255,18 +303,19 @@ components:
               format: uri
               example: /transactions/{transaction_id}/insolvency/statement-of-affairs/{statement_id}
   
+    AttachmentContextTypes:
+      type: string
+      enum:
+         - special-resolution
+         - statement-of-affairs-liquidator
+         - statement-of-affairs-director
+         - statement-of-concurrence
+
     AttachmentRequest:
       type: object
       properties:
         attachment_type:
-          type: string
-          enum:
-            - declaration-of-solvency
-            - statutory-accounts
-            - statement-of-affairs-liquidator
-            - statement-of-affairs-director
-            - statement-of-concurrence
-
+          $ref: '#/components/schemas/AttachmentContextTypes'
         file:
           type: string
           format: binary
@@ -284,6 +333,41 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+
+    AttachmentResourceResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - submitted
+            - processed
+            - integrity-failed
+        attachment_type:
+          $ref: '#/components/schemas/AttachmentContextTypes'
+        file:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Statement.pdf
+            size:
+              type: number
+              example: 1024
+            content_type:
+              type: string
+              example: application/pdf
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+            download:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
 
     AppointLiquidatorRequest:
       type: object
