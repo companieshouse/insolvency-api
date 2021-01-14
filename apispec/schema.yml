@@ -109,10 +109,10 @@ paths:
                 type: string
                 format: binary
 
-  /transactions/{transaction_id}/insolvency/liquidator:
+  /transactions/{transaction_id}/insolvency/liquidation/appointment:
     post:
       tags:
-        - "Liquidator"
+        - "Liquidation"
       parameters:
         - in: path
           name: transaction_id
@@ -137,10 +137,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppointLiquidatorResponse'
 
-  /transactions/{transaction_id}/insolvency/liquidator/{id}:
+  /transactions/{transaction_id}/insolvency/liquidation/appointment/{id}:
     delete:
       tags:
-        - "Liquidator"
+        - "Liquidation"
       parameters:
         - in: path
           name: transaction_id
@@ -163,10 +163,10 @@ paths:
         200:
           description: The appointment was deleted
 
-  /transactions/{transaction_id}/insolvency/statement-of-affairs:
+  /transactions/{transaction_id}/insolvency/liquidation/statement-of-affairs:
     post:
       tags:
-        - "Statement of Affairs"
+        - "Liquidation"
       parameters:
         - in: path
           name: transaction_id
@@ -191,10 +191,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/StatementOfAffairsResponse'
 
-  /transactions/{transaction_id}/insolvency/statement-of-affairs/{statement_id}:
+  /transactions/{transaction_id}/insolvency/liquidation/statement-of-affairs/{statement_id}:
     delete:
       tags:
-        - "Statement of Affairs"
+        - "Liquidation"
       parameters:
         - in: path
           name: transaction_id
