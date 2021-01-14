@@ -137,7 +137,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/AppointLiquidatorResponse'
 
-  /transactions/{transaction_id}/insolvency/liquidator/{appointment_id}:
+  /transactions/{transaction_id}/insolvency/liquidator/{id}:
     delete:
       tags:
         - "Liquidator"
@@ -149,7 +149,7 @@ paths:
           schema:
             type: string
         - in: path
-          name: appointment_id
+          name: id
           required: true
           description: The unique liquidator appointment id
           schema:
@@ -390,7 +390,7 @@ components:
     AppointLiquidatorResponse:
       type: object
       properties:
-        appointment_id:
+        id:
           type: string
           format: uuid
         links:
@@ -399,7 +399,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{appointment_id}
+              example: /transactions/{transaction_id}/insolvency/liquidator/{id}
   
   securitySchemes:
     oauth2:
