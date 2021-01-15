@@ -4,7 +4,7 @@ info:
   description: API specification for submiting insolvency data
   version: 1.0.0-dev
 paths:
-  /transactions/{transaction_id}/insolvency-resources:
+  /transactions/{transaction_id}/insolvency:
     post:
       tags:
         - "Insolvency Resources"
@@ -32,36 +32,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/InsolvencyResource'
                 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}:
-    get:
-      tags:
-        - "Insolvency Resources"
-      parameters:
-        - in: path
-          name: transaction_id
-          required: true
-          description: The transaction unique reference
-          schema:
-            type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
-      security:
-        - oauth2: [submit_insolvency_data]
-      operationId: getInsolvencyResourceData
-      summary: Get insolvency data change resource
-      responses:
-        200:
-          description: The insolvency case data change resource.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InsolvencyResource'
-
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments:
+  /transactions/{transaction_id}/insolvency/attachments:
     post:
       tags:
         - "Attachments"
@@ -95,7 +66,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Attachment'
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}:
+  /transactions/{transaction_id}/insolvency/attachments/{attachment_id}:
     parameters:
       - in: path
         name: transaction_id
@@ -141,7 +112,7 @@ paths:
         204:
           description: The attachment was deleted
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}/download:
+  /transactions/{transaction_id}/insolvency/attachments/{attachment_id}/download:
     parameters:
       - in: path
         name: transaction_id
@@ -181,7 +152,7 @@ paths:
                 type: string
                 format: binary
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators:
+  /transactions/{transaction_id}/insolvency/liquidators:
     post:
       tags:
         - "Liquidator"
@@ -215,7 +186,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Liquidator'
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators/{liquidator_id}:
+  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}:
     get:
       tags:
         - "Liquidator"
@@ -282,7 +253,7 @@ paths:
         204:
           description: The liquidator was deleted
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statements-of-affairs:
+  /transactions/{transaction_id}/insolvency/statements-of-affairs:
     post:
       tags:
         - "Statement of Affairs"
@@ -316,7 +287,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/StatementOfAffairs'
 
-  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statements-of-affairs/{statement_id}:
     get:
       tags:
         - "Statement of Affairs"
