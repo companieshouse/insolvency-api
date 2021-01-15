@@ -292,6 +292,8 @@ components:
       properties:
         company_number:
           type: string
+        company_name:
+          type: string
         case_type:
           type: string
           enum:
