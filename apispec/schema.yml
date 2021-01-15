@@ -43,12 +43,6 @@ paths:
           description: The transaction unique reference
           schema:
             type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: submitFileAttachment
@@ -72,12 +66,6 @@ paths:
         name: transaction_id
         required: true
         description: The transaction unique reference
-        schema:
-          type: string
-      - in: path
-        name: insolvency_resource_id
-        required: true
-        description: The insolvency data change resource unique reference
         schema:
           type: string
       - in: path
@@ -121,12 +109,6 @@ paths:
         schema:
           type: string
       - in: path
-        name: insolvency_resource_id
-        required: true
-        description: The insolvency data change resource unique reference
-        schema:
-          type: string
-      - in: path
         name: attachment_id
         required: true
         description: The unique attachment id
@@ -163,12 +145,6 @@ paths:
           description: The transaction that this insolvency case is applied to
           schema:
             type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: createLiquidator
@@ -195,12 +171,6 @@ paths:
           name: transaction_id
           required: true
           description: The transaction that this insolvency case is applied to
-          schema:
-            type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
           schema:
             type: string
         - in: path
@@ -233,12 +203,6 @@ paths:
           schema:
             type: string
         - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
-        - in: path
           name: liquidator_id
           required: true
           description: The unique liquidator id
@@ -262,12 +226,6 @@ paths:
           name: transaction_id
           required: true
           description: The transaction unique reference
-          schema:
-            type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
           schema:
             type: string
       security:
@@ -297,18 +255,6 @@ paths:
           description: The transaction unique reference
           schema:
             type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
-        - in: path
-          name: statement_id
-          required: true
-          description: the id of the statement of affairs
-          schema:
-            type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: getStatementOfAffairs
@@ -329,18 +275,6 @@ paths:
           name: transaction_id
           required: true
           description: The transaction unique reference
-          schema:
-            type: string
-        - in: path
-          name: insolvency_resource_id
-          required: true
-          description: The insolvency data change resource unique reference
-          schema:
-            type: string
-        - in: path
-          name: statement_id
-          required: true
-          description: the id of the statement of affairs
           schema:
             type: string
       security:
@@ -388,7 +322,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}
+              example: /transactions/{transaction_id}/insolvency
             transaction:
               type: string
               format: uri
@@ -396,21 +330,21 @@ components:
             validation_status:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/validation-status
+              example: /transactions/{transaction_id}/insolvency/validation-status
         liquidators:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators/{liquidator_id}
+              example: /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}
         attachments:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}
+              example: /transactions/{transaction_id}/insolvency/attachments/{attachment_id}
     Address:
       type: object
       properties:
@@ -552,7 +486,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidator/{liquidator_id}
+              example: /transactions/{transaction_id}/insolvency/liquidator/{liquidator_id}
   
     StatementOfAffairsWritable:
       type: object
@@ -597,7 +531,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statement-of-affairs/{statement_id}
+              example: /transactions/{transaction_id}/insolvency/statement-of-affairs
   securitySchemes:
     oauth2:
       type: oauth2
