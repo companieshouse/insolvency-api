@@ -1,12 +1,67 @@
 openapi: 3.0.0
-
 info:
   title: Insolvency API
   description: API specification for submiting insolvency data
   version: 1.0.0-dev
-
 paths:
-  /transactions/{transaction_id}/insolvency/attachment:
+  /transactions/{transaction_id}/insolvency-resources:
+    post:
+      tags:
+        - "Insolvency Resources"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: createInsolvencyResource
+      summary: Create an insolvency data change resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsolvencyResourceWritable'
+      responses:
+        201:
+          description: The insolvency data change resource was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsolvencyResource'
+                
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}:
+    get:
+      tags:
+        - "Insolvency Resources"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getInsolvencyResourceData
+      summary: Get insolvency data change resource
+      responses:
+        200:
+          description: The insolvency case data change resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsolvencyResource'
+
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments:
     post:
       tags:
         - "Attachments"
@@ -17,6 +72,12 @@ paths:
           description: The transaction unique reference
           schema:
             type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: submitFileAttachment
@@ -25,22 +86,27 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/AttachmentRequest'
-
+              $ref: '#/components/schemas/AttachmentWritable'
       responses:
         200:
           description: The file was accepted for processing.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AttachmentResponse'
+                $ref: '#/components/schemas/Attachment'
 
-  /transactions/{transaction_id}/insolvency/attachment/{attachment_id}:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}:
     parameters:
       - in: path
         name: transaction_id
         required: true
         description: The transaction unique reference
+        schema:
+          type: string
+      - in: path
+        name: insolvency_resource_id
+        required: true
+        description: The insolvency data change resource unique reference
         schema:
           type: string
       - in: path
@@ -62,8 +128,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AttachmentResourceResponse'
-      
+                $ref: '#/components/schemas/Attachment'
+  
     delete:
       tags:
         - "Attachments"
@@ -72,15 +138,21 @@ paths:
       operationId: deleteAttachment
       summary: Delete an attachment from this transaction
       responses:
-        200:
+        204:
           description: The attachment was deleted
 
-  /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}/download:
     parameters:
       - in: path
         name: transaction_id
         required: true
         description: The transaction unique reference
+        schema:
+          type: string
+      - in: path
+        name: insolvency_resource_id
+        required: true
+        description: The insolvency data change resource unique reference
         schema:
           type: string
       - in: path
@@ -109,38 +181,44 @@ paths:
                 type: string
                 format: binary
 
-  /transactions/{transaction_id}/insolvency/liquidation/appointment:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators:
     post:
       tags:
-        - "Liquidation"
+        - "Liquidator"
       parameters:
         - in: path
           name: transaction_id
           required: true
           description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
           schema:
             type: string
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: appointLiquidator
-      summary: Appoint a liquidator to this case
+      operationId: createLiquidator
+      summary: Create a liquidator for this insolvency resource
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AppointLiquidatorRequest'
+              $ref: '#/components/schemas/LiquidatorWritable'
       responses:
         200:
-          description: Liquidator appointment request received
+          description: Liquidator created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AppointLiquidatorResponse'
+                $ref: '#/components/schemas/Liquidator'
 
-  /transactions/{transaction_id}/insolvency/liquidation/appointment/{id}:
-    delete:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators/{liquidator_id}:
+    get:
       tags:
-        - "Liquidation"
+        - "Liquidator"
       parameters:
         - in: path
           name: transaction_id
@@ -149,24 +227,65 @@ paths:
           schema:
             type: string
         - in: path
-          name: id
+          name: insolvency_resource_id
           required: true
-          description: The unique liquidator appointment id
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
+        - in: path
+          name: liquidator_id
+          required: true
+          description: The unique liquidator id
           schema:
             type: string
             format: uuid
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: deleteAppointment
-      summary: Delete the appointment of liquidator from this transaction
+      operationId: getLiquidator
+      summary: Get the liquidator resource
       responses:
         200:
-          description: The appointment was deleted
+          description: The liquidator resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Liquidator'
+          
+    delete:
+      tags:
+        - "Liquidator"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
+        - in: path
+          name: liquidator_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteLiquidator
+      summary: Delete the liquidator from this insolvency resource
+      responses:
+        204:
+          description: The liquidator was deleted
 
-  /transactions/{transaction_id}/insolvency/liquidation/statement-of-affairs:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statements-of-affairs:
     post:
       tags:
-        - "Liquidation"
+        - "Statement of Affairs"
       parameters:
         - in: path
           name: transaction_id
@@ -174,53 +293,230 @@ paths:
           description: The transaction unique reference
           schema:
             type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: statementOfAffairs
-      summary: Notice of statement of affairs
+      operationId: createStatementOfAffairs
+      summary: Create notice of statement of affairs
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/StatementOfAffairsRequest'
+              $ref: '#/components/schemas/StatementOfAffairsWritable'
       responses:
         200:
-          description: Statement of affairs submitted successfully
+          description: Statement of affairs created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/StatementOfAffairsResponse'
+                $ref: '#/components/schemas/StatementOfAffairs'
 
-  /transactions/{transaction_id}/insolvency/liquidation/statement-of-affairs/{statement_id}:
-    delete:
+  /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statements-of-affairs/{statement_id}:
+    get:
       tags:
-        - "Liquidation"
+        - "Statement of Affairs"
       parameters:
         - in: path
           name: transaction_id
           required: true
           description: The transaction unique reference
+          schema:
+            type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
           schema:
             type: string
         - in: path
           name: statement_id
           required: true
-          description: the id of the statement submitted in this transaction
+          description: the id of the statement of affairs
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getStatementOfAffairs
+      summary: Get the statement of affairs resource
+      responses:
+        200:
+          description: the statement of affairs resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatementOfAffairs'
+  
+    delete:
+      tags:
+        - "Statement of Affairs"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+        - in: path
+          name: insolvency_resource_id
+          required: true
+          description: The insolvency data change resource unique reference
+          schema:
+            type: string
+        - in: path
+          name: statement_id
+          required: true
+          description: the id of the statement of affairs
           schema:
             type: string
       security:
         - oauth2: [submit_insolvency_data]
       operationId: deleteStatementOfAffairs
-      summary: Delete the statement of affairs from this transaction
+      summary: Delete the statement of affairs resource
       responses:
-        200:
-          description: the statement of affairs and its attachments have been removed from this transaction
+        204:
+          description: the statement of affairs was deleted
       
 components:
   schemas:
-    Liquidator:
+    InsolvencyResourceWritable:
       type: object
       properties:
+        company_number:
+          type: string
+        case_type:
+          type: string
+          enum:
+            - members-voluntary-liquidation
+            - creditors-voluntary-liquidation
+    
+    InsolvencyResource:
+      type: object
+      properties:
+        company_number:
+          type: string
+        case_type:
+          type: string
+          enum:
+            - members-voluntary-liquidation
+            - creditors-voluntary-liquidation
+        etag:
+          type: string
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#insolvency-resource
+        company_name:
+          type: string
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}
+            transaction:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}
+            validation_status:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/validation-status
+        liquidators:
+          type: object
+          properties:
+            <key>:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidators/{liquidator_id}
+        attachments:
+          type: object
+          properties:
+            <key>:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/attachments/{attachment_id}
+    Address:
+      type: object
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        country:
+          type: string
+        locality:
+          type: string
+        region:
+          type: string
+        postal_code:
+          type: string
+  
+    AttachmentContextTypes:
+      type: string
+      enum:
+         - special-resolution
+         - statement-of-affairs-liquidator
+         - statement-of-affairs-director
+         - statement-of-concurrence
+    AttachmentWritable:
+      type: object
+      properties:
+        attachment_type:
+          $ref: '#/components/schemas/AttachmentContextTypes'
+        file:
+          type: string
+          format: binary
+    Attachment:
+      type: object
+      properties:
+        attachment_type:
+          $ref: '#/components/schemas/AttachmentContextTypes'
+        file:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Statement.pdf
+            size:
+              type: number
+              example: 1024
+            content_type:
+              type: string
+              example: application/pdf
+        etag:
+          type: string
+        kind:
+          type: string
+          example: insolvency-resources#attachment
+        status:
+          type: string
+          enum:
+            - submitted
+            - processed
+            - integrity-failed
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+            download:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
+    LiquidatorWritable:
+      type: object
+      properties:
+        appointed_on:
+          type: string
+          format: date
         ip_code:
           type: string
         name:
@@ -244,33 +540,57 @@ components:
             - administrative-receiver
             - practitioner
             - interim-liquidator
-
-    Address:
+  
+    Liquidator:
       type: object
       properties:
-        address_line_1:
+        appointed_on:
           type: string
-        address_line_2:
+          format: date
+        ip_code:
           type: string
-        country:
+        name:
           type: string
-        locality:
+        address:
+          type: object
+          $ref: '#/components/schemas/Address'
+        email:
           type: string
-        region:
+          format: email
+        telephone_number:
           type: string
-        postal_code:
+        role:
           type: string
-        
-
-    StatementOfAffairsRequest:
+          enum:
+            - final-liquidator
+            - receiver
+            - receiver-manager
+            - proposed-liquidator
+            - provisional-liquidator
+            - administrative-receiver
+            - practitioner
+            - interim-liquidator
+        etag:
+          type: string
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#liquidator
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/liquidator/{liquidator_id}
+  
+    StatementOfAffairsWritable:
       type: object
       properties:
         presenter:
           type: object
           properties:
             name:
-              type: string
-            company_name:
               type: string
             address:
               $ref: '#/components/schemas/Address'
@@ -279,137 +599,35 @@ components:
         statement_date:
           type: string
           format: date
-        liquidators:
-          type: array
-          minItems: 1
-          maxItems: 2
-          items:
-            $ref: '#/components/schemas/Liquidator'
-        attachments:
-          type: array
-          items:
-            type: string
-            format: uuid
-
-    StatementOfAffairsResponse:
-      type: object
-      properties:
-        statement_id:
-          type: string
-          format: uuid
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/statement-of-affairs/{statement_id}
   
-    AttachmentContextTypes:
-      type: string
-      enum:
-         - special-resolution
-         - statement-of-affairs-liquidator
-         - statement-of-affairs-director
-         - statement-of-concurrence
-
-    AttachmentRequest:
+    StatementOfAffairs:
       type: object
       properties:
-        attachment_type:
-          $ref: '#/components/schemas/AttachmentContextTypes'
-        file:
-          type: string
-          format: binary
-
-    AttachmentResponse:
-      type: object
-      properties:
-        attachment_id:
-          type: string
-          format: uuid
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
-
-    AttachmentResourceResponse:
-      type: object
-      properties:
-        etag:
-          type: string
-        kind:
-          type: string
-          example: insolvency#attachment
-        status:
-          type: string
-          enum:
-            - submitted
-            - processed
-            - integrity-failed
-        attachment_type:
-          $ref: '#/components/schemas/AttachmentContextTypes'
-        file:
+        presenter:
           type: object
           properties:
             name:
               type: string
-              example: Statement.pdf
-            size:
-              type: number
-              example: 1024
-            content_type:
+            address:
+              $ref: '#/components/schemas/Address'
+            telephone_number:
               type: string
-              example: application/pdf
-        links:
-          type: object
-          properties:
-            self:
-              type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
-            download:
-              type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
-
-    AppointLiquidatorRequest:
-      type: object
-      properties:
-        company_name:
-          type: string
-        case_type:
-          type: string
-          enum:
-            - members-voluntary-liquidation
-            - creditors-voluntary-liquidation
-        appointed_on:
+        statement_date:
           type: string
           format: date
-        liquidators:
-          type: array
-          minItems: 1
-          maxItems: 2
-          items:
-            $ref: '#/components/schemas/Liquidator'
-
-    AppointLiquidatorResponse:
-      type: object
-      properties:
-        id:
+        etag:
           type: string
-          format: uuid
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#statement-of-affairs
         links:
           type: object
           properties:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{id}
-  
+              example: /transactions/{transaction_id}/insolvency-resources/{insolvency_resource_id}/statement-of-affairs/{statement_id}
   securitySchemes:
     oauth2:
       type: oauth2
