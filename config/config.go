@@ -10,7 +10,8 @@ var cfg *Config
 var mtx sync.Mutex
 
 type Config struct {
-	BindAddr string `env:"BIND_ADDR" flag:"bind-addr" flagDesc:"Bind address"`
+	BindAddr string   `env:"BIND_ADDR" flag:"bind-addr" flagDesc:"Bind address"`
+  CHSURL   string   `env:"CHS_URL"   flag:"chs-url"   flagDesc:"CHS URL"`
 }
 
 func Get() (*Config, error) {
