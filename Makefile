@@ -57,10 +57,3 @@ xunit-tests: GO111MODULE = off
 xunit-tests:
 	go get github.com/tebeka/go2xunit
 	@set -a; go test -v $(TESTS) -run 'Unit' | go2xunit -output $(xunit_output)
-
-.PHONY: lint
-lint: GO111MODULE = off
-lint:
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install
-	gometalinter ./... > $(lint_output); true
