@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/companieshouse/chs.go/log"
-	"github.com/companieshouse/insolvency-api/config"
-	"github.com/companieshouse/insolvency-api/handlers"
-	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/config"
+	"github.com/companieshouse/insolvency-api/handlers"
+	"github.com/gorilla/mux"
 )
 
 func main() {
