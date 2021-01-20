@@ -1,6 +1,22 @@
+# Build artifacts
+insolvency-api
+insolvency-api-*.zip
+build.log
+
+#VS Code files
 /.vscode/*
 !/.vscode/settings.json
 
-.idea
+# Test output
+test.xml
+
+# Lint output
+lint.txt
+
+# GoLand files
+.idea/
 *.iml
+
+# Mac files
 .DS_Store
+._*
