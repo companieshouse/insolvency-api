@@ -1,6 +1,8 @@
+---
 app_name: insolvency.api
 group: internalapi
-# XXX Make sure all services with /transaction/ based routes have a weight LOWER than 1000
+# XXX Make sure all services with /transaction/ based routes have a weight
+# LOWER than 1000
 weight: 900
 routes:
   1: ^/insolvency.*
