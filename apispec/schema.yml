@@ -134,10 +134,10 @@ paths:
                 type: string
                 format: binary
 
-  /transactions/{transaction_id}/insolvency/liquidators:
+  /transactions/{transaction_id}/insolvency/practitioners:
     post:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       parameters:
         - in: path
           name: transaction_id
@@ -147,25 +147,25 @@ paths:
             type: string
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: createLiquidator
-      summary: Create a liquidator for this insolvency resource
+      operationId: createPractitioner
+      summary: Create a practitioner for this insolvency resource
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LiquidatorWritable'
+              $ref: '#/components/schemas/PractitionerWritable'
       responses:
         200:
-          description: Liquidator created
+          description: Practitioner created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Liquidator'
+                $ref: '#/components/schemas/Practitioner'
 
-  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}:
+  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}:
     get:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       parameters:
         - in: path
           name: transaction_id
@@ -174,27 +174,27 @@ paths:
           schema:
             type: string
         - in: path
-          name: liquidator_id
+          name: practitioner_id
           required: true
-          description: The unique liquidator id
+          description: The unique practitioner id
           schema:
             type: string
             format: uuid
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: getLiquidator
-      summary: Get the liquidator resource
+      operationId: getPractitioner
+      summary: Get the practitioner resource
       responses:
         200:
-          description: The liquidator resource
+          description: The practitioner resource
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Liquidator'
+                $ref: '#/components/schemas/Practitioner'
           
     delete:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       parameters:
         - in: path
           name: transaction_id
@@ -203,24 +203,24 @@ paths:
           schema:
             type: string
         - in: path
-          name: liquidator_id
+          name: practitioner_id
           required: true
-          description: The unique liquidator id
+          description: The unique practitioner id
           schema:
             type: string
             format: uuid
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: deleteLiquidator
-      summary: Delete the liquidator from this insolvency resource
+      operationId: deletePractitioner
+      summary: Delete the practitioner from this insolvency resource
       responses:
         204:
-          description: The liquidator was deleted
+          description: The practitioner was deleted
 
-  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment:
+  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment:
     post:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       parameters:
         - in: path
           name: transaction_id
@@ -229,22 +229,29 @@ paths:
           schema:
             type: string
         - in: path
-          name: liquidator_id
+          name: practitioner_id
           required: true
-          description: The unique liquidator id
+          description: The unique practitioner id
           schema:
             type: string
             format: uuid 
       security:
         - oauth2: [submit_insolvency_data]
-      operationId: createLiquidatorAppointment
-      summary: Appoint the liquidator
+      operationId: createPractitionerAppointment
+      summary: Appoint the practitioner
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
+                email:
+                  type: string
+                  format: email
+                telephone_number:
+                  type: string
+                ip_code:
+                  type: string
                 appointed_on:
                   type: string
                   format: date
@@ -255,13 +262,13 @@ paths:
                     - creditors
       responses:
         200:
-          description: Liquidator appointment
+          description: Practitioner appointment
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LiquidatorAppointment'
+                $ref: '#/components/schemas/PractitionerAppointment'
 
-  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment/{appointment_id}:
+  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment/{appointment_id}:
     parameters:
       - in: path
         name: transaction_id
@@ -270,7 +277,7 @@ paths:
         schema:
           type: string
       - in: path
-        name: liquidator_id
+        name: practitioner_id
         required: true
         description: The unique liquidator id
         schema:
@@ -285,7 +292,7 @@ paths:
           format: uuid
     get:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       security:
         - oauth2: [submit_insolvency_data]
       operationId: getAppointment
@@ -296,10 +303,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LiquidatorAppointment'
+                $ref: '#/components/schemas/PractitionerAppointment'
     delete:
       tags:
-        - "Liquidator"
+        - "Practitioner"
       security:
         - oauth2: [submit_insolvency_data]
       operationId: deleteAppointment
@@ -400,6 +407,11 @@ paths:
                 date_of_resolution:
                   type: string
                   format: date
+                attachments:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         200:
           description: The resolution details was sent successfully
@@ -468,7 +480,7 @@ components:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}
+              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}
         attachments:
           type: object
           properties:
@@ -495,7 +507,7 @@ components:
     AttachmentContextTypes:
       type: string
       enum:
-         - special-resolution
+         - resolution
          - statement-of-affairs-liquidator
          - statement-of-affairs-director
          - statement-of-concurrence
@@ -546,21 +558,14 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
-    LiquidatorWritable:
+    PractitionerWritable:
       type: object
       properties:
-        ip_code:
-          type: string
         name:
           type: string
         address:
           type: object
           $ref: '#/components/schemas/Address'
-        email:
-          type: string
-          format: email
-        telephone_number:
-          type: string
         role:
           type: string
           enum:
@@ -573,7 +578,7 @@ components:
             - practitioner
             - interim-liquidator
   
-    Liquidator:
+    Practitioner:
       type: object
       properties:
         appointed_on:
@@ -614,11 +619,16 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{liquidator_id}
+              example: /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
 
-    LiquidatorAppointment:
+    PractitionerAppointment:
       type: object
       properties:
+        email:
+          type: string
+          format: email
+        telephone_number:
+          type: string
         appointed_on:
           type: string
           format: date
@@ -633,7 +643,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment/{appointment_id}
+              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment/{appointment_id}
   
     StatementOfAffairsWritable:
       type: object
@@ -642,17 +652,10 @@ components:
           type: string
           format: date
         attachments:
-          type: object
-          properties:
-            by_liquidator:
-              type: string
-              format: uuid
-            by_director:
-              type: string
-              format: uuid
-            of_concurrence:
-              type: string
-              format: uuid
+          type: array
+          items:
+            type: string
+            format: uuid
   
     StatementOfAffairs:
       type: object
