@@ -638,31 +638,25 @@ components:
     StatementOfAffairsWritable:
       type: object
       properties:
-        presenter:
-          type: object
-          properties:
-            name:
-              type: string
-            address:
-              $ref: '#/components/schemas/Address'
-            telephone_number:
-              type: string
         statement_date:
           type: string
           format: date
+        attachments:
+          type: object
+          properties:
+            by_liquidator:
+              type: string
+              format: uuid
+            by_director:
+              type: string
+              format: uuid
+            of_concurrence:
+              type: string
+              format: uuid
   
     StatementOfAffairs:
       type: object
       properties:
-        presenter:
-          type: object
-          properties:
-            name:
-              type: string
-            address:
-              $ref: '#/components/schemas/Address'
-            telephone_number:
-              type: string
         statement_date:
           type: string
           format: date
