@@ -217,6 +217,97 @@ paths:
         204:
           description: The liquidator was deleted
 
+  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment:
+    post:
+      tags:
+        - "Liquidator"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: liquidator_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid 
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: createLiquidatorAppointment
+      summary: Appoint the liquidator
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointed_on:
+                  type: string
+                  format: date
+                made_by:
+                  type: string
+                  enum:
+                    - company
+                    - creditors
+      responses:
+        200:
+          description: Liquidator appointment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiquidatorAppointment'
+
+  /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment/{appointment_id}:
+    parameters:
+      - in: path
+        name: transaction_id
+        required: true
+        description: The transaction that this insolvency case is applied to
+        schema:
+          type: string
+      - in: path
+        name: liquidator_id
+        required: true
+        description: The unique liquidator id
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: appointment_id
+        required: true
+        description: The unique appointment id
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - "Liquidator"
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getAppointment
+      summary: Get the appointment details
+      responses:
+        200:
+          description: The appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiquidatorAppointment'
+    delete:
+      tags:
+        - "Liquidator"
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteAppointment
+      summary: Delete the appointment resource
+      responses:
+        200:
+          description: The appointment was deleted from this transaction
+
   /transactions/{transaction_id}/insolvency/statements-of-affairs:
     post:
       tags:
@@ -284,6 +375,44 @@ paths:
       responses:
         204:
           description: the statement of affairs was deleted
+
+  /transactions/{transaction_id}/insolvency/resolution:
+    parameters:
+      - in: path
+        name: transaction_id
+        required: true
+        description: The transaction unique reference
+        schema:
+          type: string
+    post:
+      tags:
+        - "Resolution"
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: sendResolution
+      summary: Send details about a resolution
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date_of_resolution:
+                  type: string
+                  format: date
+      responses:
+        200:
+          description: The resolution details was sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date_of_resolution:
+                    type: string
+                    format: date
+      
+
       
 components:
   schemas:
@@ -420,9 +549,6 @@ components:
     LiquidatorWritable:
       type: object
       properties:
-        appointed_on:
-          type: string
-          format: date
         ip_code:
           type: string
         name:
@@ -489,6 +615,25 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/liquidator/{liquidator_id}
+
+    LiquidatorAppointment:
+      type: object
+      properties:
+        appointed_on:
+          type: string
+          format: date
+        made_by:
+          type: string
+          enum:
+            - company
+            - creditors
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/liquidators/{liquidator_id}/appointment/{appointment_id}
   
     StatementOfAffairsWritable:
       type: object
