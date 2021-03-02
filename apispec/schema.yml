@@ -250,8 +250,6 @@ paths:
                   format: email
                 telephone_number:
                   type: string
-                ip_code:
-                  type: string
                 appointed_on:
                   type: string
                   format: date
@@ -561,7 +559,11 @@ components:
     PractitionerWritable:
       type: object
       properties:
-        name:
+        first_name:
+          type: string
+        last_name:
+          type: string
+        ip_code:
           type: string
         address:
           type: object
@@ -586,7 +588,9 @@ components:
           format: date
         ip_code:
           type: string
-        name:
+        first_name:
+          type: string
+        last_name:
           type: string
         address:
           type: object
