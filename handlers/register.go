@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"github.com/companieshouse/insolvency-api/dao"
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
@@ -9,8 +10,11 @@ import (
 )
 
 // Register defines the endpoints for the API
-func Register(mainRouter *mux.Router) {
-	mainRouter.HandleFunc("/insolvency-service/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
+func Register(mainRouter *mux.Router, svc dao.Service) {
+
+	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
+
+	mainRouter.Handle("/transactions/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
 	mainRouter.Use(log.Handler)
 }
 

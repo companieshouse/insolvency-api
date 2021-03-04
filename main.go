@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/companieshouse/insolvency-api/dao"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,7 +30,10 @@ func main() {
 	// Create router
 	mainRouter := mux.NewRouter()
 
-	handlers.Register(mainRouter)
+	// Create DAO service with database information
+	svc := dao.NewDAOService(cfg)
+
+	handlers.Register(mainRouter, svc)
 
 	log.Info("Starting " + namespace)
 
