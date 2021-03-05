@@ -7,11 +7,6 @@ import (
 	"net/http"
 )
 
-// WriteJSON writes the interface as a json string with status of 200.
-func WriteJSON(w http.ResponseWriter, r *http.Request, data interface{}) {
-	WriteJSONWithStatus(w, r, data, http.StatusOK)
-}
-
 // WriteJSONWithStatus writes the interface as a json string with the supplied status.
 func WriteJSONWithStatus(w http.ResponseWriter, r *http.Request, data interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json")

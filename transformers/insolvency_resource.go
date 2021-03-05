@@ -23,11 +23,13 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 	validationLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/validation-status")
 
 	dao := &models.InsolvencyResourceDao{
-		CompanyNumber: req.CompanyNumber,
-		CaseType:      req.CaseType,
+		Data: models.InsolvencyResourceDaoData{
+      CompanyNumber: req.CompanyNumber,
+      CaseType:      req.CaseType,
+      CompanyName:   req.CompanyName,
+    },
 		Etag:          etag,
 		Kind:          kind,
-		CompanyName:   req.CompanyName,
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             selfLink,
 			Transaction:      transactionLink,
@@ -42,11 +44,11 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 // a http response entity
 func InsolvencyResourceDaoToCreatedResponse(model *models.InsolvencyResourceDao) *models.CreatedInsolvencyResource {
 	return &models.CreatedInsolvencyResource{
-		CompanyNumber: model.CompanyNumber,
-		CaseType:      model.CaseType,
+		CompanyNumber: model.Data.CompanyNumber,
+		CaseType:      model.Data.CaseType,
 		Etag:          model.Etag,
 		Kind:          model.Kind,
-		CompanyName:   model.CompanyName,
+		CompanyName:   model.Data.CompanyName,
 		Links: models.CreatedInsolvencyResourceLinks{
 			Self:             model.Links.Self,
 			Transaction:      model.Links.Transaction,

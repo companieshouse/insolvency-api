@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 // CreatedInsolvencyResource is the entity returned in a successful creation of an insolvency resource
 type CreatedInsolvencyResource struct {
 	CompanyNumber string                         `json:"company_number"`
@@ -14,6 +10,7 @@ type CreatedInsolvencyResource struct {
 	Links         CreatedInsolvencyResourceLinks `json:"links"`
 }
 
+// CreatedInsolvencyResourceLinks contains the links for the created insolvency resource
 type CreatedInsolvencyResourceLinks struct {
 	Self             string `json:"self"`
 	Transaction      string `json:"transaction"`
@@ -23,15 +20,9 @@ type CreatedInsolvencyResourceLinks struct {
 // ResponseResource is the object returned in an error case
 type ResponseResource struct {
 	Message            string    `json:"message"`
-	MaintenanceEndTime time.Time `json:"maintenance_end_time"`
 }
 
 // NewMessageResponse - convenience function for creating a response resource
 func NewMessageResponse(message string) *ResponseResource {
 	return &ResponseResource{Message: message}
-}
-
-// NewMessageTimeResponse - convenience function for creating a response resource with a time value
-func NewMessageTimeResponse(message string, t time.Time) *ResponseResource {
-	return &ResponseResource{Message: message, MaintenanceEndTime: t}
 }

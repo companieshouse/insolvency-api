@@ -23,7 +23,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		transactionID, err := utils.GetTransactionIDFromVars(vars)
 		if err != nil {
 			log.ErrorR(req, err)
-			m := models.NewMessageResponse("company number is not in request context")
+			m := models.NewMessageResponse("transaction id is not in the url path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -63,6 +63,6 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 
 		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
 
-		//TODO: Update transaction API with new insolvency resource
+		// TODO: Update transaction API with new insolvency resource
 	})
 }
