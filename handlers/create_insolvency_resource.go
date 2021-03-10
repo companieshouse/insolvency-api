@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -10,7 +12,6 @@ import (
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 // HandleCreateInsolvencyResource creates an insolvency resource
@@ -35,7 +36,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		// Request body failed to get decoded
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("invalid request"))
-			m := models.NewMessageResponse("failed to read request body")
+			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -45,7 +46,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		// Check case type of incoming request is CVL
 		if !(request.CaseType == constants.CVL.String()) {
 			log.ErrorR(req, fmt.Errorf("only creditors-voluntary-liquidation can be filed"))
-			m := models.NewMessageResponse("case type is not creditors-voluntary-liquidation")
+			m := models.NewMessageResponse(fmt.Sprintf("case type is not creditors-voluntary-liquidation for transaction %s", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -55,8 +56,8 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 
 		err = svc.CreateInsolvencyResource(model)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to create payable request in database"))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database"))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}

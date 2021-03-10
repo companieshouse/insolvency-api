@@ -2,6 +2,7 @@ package transformers
 
 import (
 	"fmt"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
@@ -24,12 +25,12 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 
 	dao := &models.InsolvencyResourceDao{
 		Data: models.InsolvencyResourceDaoData{
-      CompanyNumber: req.CompanyNumber,
-      CaseType:      req.CaseType,
-      CompanyName:   req.CompanyName,
-    },
-		Etag:          etag,
-		Kind:          kind,
+			CompanyNumber: req.CompanyNumber,
+			CaseType:      req.CaseType,
+			CompanyName:   req.CompanyName,
+		},
+		Etag: etag,
+		Kind: kind,
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             selfLink,
 			Transaction:      transactionLink,

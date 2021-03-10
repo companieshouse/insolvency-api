@@ -3,13 +3,14 @@ package dao
 import (
 	"context"
 	"errors"
+	"os"
+	"time"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"os"
-	"time"
 )
 
 var client *mongo.Client
@@ -60,7 +61,7 @@ func getMongoDatabase(mongoDBURL, databaseName string) MongoDatabaseInterface {
 	return getMongoClient(mongoDBURL).Database(databaseName)
 }
 
-// CreateInsolvencyResource will store the payable request into the database
+// CreateInsolvencyResource will store the insolvency request into the database
 func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) error {
 
 	dao.ID = primitive.NewObjectID()

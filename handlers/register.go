@@ -2,8 +2,9 @@
 package handlers
 
 import (
-	"github.com/companieshouse/insolvency-api/dao"
 	"net/http"
+
+	"github.com/companieshouse/insolvency-api/dao"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/gorilla/mux"

@@ -3,8 +3,9 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/companieshouse/chs.go/log"
 	"net/http"
+
+	"github.com/companieshouse/chs.go/log"
 )
 
 // WriteJSONWithStatus writes the interface as a json string with the supplied status.
