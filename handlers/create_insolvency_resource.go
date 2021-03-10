@@ -12,12 +12,12 @@ import (
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // HandleCreateInsolvencyResource creates an insolvency resource
 func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		log.InfoR(req, "start POST request for insolvency resource")
 
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
@@ -29,6 +29,8 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
+		log.InfoR(req, fmt.Sprintf("start POST request for insolvency resource with transaction id: %s", transactionID))
+
 		// Decode the incoming request to create an insolvency resource
 		var request models.InsolvencyRequest
 		err = json.NewDecoder(req.Body).Decode(&request)
@@ -37,6 +39,15 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("invalid request"))
 			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check all required fields are populated
+		v := validator.New()
+		if v.Struct(request) != nil {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation"))
+			m := models.NewMessageResponse("invalid request body")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -61,6 +72,8 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
+
+		log.InfoR(req, fmt.Sprintf("successfully added insolvency resource with transaction ID: %s, to mongo", transactionID))
 
 		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
 
