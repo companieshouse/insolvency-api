@@ -5,4 +5,6 @@ group: api
 # LOWER than 1000
 weight: 900
 routes:
-  1: ^/insolvency.*
+  1: ^/transactions/(.*)/insolvency
+  2: ^/transactions/(.*)/insolvency.*
+  3: ^/insolvency.*

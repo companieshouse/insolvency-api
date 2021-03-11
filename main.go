@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/companieshouse/insolvency-api/dao"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/config"
 	"github.com/companieshouse/insolvency-api/handlers"
@@ -29,7 +31,10 @@ func main() {
 	// Create router
 	mainRouter := mux.NewRouter()
 
-	handlers.Register(mainRouter)
+	// Create DAO service with database information
+	svc := dao.NewDAOService(cfg)
+
+	handlers.Register(mainRouter, svc)
 
 	log.Info("Starting " + namespace)
 
