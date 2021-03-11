@@ -19,12 +19,12 @@ func WriteJSONWithStatus(w http.ResponseWriter, r *http.Request, data interface{
 }
 
 // GetTransactionIDFromVars returns the transaction id from the supplied request vars.
-func GetTransactionIDFromVars(vars map[string]string) (string, error) {
+func GetTransactionIDFromVars(vars map[string]string) string {
 
 	transactionID := vars["transaction_id"]
 	if transactionID == "" {
-		return "", fmt.Errorf("transaction id not supplied")
+		return ""
 	}
 
-	return transactionID, nil
+	return transactionID
 }

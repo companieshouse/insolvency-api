@@ -21,9 +21,9 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
-		transactionID, err := utils.GetTransactionIDFromVars(vars)
-		if err != nil {
-			log.ErrorR(req, err)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
 			m := models.NewMessageResponse("transaction id is not in the url path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
@@ -33,7 +33,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 
 		// Decode the incoming request to create an insolvency resource
 		var request models.InsolvencyRequest
-		err = json.NewDecoder(req.Body).Decode(&request)
+		err := json.NewDecoder(req.Body).Decode(&request)
 
 		// Request body failed to get decoded
 		if err != nil {
