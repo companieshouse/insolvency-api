@@ -80,3 +80,31 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		// TODO: Update transaction API with new insolvency resource
 	})
 }
+
+func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
+			m := models.NewMessageResponse("transaction id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start POST request for practitioners resource with transaction id: %s", transactionID))
+
+		// Decode the incoming request to create a list of practitioners
+		var request []models.PractitionerRequest
+		err := json.NewDecoder(req.Body).Decode(&request)
+
+		// Request body failed to get decoded
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("invalid request"))
+			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+	})
+}
