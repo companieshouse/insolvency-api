@@ -81,6 +81,8 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleCreatePractitionersResource updates the insolvency resource with the
+// incoming list of practitioners
 func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Check for a transaction id in request
@@ -106,5 +108,60 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
+
+		var daoList []models.PractitionerResourceDao
+
+		for _, practitioner := range request {
+			// Check all required fields are populated
+			v := validator.New()
+			if v.Struct(practitioner) != nil {
+				log.ErrorR(req, fmt.Errorf("invalid request - failed validation"))
+				m := models.NewMessageResponse("invalid request body")
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			}
+
+			// Check if practitioner role supplied is valid
+			if ok := constants.IsInRoleList(practitioner.Role); !ok {
+				log.ErrorR(req, fmt.Errorf("invalid practitioner role"))
+				m := models.NewMessageResponse(fmt.Sprintf("the practitioner role supplied is not valid %s", practitioner.Role))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			}
+
+			practitionerDao := transformers.PractitionerResourceRequestToDB(&practitioner, transactionID)
+			daoList = append(daoList, *practitionerDao)
+		}
+
+		// Store practitioner resources in Mongo
+		err = svc.CreatePractitionersResource(daoList, transactionID)
+		if err != nil {
+			switch err {
+			case dao.ErrorNotFound:
+				log.ErrorR(req, fmt.Errorf("failed to create practitioner resource in database - transaction %s not found", transactionID))
+				m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s not found", transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+				return
+			case dao.ErrorPractitionerLimitReached:
+				log.ErrorR(req, fmt.Errorf("failed to create practitioner resource in database - transaction %s already has 5 practitioners", transactionID))
+				m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			case dao.ErrorPractitionerLimitWillExceed:
+				log.ErrorR(req, fmt.Errorf("failed to create practitioner resource in database - transaction %s will have more than 5 practitioners", transactionID))
+				m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			default:
+				log.ErrorR(req, fmt.Errorf("failed to create practitioner resource in database"))
+				m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s", transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+				return
+			}
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully added practitioners resource with transaction ID: %s, to mongo", transactionID))
+
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoListToCreatedResponseList(daoList), http.StatusCreated)
 	})
 }
