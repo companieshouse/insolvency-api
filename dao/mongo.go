@@ -115,7 +115,7 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 	// Check if there are already 5 practitioners in database
 	if len(insolvencyResource.Data.Practitioners) == 5 {
 		ErrorPractitionerLimitReached = fmt.Errorf(fmt.Sprintf("insolvency case with transactionID %s has reached the max capacity of 5 practitioners", transactionID))
-		log.Error(err)
+		log.Error(ErrorPractitionerLimitReached)
 		return ErrorPractitionerLimitReached
 	}
 
@@ -123,7 +123,7 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 	// is greater than 5
 	if len(insolvencyResource.Data.Practitioners)+len(dao) > 5 {
 		ErrorPractitionerLimitWillExceed = fmt.Errorf(fmt.Sprintf("insolvency case with transactionID %s will exceed the max capacity of 5 practitioners", transactionID))
-		log.Error(err)
+		log.Error(ErrorPractitionerLimitWillExceed)
 		return ErrorPractitionerLimitWillExceed
 	}
 
