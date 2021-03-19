@@ -133,7 +133,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			daoList = append(daoList, *practitionerDao)
 		}
 
-		// Store practitioner resources in Mongo
+		// Store practitioners resource in Mongo
 		err = svc.CreatePractitionersResource(daoList, transactionID)
 		if err != nil {
 			switch err {
