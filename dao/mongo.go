@@ -89,42 +89,36 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
-	id, err := primitive.ObjectIDFromHex(transactionID)
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	storedInsolvency := collection.FindOne(context.Background(), bson.M{"_id": id})
-	err = storedInsolvency.Err()
+	storedInsolvency := collection.FindOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID})
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return fmt.Errorf("no insolvency resource found for transaction id"), http.StatusNotFound
+			return fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID), http.StatusNotFound
 		}
 		log.Error(err)
-		return err
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
 	}
 
 	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return err
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
 	}
 
 	// Check if there are already 5 practitioners in database
 	if len(insolvencyResource.Data.Practitioners) == 5 {
-		ErrorPractitionerLimitReached = fmt.Errorf(fmt.Sprintf("insolvency case with transactionID %s has reached the max capacity of 5 practitioners", transactionID))
-		log.Error(ErrorPractitionerLimitReached)
-		return ErrorPractitionerLimitReached
+		err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
+		log.Error(err)
+		return err, http.StatusBadRequest
 	}
 
 	// Check if number of stored practitioners + number of incoming practitioners
 	// is greater than 5
 	if len(insolvencyResource.Data.Practitioners)+len(dao) > 5 {
-		ErrorPractitionerLimitWillExceed = fmt.Errorf(fmt.Sprintf("insolvency case with transactionID %s will exceed the max capacity of 5 practitioners", transactionID))
-		log.Error(ErrorPractitionerLimitWillExceed)
-		return ErrorPractitionerLimitWillExceed
+		err = fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)
+		log.Error(err)
+		return err, http.StatusBadRequest
 	}
 
 	insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners, dao...)
@@ -133,11 +127,11 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 		"$set": insolvencyResource,
 	}
 
-	_, err = collection.UpdateOne(context.Background(), bson.M{"_id": id}, update)
+	_, err = collection.UpdateOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID}, update)
 	if err != nil {
 		log.Error(err)
-		return err
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
 	}
 
-	return nil
+	return nil, http.StatusCreated
 }
