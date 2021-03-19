@@ -428,7 +428,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(dao.ErrorNotFound).Times(1)
+		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("no insolvency resource found for transaction id"), http.StatusNotFound).Times(1)
 
 		body, _ := json.Marshal([]models.PractitionerRequest{
 			{

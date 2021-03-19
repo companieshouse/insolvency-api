@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -84,7 +85,7 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
-func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) error {
+func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
@@ -98,9 +99,8 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 	err = storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			ErrorNotFound = fmt.Errorf(fmt.Sprintf("insolvency case with transactionID %s not found", transactionID))
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return ErrorNotFound
+			return fmt.Errorf("no insolvency resource found for transaction id"), http.StatusNotFound
 		}
 		log.Error(err)
 		return err

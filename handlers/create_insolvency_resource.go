@@ -134,10 +134,10 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		}
 
 		// Store practitioners resource in Mongo
-		err = svc.CreatePractitionersResource(daoList, transactionID)
+		err, statusCode := svc.CreatePractitionersResource(daoList, transactionID)
 		if err != nil {
-			switch err {
-			case dao.ErrorNotFound:
+			switch statusCode {
+			case http.StatusNotFound:
 				log.ErrorR(req, fmt.Errorf("failed to create practitioner resource in database - transaction %s not found", transactionID))
 				m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s not found", transactionID))
 				utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
