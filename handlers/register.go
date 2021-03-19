@@ -4,6 +4,8 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/companieshouse/chs.go/authentication"
+
 	"github.com/companieshouse/insolvency-api/dao"
 
 	"github.com/companieshouse/chs.go/log"
@@ -13,9 +15,20 @@ import (
 // Register defines the endpoints for the API
 func Register(mainRouter *mux.Router, svc dao.Service) {
 
+	userAuthInterceptor := &authentication.UserAuthenticationInterceptor{
+		AllowAPIKeyUser:                true,
+		RequireElevatedAPIKeyPrivilege: false,
+	}
+
 	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
 
-	mainRouter.Handle("/transactions/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	// Create a router that requires all users to be authenticated when making requests
+	appRouter := mainRouter.PathPrefix("/transactions/{transaction_id}/insolvency").Subrouter()
+	appRouter.Use(userAuthInterceptor.UserAuthenticationIntercept)
+
+	// Declare endpoint URIs
+	appRouter.Handle("", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+
 	mainRouter.Use(log.Handler)
 }
 

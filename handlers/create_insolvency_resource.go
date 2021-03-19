@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/companieshouse/insolvency-api/service"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -53,6 +55,12 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		}
 
 		// TODO: Check company exists with company profile API
+		_, err, httpStatus := service.CheckCompanyInsolvencyValid(request.CompanyNumber, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error getting company name: [%v]", err))
+			w.WriteHeader(httpStatus)
+			return
+		}
 
 		// Check case type of incoming request is CVL
 		if !(request.CaseType == constants.CVL.String()) {
