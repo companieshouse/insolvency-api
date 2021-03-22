@@ -123,6 +123,17 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 		return err, http.StatusBadRequest
 	}
 
+	// Check if practitioner is already assigned to this case
+	for _, storedPractitioner := range insolvencyResource.Data.Practitioners {
+		for _, practitioner := range dao {
+			if practitioner.IPCode == storedPractitioner.IPCode {
+				err = fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitioner.IPCode)
+				log.Error(err)
+				return err, http.StatusBadRequest
+			}
+		}
+	}
+
 	insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners, dao...)
 
 	update := bson.M{
