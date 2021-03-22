@@ -11,8 +11,8 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 // HandleCreatePractitionersResource updates the insolvency resource with the
@@ -45,9 +45,9 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 
 		var daoList []models.PractitionerResourceDao
 
+		v := validator.New()
 		for _, practitioner := range request {
 			// Check all required fields are populated
-			v := validator.New()
 			if v.Struct(practitioner) != nil {
 				log.ErrorR(req, fmt.Errorf("invalid request - failed validation"))
 				m := models.NewMessageResponse("invalid request body")
