@@ -17,6 +17,25 @@ type CreatedInsolvencyResourceLinks struct {
 	ValidationStatus string `json:"validation_status"`
 }
 
+// CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
+type CreatedPractitionerResource struct {
+	IPCode    string                 `json:"ip_code"`
+	FirstName string                 `json:"first_name"`
+	LastName  string                 `json:"last_name"`
+	Address   CreatedAddressResource `json:"address"`
+	Role      string                 `json:"role"`
+}
+
+// CreatedAddressResource contains the address fields for the created practitioner resource
+type CreatedAddressResource struct {
+	AddressLine1 string `json:"address_line_1"`
+	AddressLine2 string `json:"address_line_2"`
+	Country      string `json:"country"`
+	Locality     string `json:"locality"`
+	Region       string `json:"region"`
+	PostalCode   string `json:"postal_code"`
+}
+
 // ResponseResource is the object returned in an error case
 type ResponseResource struct {
 	Message string `json:"message"`

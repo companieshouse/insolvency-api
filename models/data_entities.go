@@ -13,9 +13,10 @@ type InsolvencyResourceDao struct {
 
 // InsolvencyResourceDaoData contains the data for the insolvency resource in Mongo
 type InsolvencyResourceDaoData struct {
-	CompanyNumber string `bson:"company_number"`
-	CaseType      string `bson:"case_type"`
-	CompanyName   string `bson:"company_name"`
+	CompanyNumber string                    `bson:"company_number"`
+	CaseType      string                    `bson:"case_type"`
+	CompanyName   string                    `bson:"company_name"`
+	Practitioners []PractitionerResourceDao `bson:"practitioners"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
@@ -23,4 +24,23 @@ type InsolvencyResourceLinksDao struct {
 	Self             string `bson:"self"`
 	Transaction      string `bson:"transaction"`
 	ValidationStatus string `bson:"validation_status"`
+}
+
+// PractitionerResourceDao contains the data for for the practitioner resource in Mongo
+type PractitionerResourceDao struct {
+	IPCode    string             `bson:"ip_code"`
+	FirstName string             `bson:"first_name"`
+	LastName  string             `bson:"last_name"`
+	Address   AddressResourceDao `bson:"address"`
+	Role      string             `bson:"role"`
+}
+
+// AddressResourceDao contains the data for any addresses in Mongo
+type AddressResourceDao struct {
+	AddressLine1 string `bson:"address_line_1"`
+	AddressLine2 string `bson:"address_line_2"`
+	Country      string `bson:"country"`
+	Locality     string `bson:"locality"`
+	Region       string `bson:"region"`
+	PostalCode   string `bson:"postal_code"`
 }

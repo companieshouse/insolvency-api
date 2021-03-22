@@ -3,17 +3,26 @@ package dao
 import (
 	"context"
 	"errors"
+	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 var client *mongo.Client
+
+var (
+	ErrorNotFound                    error
+	ErrorPractitionerLimitReached    error
+	ErrorPractitionerLimitWillExceed error
+)
 
 func getMongoClient(mongoDBURL string) *mongo.Client {
 	if client != nil {
@@ -74,4 +83,68 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	}
 
 	return nil
+}
+
+func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) (error, int) {
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	storedInsolvency := collection.FindOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID})
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
+			return fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID), http.StatusNotFound
+		}
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
+	}
+
+	err = storedInsolvency.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
+	}
+
+	maxPractitioners := 5
+
+	// Check if there are already 5 practitioners in database
+	if len(insolvencyResource.Data.Practitioners) == maxPractitioners {
+		err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
+		log.Error(err)
+		return err, http.StatusBadRequest
+	}
+
+	// Check if number of stored practitioners + number of incoming practitioners
+	// is greater than 5
+	if len(insolvencyResource.Data.Practitioners)+len(dao) > maxPractitioners {
+		err = fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)
+		log.Error(err)
+		return err, http.StatusBadRequest
+	}
+
+	// Check if practitioner is already assigned to this case
+	for _, storedPractitioner := range insolvencyResource.Data.Practitioners {
+		for _, practitioner := range dao {
+			if practitioner.IPCode == storedPractitioner.IPCode {
+				err = fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitioner.IPCode)
+				log.Error(err)
+				return err, http.StatusBadRequest
+			}
+		}
+	}
+
+	insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners, dao...)
+
+	update := bson.M{
+		"$set": insolvencyResource,
+	}
+
+	_, err = collection.UpdateOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID}, update)
+	if err != nil {
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
+	}
+
+	return nil, http.StatusCreated
 }

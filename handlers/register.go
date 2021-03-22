@@ -28,6 +28,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 
 	// Declare endpoint URIs
 	appRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	appRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
 
 	mainRouter.Use(log.Handler)
 }

@@ -27,8 +27,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var companyName = "companyName"
-var companyNumber = "01234567"
+const companyName = "companyName"
+const companyNumber = "01234567"
+const transactionID = "12345678"
 
 var companyProfileResponse = `
 {
@@ -53,7 +54,7 @@ func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranI
 	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
 
 	if tranIdSet {
-		req = mux.SetURLVars(req, map[string]string{"transaction_id": "12345678"})
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
 
 	res := httptest.NewRecorder()

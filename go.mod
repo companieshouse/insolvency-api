@@ -8,7 +8,7 @@ require (
 	github.com/companieshouse/go-sdk-manager v0.1.6
 	github.com/companieshouse/go-session-handler v0.1.5
 	github.com/companieshouse/gofigure v0.1.4
-	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.5.0
 	github.com/gorilla/mux v1.7.3
 	github.com/jarcoal/httpmock v1.0.8
