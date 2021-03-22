@@ -44,6 +44,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		}
 
 		var daoList []models.PractitionerResourceDao
+		ipCodes := make(map[string]bool)
 
 		v := validator.New()
 		for _, practitioner := range request {
@@ -54,6 +55,15 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 				return
 			}
+
+			// Check if 2 of the same practitioners were supplied in the same request
+			if _, exists := ipCodes[practitioner.IPCode]; exists {
+				log.ErrorR(req, fmt.Errorf("invalid request - duplicate IP Code %s", practitioner.IPCode))
+				m := models.NewMessageResponse("invalid request - duplicate IP Code: " + practitioner.IPCode)
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			}
+			ipCodes[practitioner.IPCode] = true
 
 			// Check if practitioner role supplied is valid
 			if ok := constants.IsInRoleList(practitioner.Role); !ok {
