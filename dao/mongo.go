@@ -106,8 +106,10 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
 	}
 
+	maxPractitioners := 5
+
 	// Check if there are already 5 practitioners in database
-	if len(insolvencyResource.Data.Practitioners) == 5 {
+	if len(insolvencyResource.Data.Practitioners) == maxPractitioners {
 		err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
 		log.Error(err)
 		return err, http.StatusBadRequest
@@ -115,7 +117,7 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 
 	// Check if number of stored practitioners + number of incoming practitioners
 	// is greater than 5
-	if len(insolvencyResource.Data.Practitioners)+len(dao) > 5 {
+	if len(insolvencyResource.Data.Practitioners)+len(dao) > maxPractitioners {
 		err = fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)
 		log.Error(err)
 		return err, http.StatusBadRequest
