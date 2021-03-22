@@ -23,11 +23,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const transactionID = "12345678"
+
 func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency"
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
 	if tranIdSet {
-		req = mux.SetURLVars(req, map[string]string{"transaction_id": "12345678"})
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
 	res := httptest.NewRecorder()
 

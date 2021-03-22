@@ -16,6 +16,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
 
 	mainRouter.Handle("/transactions/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	mainRouter.Handle("/transactions/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
 	mainRouter.Use(log.Handler)
 }
 
