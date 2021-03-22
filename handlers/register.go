@@ -23,11 +23,11 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
 
 	// Create a router that requires all users to be authenticated when making requests
-	appRouter := mainRouter.PathPrefix("/transactions/{transaction_id}/insolvency").Subrouter()
+	appRouter := mainRouter.PathPrefix("/transactions").Subrouter()
 	appRouter.Use(userAuthInterceptor.UserAuthenticationIntercept)
 
 	// Declare endpoint URIs
-	appRouter.Handle("", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	appRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
 
 	mainRouter.Use(log.Handler)
 }
