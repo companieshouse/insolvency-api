@@ -57,7 +57,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			}
 
 			// Check if 2 of the same practitioners were supplied in the same request
-			if _, exists := ipCodes[practitioner.IPCode]; exists {
+			if ipCodes[practitioner.IPCode] {
 				log.ErrorR(req, fmt.Errorf("invalid request - duplicate IP Code %s", practitioner.IPCode))
 				m := models.NewMessageResponse("invalid request - duplicate IP Code: " + practitioner.IPCode)
 				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
