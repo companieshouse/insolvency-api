@@ -7,8 +7,8 @@ github.com/aws/aws-sdk-go v1.34.28 h1:sscPpn/Ns3i0F4HPEWAVcwdIRaZZCuL7llJ2/60yPI
 github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/+8rV9s48=
 github.com/companieshouse/api-sdk-go v0.1.0 h1:VBOqkeb50riSyRmoKF9rqvkFJ7El3aS0qT6p8y9z8Ho=
 github.com/companieshouse/api-sdk-go v0.1.0/go.mod h1:lf4uNUbwgU0FyJvoAToNAwNwN9GW2w6Vlpw3KGPtAeQ=
-github.com/companieshouse/api-sdk-go v0.1.1 h1:HYcMwaE2WEJ4xzJCxyUhNAWlC3rY5UL9htAIQWyoWrk=
-github.com/companieshouse/api-sdk-go v0.1.1/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
+github.com/companieshouse/api-sdk-go v0.1.11 h1:fhAZqRWDlqapYBdWqpfFKjfgOOu/PJnheUgmXniQp3s=
+github.com/companieshouse/api-sdk-go v0.1.11/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.1 h1:DS7SJfoFqTzmL2mQo4a8KK8GdFQnRtMJOJ+47STUHqI=
 github.com/companieshouse/chs.go v1.2.1/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
