@@ -5,10 +5,8 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/authentication"
-
-	"github.com/companieshouse/insolvency-api/dao"
-
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/gorilla/mux"
 )
 

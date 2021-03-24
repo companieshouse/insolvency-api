@@ -11,19 +11,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-session-handler/httpsession"
 	"github.com/companieshouse/go-session-handler/session"
-
-	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/gorilla/mux"
-
-	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
