@@ -85,6 +85,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "ip_code is a required field")
 	})
 
 	Convey("Incoming request has first name missing", t, func() {
@@ -107,6 +108,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "first_name is a required field")
 	})
 
 	Convey("Incoming request has last name missing", t, func() {
@@ -129,6 +131,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "last_name is a required field")
 	})
 
 	Convey("Incoming request has address missing", t, func() {
@@ -148,6 +151,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "address_line_1 is a required field, locality is a required field")
 	})
 
 	Convey("Incoming request has address line 1 missing", t, func() {
@@ -170,6 +174,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "address_line_1 is a required field")
 	})
 
 	Convey("Incoming request has locality missing", t, func() {
@@ -192,6 +197,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "locality is a required field")
 	})
 
 	Convey("Incoming request has role missing", t, func() {
@@ -214,6 +220,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "role is a required field")
 	})
 
 	Convey("Incoming request has an invalid role", t, func() {
