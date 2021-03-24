@@ -9,6 +9,7 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/service"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
@@ -52,13 +53,20 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// TODO: Check company exists with company profile API
-
 		// Check case type of incoming request is CVL
 		if !(request.CaseType == constants.CVL.String()) {
 			log.ErrorR(req, fmt.Errorf("only creditors-voluntary-liquidation can be filed"))
 			m := models.NewMessageResponse(fmt.Sprintf("case type is not creditors-voluntary-liquidation for transaction %s", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check with company profile API if company is valid
+		err, httpStatus := service.CheckCompanyInsolvencyValid(&request, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 

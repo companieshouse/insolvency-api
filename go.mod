@@ -3,7 +3,10 @@ module github.com/companieshouse/insolvency-api
 go 1.12
 
 require (
+	github.com/companieshouse/api-sdk-go v0.1.11
 	github.com/companieshouse/chs.go v1.2.1
+	github.com/companieshouse/go-sdk-manager v0.1.6
+	github.com/companieshouse/go-session-handler v0.1.5
 	github.com/companieshouse/gofigure v0.1.4
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/golang/mock v1.5.0

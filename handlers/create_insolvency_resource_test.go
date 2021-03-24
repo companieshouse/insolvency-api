@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,29 +12,50 @@ import (
 	"testing"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/go-session-handler/httpsession"
+	"github.com/companieshouse/go-session-handler/session"
 	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/gorilla/mux"
-
-	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const companyName = "companyName"
+const companyNumber = "01234567"
 const transactionID = "12345678"
 
+var companyProfileResponse = `
+{
+ "company_name": "` + companyName + `",
+ "company_number": "` + companyNumber + `",
+ "jurisdiction": "england-wales",
+ "company_status": "active",
+ "type": "private-shares-exemption-30",
+ "registered_office_address" : {
+   "postal_code" : "CF14 3UZ",
+   "address_line_2" : "Cardiff",
+   "address_line_1" : "1 Crown Way"
+  }
+}
+`
+
 func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
-	path := "/transactions/123456789/insolvency"
-	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
+
+	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
+	handler := HandleCreateInsolvencyResource(service)
+
+	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
+
 	if tranIdSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
+
 	res := httptest.NewRecorder()
 
-	handler := HandleCreateInsolvencyResource(service)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -79,7 +101,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:    constants.MVL.String(),
-			CompanyName: "companyName",
+			CompanyName: companyName,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
@@ -94,7 +116,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.MVL.String(),
-			CompanyNumber: "12345678",
+			CompanyNumber: companyNumber,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
@@ -108,8 +130,8 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
-			CompanyNumber: "12345678",
-			CompanyName:   "companyName",
+			CompanyNumber: companyNumber,
+			CompanyName:   companyName,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
@@ -124,12 +146,54 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.MVL.String(),
-			CompanyNumber: "12345678",
-			CompanyName:   "companyName",
+			CompanyNumber: companyNumber,
+			CompanyName:   companyName,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error calling company-profile-api for company details", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the company profile api to be called and return a company not found
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{
+			CaseType:      constants.CVL.String(),
+			CompanyName:   companyName,
+			CompanyNumber: companyNumber,
+		})
+		res := serveHandleCreateInsolvencyResource(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Company marked for insolvency isn't found", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the company profile api to be called and return a company not found
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusNotFound, ""))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{
+			CaseType:      constants.CVL.String(),
+			CompanyName:   companyName,
+			CompanyNumber: companyNumber,
+		})
+		res := serveHandleCreateInsolvencyResource(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
 	Convey("Error adding insolvency resource to mongo", t, func() {
@@ -138,14 +202,17 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
+		// Expect the company profile api to be called and return a valid company
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
+
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and return an error
 		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("error when creating mongo resource")).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),
-			CompanyName:   "companyName",
-			CompanyNumber: "12345678",
+			CompanyName:   companyName,
+			CompanyNumber: companyNumber,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mockService, true)
 
@@ -158,19 +225,21 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
+		// Expect the company profile api to be called and return a valid company
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
+
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and not return an error
 		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),
-			CompanyName:   "companyName",
-			CompanyNumber: "12345678",
+			CompanyName:   companyName,
+			CompanyNumber: companyNumber,
 		})
 		res := serveHandleCreateInsolvencyResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 		// TODO: Check call to transaction API to update transaction resource
 	})
-
 }
