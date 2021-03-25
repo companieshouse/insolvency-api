@@ -85,10 +85,11 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
-func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) (error, int) {
+func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
+	// Retrieve insolvency case from Mongo
 	storedInsolvency := collection.FindOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID})
 	err := storedInsolvency.Err()
 	if err != nil {
@@ -115,26 +116,16 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 		return err, http.StatusBadRequest
 	}
 
-	// Check if number of stored practitioners + number of incoming practitioners
-	// is greater than 5
-	if len(insolvencyResource.Data.Practitioners)+len(dao) > maxPractitioners {
-		err = fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)
-		log.Error(err)
-		return err, http.StatusBadRequest
-	}
-
 	// Check if practitioner is already assigned to this case
 	for _, storedPractitioner := range insolvencyResource.Data.Practitioners {
-		for _, practitioner := range dao {
-			if practitioner.IPCode == storedPractitioner.IPCode {
-				err = fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitioner.IPCode)
-				log.Error(err)
-				return err, http.StatusBadRequest
-			}
+		if dao.IPCode == storedPractitioner.IPCode {
+			err = fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, dao.IPCode)
+			log.Error(err)
+			return err, http.StatusBadRequest
 		}
 	}
 
-	insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners, dao...)
+	insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners, *dao)
 
 	update := bson.M{
 		"$set": insolvencyResource,
