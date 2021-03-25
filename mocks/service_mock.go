@@ -45,7 +45,7 @@ func (mr *MockServiceMockRecorder) CreateInsolvencyResource(dao interface{}) *go
 }
 
 // CreatePractitionersResource mocks base method
-func (m *MockService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) (error, int) {
+func (m *MockService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	ret := m.ctrl.Call(m, "CreatePractitionersResource", dao, transactionID)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
