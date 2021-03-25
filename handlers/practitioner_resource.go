@@ -31,7 +31,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start POST request for practitioners resource with transaction id: %s", transactionID))
 
 		// Decode the incoming request to create a list of practitioners
-		var request []models.PractitionerRequest
+		var request models.PractitionerRequest
 		err := json.NewDecoder(req.Body).Decode(&request)
 
 		// Request body failed to get decoded
@@ -42,40 +42,26 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		var daoList []models.PractitionerResourceDao
-		ipCodes := make(map[string]bool)
-		for _, practitioner := range request {
-			// Check all required fields are populated
-			if errs := utils.Validate(practitioner); errs != "" {
-				log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-				m := models.NewMessageResponse("invalid request body: " + errs)
-				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-				return
-			}
-
-			// Check if 2 of the same practitioners were supplied in the same request
-			if ipCodes[practitioner.IPCode] {
-				log.ErrorR(req, fmt.Errorf("invalid request - duplicate IP Code %s", practitioner.IPCode))
-				m := models.NewMessageResponse("invalid request - duplicate IP Code: " + practitioner.IPCode)
-				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-				return
-			}
-			ipCodes[practitioner.IPCode] = true
-
-			// Check if practitioner role supplied is valid
-			if ok := constants.IsInRoleList(practitioner.Role); !ok {
-				log.ErrorR(req, fmt.Errorf("invalid practitioner role"))
-				m := models.NewMessageResponse(fmt.Sprintf("the practitioner role supplied is not valid %s", practitioner.Role))
-				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-				return
-			}
-
-			practitionerDao := transformers.PractitionerResourceRequestToDB(&practitioner, transactionID)
-			daoList = append(daoList, *practitionerDao)
+		// Check all required fields are populated
+		if errs := utils.Validate(request); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request body: " + errs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
 		}
 
+		// Check if practitioner role supplied is valid
+		if ok := constants.IsInRoleList(request.Role); !ok {
+			log.ErrorR(req, fmt.Errorf("invalid practitioner role"))
+			m := models.NewMessageResponse(fmt.Sprintf("the practitioner role supplied is not valid %s", request.Role))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, transactionID)
+
 		// Store practitioners resource in Mongo
-		err, statusCode := svc.CreatePractitionersResource(daoList, transactionID)
+		err, statusCode := svc.CreatePractitionersResource(practitionerDao, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
@@ -85,6 +71,6 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("successfully added practitioners resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoListToCreatedResponseList(daoList), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerDao), http.StatusCreated)
 	})
 }
