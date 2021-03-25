@@ -90,7 +90,9 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
-	storedInsolvency := collection.FindOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID})
+	filter := bson.M{"transaction_id": transactionID}
+
+	storedInsolvency := collection.FindOne(context.Background(), filter)
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -141,7 +143,7 @@ func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerReso
 		"$set": insolvencyResource,
 	}
 
-	_, err = collection.UpdateOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID}, update)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Error(err)
 		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
