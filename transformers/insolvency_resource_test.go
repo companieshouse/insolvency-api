@@ -23,6 +23,7 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 
 		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID)
 
+		So(response.TransactionID, ShouldEqual, transactionID)
 		So(response.Data.CompanyNumber, ShouldEqual, incomingRequest.CompanyNumber)
 		So(response.Data.CaseType, ShouldEqual, constants.CVL.String())
 		So(response.Data.CompanyName, ShouldEqual, "companyName")

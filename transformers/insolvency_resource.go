@@ -24,6 +24,7 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 	validationLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/validation-status")
 
 	dao := &models.InsolvencyResourceDao{
+		TransactionID: transactionID,
 		Data: models.InsolvencyResourceDaoData{
 			CompanyNumber: req.CompanyNumber,
 			CaseType:      req.CaseType,

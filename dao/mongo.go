@@ -85,6 +85,7 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
+// CreatePractitionersResource adds a list of practitioners to the specified insolvency case
 func (m *MongoService) CreatePractitionersResource(dao []models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
