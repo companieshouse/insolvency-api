@@ -135,3 +135,31 @@ func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResou
 
 	return nil, http.StatusCreated
 }
+
+func (m *MongoService) GetPractitionerResources(transactionID string) error {
+	var practitioners models.PractitionerResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Retrieve insolvency case from Mongo
+	opts := options.FindOne().SetProjection(bson.M{"practitioners": 1})
+	storedPractitioners := collection.FindOne(context.Background(), filter, opts)
+	err := storedPractitioners.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
+			return fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+		}
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+	}
+
+	err = storedPractitioners.Decode(&practitioners)
+	if err != nil {
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+	}
+	log.Info("practitioners: ", log.Data{"practioners: ": practitioners})
+	return nil
+}

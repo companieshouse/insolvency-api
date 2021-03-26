@@ -74,3 +74,30 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerDao), http.StatusCreated)
 	})
 }
+
+func HandleGetPractitionerResources(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
+			m := models.NewMessageResponse("transaction id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
+
+		err := svc.GetPractitionerResources(transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		utils.WriteJSONWithStatus(w, req, "success", http.StatusOK)
+
+	})
+}
