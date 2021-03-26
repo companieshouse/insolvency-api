@@ -18,12 +18,6 @@ import (
 
 var client *mongo.Client
 
-var (
-	ErrorNotFound                    error
-	ErrorPractitionerLimitReached    error
-	ErrorPractitionerLimitWillExceed error
-)
-
 func getMongoClient(mongoDBURL string) *mongo.Client {
 	if client != nil {
 		return client
