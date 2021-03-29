@@ -356,3 +356,139 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 }
+
+func serveGetPractitionerResourcesRequest(service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/" + transactionID + "/insolvency/practitioners"
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	if tranIdSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetPractitionerResources(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleGetractitionerResources(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transactionID in the URL", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveGetPractitionerResourcesRequest(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionersResource to be called once and return an error
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionersResource to be called once and return an error
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionersResource to be called once and return an error
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Error when retrieving practitioner resources from mongo - insolvency case not found", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionersResource to be called once and return nil, nil
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, nil).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Error when retrieving practitioner resources from mongo - no practitioners assigned to insolvency case", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		var practitionerResources []models.PractitionerResourceDao
+		// Expect GetPractitionersResource to be called once and return empty list, nil
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionerResources, nil).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Successfully retrieve practitioners for insolvency case", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionerResources := []models.PractitionerResourceDao{
+			{
+				IPCode:    "IPCode",
+				FirstName: "FirstName",
+				LastName:  "LastName",
+				Address: models.AddressResourceDao{
+					AddressLine1: "AddressLine1",
+					Locality:     "Locality",
+				},
+				Role: "Role",
+			},
+		}
+		// Expect GetPractitionersResource to be called once and return list of practitioners, nil
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionerResources, nil).Times(1)
+
+		res := serveGetPractitionerResourcesRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+
+}
