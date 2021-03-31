@@ -79,6 +79,8 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
+// CreatePractitionersResource stores an incoming practitioner to the list of practitioners for the insolvency case
+// with the specified transactionID
 func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
@@ -136,6 +138,7 @@ func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResou
 	return nil, http.StatusCreated
 }
 
+// GetPractitionerResources gets a list of all practitioners for an insolvency case with the specified transactionID
 func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
