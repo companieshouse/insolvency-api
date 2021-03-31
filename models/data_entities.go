@@ -4,11 +4,12 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
-	ID    primitive.ObjectID         `bson:"_id"`
-	Etag  string                     `bson:"etag"`
-	Kind  string                     `bson:"kind"`
-	Data  InsolvencyResourceDaoData  `bson:"data"`
-	Links InsolvencyResourceLinksDao `bson:"links"`
+	ID            primitive.ObjectID         `bson:"_id"`
+	TransactionID string                     `bson:"transaction_id"`
+	Etag          string                     `bson:"etag"`
+	Kind          string                     `bson:"kind"`
+	Data          InsolvencyResourceDaoData  `bson:"data"`
+	Links         InsolvencyResourceLinksDao `bson:"links"`
 }
 
 // InsolvencyResourceDaoData contains the data for the insolvency resource in Mongo

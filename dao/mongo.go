@@ -18,12 +18,6 @@ import (
 
 var client *mongo.Client
 
-var (
-	ErrorNotFound                    error
-	ErrorPractitionerLimitReached    error
-	ErrorPractitionerLimitWillExceed error
-)
-
 func getMongoClient(mongoDBURL string) *mongo.Client {
 	if client != nil {
 		return client
@@ -85,12 +79,16 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
+// CreatePractitionersResource stores an incoming practitioner to the list of practitioners for the insolvency case
+// with the specified transactionID
 func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
+	filter := bson.M{"transaction_id": transactionID}
+
 	// Retrieve insolvency case from Mongo
-	storedInsolvency := collection.FindOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID})
+	storedInsolvency := collection.FindOne(context.Background(), filter)
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -131,11 +129,40 @@ func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResou
 		"$set": insolvencyResource,
 	}
 
-	_, err = collection.UpdateOne(context.Background(), bson.M{"links.transaction": "/transactions/" + transactionID}, update)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Error(err)
 		return fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError
 	}
 
 	return nil, http.StatusCreated
+}
+
+// GetPractitionerResources gets a list of all practitioners for an insolvency case with the specified transactionID
+func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error) {
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Retrieve insolvency case from Mongo
+	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.practitioners": 1})
+	storedPractitioners := collection.FindOne(context.Background(), filter, opts)
+	err := storedPractitioners.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return nil, nil
+		}
+		log.Error(err)
+		return nil, err
+	}
+
+	err = storedPractitioners.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return insolvencyResource.Data.Practitioners, nil
 }

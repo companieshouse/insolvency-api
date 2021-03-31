@@ -56,3 +56,16 @@ func (m *MockService) CreatePractitionersResource(dao *models.PractitionerResour
 func (mr *MockServiceMockRecorder) CreatePractitionersResource(dao, transactionID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePractitionersResource", reflect.TypeOf((*MockService)(nil).CreatePractitionersResource), dao, transactionID)
 }
+
+// GetPractitionerResources mocks base method
+func (m *MockService) GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error) {
+	ret := m.ctrl.Call(m, "GetPractitionerResources", transactionID)
+	ret0, _ := ret[0].([]models.PractitionerResourceDao)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPractitionerResources indicates an expected call of GetPractitionerResources
+func (mr *MockServiceMockRecorder) GetPractitionerResources(transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionerResources", reflect.TypeOf((*MockService)(nil).GetPractitionerResources), transactionID)
+}
