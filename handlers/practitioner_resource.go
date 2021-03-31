@@ -42,7 +42,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check all required fields are populated
+		// Validate all mandatory fields
 		if errs := utils.Validate(request); errs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
 			m := models.NewMessageResponse("invalid request body: " + errs)

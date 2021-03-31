@@ -106,6 +106,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "company_number is a required field")
 	})
 
 	Convey("Incoming request has company name missing", t, func() {
@@ -121,6 +122,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "company_name is a required field")
 	})
 
 	Convey("Incoming request has case type missing", t, func() {
@@ -136,6 +138,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "case_type is a required field")
 	})
 
 	Convey("Incoming case type is not CVL", t, func() {
