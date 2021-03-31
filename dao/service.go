@@ -9,7 +9,11 @@ import (
 type Service interface {
 	// CreateInsolvencyResource will persist a newly created resource
 	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) error
+
+	// CreatePractitionerResource will persist a newly created practitioner resource
 	CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int)
+
+	// GetPractitionerResources will retrieve a list of persisted practitioners
 	GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error)
 }
 
