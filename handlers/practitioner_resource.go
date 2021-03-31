@@ -75,6 +75,8 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleGetPractitionerResources retrieves a list of practitioners for the insolvency case with
+// the specified transactionID
 func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Check for a transaction id in request
