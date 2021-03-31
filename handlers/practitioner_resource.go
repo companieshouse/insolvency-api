@@ -104,7 +104,7 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
-		if len(practitionerResources) < 1 {
+		if len(practitionerResources) == 0 {
 			log.ErrorR(req, fmt.Errorf("practitioners for insolvency case with transaction %s not found", transactionID))
 			m := models.NewMessageResponse("there was a problem handling your request for insolvency case with transaction: " + transactionID + " there are no practitioners assigned to this case")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
