@@ -11,6 +11,10 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 )
 
+// Validate takes in any request object and checks whether it has met
+// the validation criteria according to the annotations on that object.
+// If the object is invalid, the method returns a human-readable string
+// which can then be added to the message response for the API user
 func Validate(data interface{}) string {
 	v := validator.New()
 	v.RegisterTagNameFunc(extractJson)
