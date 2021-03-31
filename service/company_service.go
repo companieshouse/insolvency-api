@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/companieshouse/insolvency-api/constants"
-
-	"github.com/companieshouse/insolvency-api/models"
-
 	"github.com/companieshouse/api-sdk-go/companieshouseapi"
-
 	"github.com/companieshouse/go-sdk-manager/manager"
+	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/models"
 )
 
 // CheckCompanyInsolvencyValid will check that the company is valid to be made insolvent against the company profile api
@@ -39,7 +36,7 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 	}
 
 	// If no errors then the company is valid for insolvency
-	return nil, http.StatusOK
+	return nil, companyProfile.HTTPStatusCode
 
 }
 
