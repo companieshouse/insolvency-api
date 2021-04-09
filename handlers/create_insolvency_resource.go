@@ -5,16 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/companieshouse/insolvency-api/service"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/service"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 // HandleCreateInsolvencyResource creates an insolvency resource
@@ -45,11 +43,10 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check all required fields are populated
-		v := validator.New()
-		if v.Struct(request) != nil {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation"))
-			m := models.NewMessageResponse("invalid request body")
+		// Validate all mandatory fields
+		if errs := utils.Validate(request); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request body: " + errs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

@@ -11,19 +11,16 @@ import (
 	"os"
 	"testing"
 
+	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-session-handler/httpsession"
 	"github.com/companieshouse/go-session-handler/session"
-
-	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/gorilla/mux"
-
-	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -115,6 +112,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "company_number is a required field")
 	})
 
 	Convey("Incoming request has company name missing", t, func() {
@@ -130,6 +128,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "company_name is a required field")
 	})
 
 	Convey("Incoming request has case type missing", t, func() {
@@ -145,6 +144,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "case_type is a required field")
 	})
 
 	Convey("Incoming case type is not CVL", t, func() {

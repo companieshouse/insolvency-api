@@ -23,6 +23,7 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("healthcheck"), ShouldNotBeNil)
 		So(router.GetRoute("createInsolvencyResource"), ShouldNotBeNil)
 		So(router.GetRoute("createPractitionersResource"), ShouldNotBeNil)
+		So(router.GetRoute("getPractitionerResources"), ShouldNotBeNil)
 	})
 }
 

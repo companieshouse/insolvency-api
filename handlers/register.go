@@ -5,10 +5,8 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/authentication"
-
-	"github.com/companieshouse/insolvency-api/dao"
-
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/gorilla/mux"
 )
 
@@ -29,6 +27,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	// Declare endpoint URIs
 	appRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
 	appRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
+	appRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
 
 	mainRouter.Use(log.Handler)
 }
