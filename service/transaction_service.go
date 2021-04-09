@@ -32,7 +32,6 @@ func CheckTransactionID(transactionID string, req *http.Request) (error, int) {
 	return nil, transactionProfile.HTTPStatusCode
 }
 
-//
 // PatchTransactionWithInsolvency will patch the provided transaction with the created insolvency resource
 func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyResource *models.InsolvencyResourceDao, req *http.Request) (error, int) {
 
