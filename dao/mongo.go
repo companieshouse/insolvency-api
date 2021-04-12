@@ -169,13 +169,26 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and IPCode
 func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
-	var insolvencyResource models.InsolvencyResourceDao
+	// var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
-	filter := bson.M{"transaction_id": transactionID}
+	fmt.Println("Practitioner ID: " + practitionerID)
+	fmt.Println("TransactionID: " + transactionID)
+
+	pullQuery := bson.M{"data.$.practitioners": bson.M{"ip_code": practitionerID}}
+
+	filter := bson.M{"transaction_id": transactionID, "data.practitioners.ip_code": practitionerID}
+
+	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
+	if err != nil {
+		log.Error(err)
+	}
+	if update.UpsertedCount == 0 {
+		fmt.Println("Couldn't delete anything")
+	}
 
 	// Retrieve insolvency case from Mongo
-	storedInsolvency := collection.FindOne(context.Background(), filter)
+	/*storedInsolvency := collection.FindOne(context.Background(), filter)
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -218,7 +231,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	if err != nil {
 		log.Error(err)
 		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}
+	}*/
 
 	return http.StatusNoContent, nil
 }
