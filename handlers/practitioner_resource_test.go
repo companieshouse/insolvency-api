@@ -21,6 +21,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const practitionerID = "00001234"
+
 func serveHandleCreatePractitionersResource(body []byte, service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/practitioners"
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
@@ -489,6 +491,99 @@ func TestUnitHandleGetractitionerResources(t *testing.T) {
 		res := serveGetPractitionerResourcesRequest(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+
+}
+
+func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
+	req := httptest.NewRequest(http.MethodDelete, path, nil)
+	if tranIdSet {
+		req = mux.SetURLVars(req, map[string]string{"practitioner_id": practitionerID, "transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleDeletePractitioner(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleDeletePractitioner(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transactionID in the URL", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveDeletePractitionerRequest(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect DeletePractitioner to be called once and return an error
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
+		res := serveDeletePractitionerRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error when retrieving practitioner resources from mongo - insolvency case not found", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect DeletePractitioner to be called once and return nil, nil
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, nil).Times(1)
+
+		res := serveDeletePractitionerRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Error when retrieving practitioner resources from mongo - specificied practitioner not assigned to insolvency case", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect DeletePractitioner to be called once and return empty list, nil
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s - no practitioner with IP Code %s assigned to this case", transactionID, practitionerID)).Times(1)
+
+		res := serveDeletePractitionerRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Successfully retrieve practitioners for insolvency case", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect DeletePractitioner to be called once and return http status NoContent, nil
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNoContent, nil).Times(1)
+
+		res := serveDeletePractitionerRequest(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNoContent)
 	})
 
 }
