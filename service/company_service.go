@@ -36,7 +36,7 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 	}
 
 	// If no errors then the company is valid for insolvency
-	return nil, http.StatusOK
+	return nil, companyProfile.HTTPStatusCode
 
 }
 
