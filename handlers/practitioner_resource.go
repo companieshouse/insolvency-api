@@ -115,3 +115,42 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 	})
 }
+
+// HandleDeletePractitioner deletes a practitioner from the insolvency case with
+// the specified transactionID and IPCode
+func HandleDeletePractitioner(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
+			m := models.NewMessageResponse("transaction id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+		// Check for a practitioner id in request
+		practitionerID := utils.GetPractitionerIDFromVars(vars)
+		if practitionerID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no practitioner id in the url path"))
+			m := models.NewMessageResponse("practitioner id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start DELETE request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
+		// Delete practitioner from Mongo
+		statusCode, err := svc.DeletePractitioner(practitionerID, transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully deleted practitioner with transaction ID: %s and practitioner ID: %s, from mongo", transactionID, practitionerID))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+	})
+}
