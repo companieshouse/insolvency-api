@@ -29,6 +29,7 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
+	ID        string             `bson:"_id"`
 	IPCode    string             `bson:"ip_code"`
 	FirstName string             `bson:"first_name"`
 	LastName  string             `bson:"last_name"`
