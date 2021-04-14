@@ -169,15 +169,13 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and IPCode
 func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
-	// var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
-	fmt.Println("Practitioner ID: " + practitionerID)
-	fmt.Println("TransactionID: " + transactionID)
+	// Choose specific practitioner to delete
+	pullQuery := bson.M{"data.practitioners": bson.M{"ip_code": practitionerID}}
 
-	pullQuery := bson.M{"data.$.practitioners": bson.M{"ip_code": practitionerID}}
-
-	filter := bson.M{"transaction_id": transactionID, "data.practitioners.ip_code": practitionerID}
+	// Choose specific transaction for insolvency case with practitioner to be removed
+	filter := bson.M{"transaction_id": transactionID}
 
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
@@ -186,52 +184,6 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	if update.UpsertedCount == 0 {
 		fmt.Println("Couldn't delete anything")
 	}
-
-	// Retrieve insolvency case from Mongo
-	/*storedInsolvency := collection.FindOne(context.Background(), filter)
-	err := storedInsolvency.Err()
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return http.StatusBadRequest, nil
-		}
-		log.Error(err)
-		return http.StatusBadRequest, err
-	}
-
-	err = storedInsolvency.Decode(&insolvencyResource)
-	if err != nil {
-		log.Error(err)
-		return http.StatusBadRequest, err
-	}
-
-	//Check if specified practitioner is attached to the insolvency case and delete
-	{
-		IPCodePresent := false
-		for i, practitioner := range insolvencyResource.Data.Practitioners {
-			// If supplied practitioner matches practitioner resource, remove practitioner from array
-			if practitioner.IPCode == practitionerID {
-				insolvencyResource.Data.Practitioners = append(insolvencyResource.Data.Practitioners[:i], insolvencyResource.Data.Practitioners[i+1:]...)
-				IPCodePresent = true
-			}
-		}
-
-		if !IPCodePresent {
-			err = fmt.Errorf("there was a problem handling your request for transaction %s - no practitioner with IP Code %s assigned to this case", transactionID, practitionerID)
-			log.Error(err)
-			return http.StatusNotFound, err
-		}
-	}
-
-	update := bson.M{
-		"$set": insolvencyResource,
-	}
-
-	_, err = collection.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}*/
 
 	return http.StatusNoContent, nil
 }
