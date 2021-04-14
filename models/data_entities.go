@@ -4,7 +4,7 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
-	ID            primitive.ObjectID         `bson:"id"`
+	ID            primitive.ObjectID         `bson:"_id"`
 	TransactionID string                     `bson:"transaction_id"`
 	Etag          string                     `bson:"etag"`
 	Kind          string                     `bson:"kind"`
@@ -29,7 +29,7 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	ID        string             `bson:"_id"`
+	ID        string             `bson:"id"`
 	IPCode    string             `bson:"ip_code"`
 	FirstName string             `bson:"first_name"`
 	LastName  string             `bson:"last_name"`
