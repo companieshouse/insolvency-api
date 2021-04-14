@@ -176,7 +176,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific practitioner to delete
-	pullQuery := bson.M{"data.practitioners": bson.M{"_id": practitionerID}}
+	pullQuery := bson.M{"data.practitioners": bson.M{"id": practitionerID}}
 
 	// Choose specific transaction for insolvency case with practitioner to be removed
 	filter := bson.M{"transaction_id": transactionID}
