@@ -371,7 +371,7 @@ func serveGetPractitionerResourcesRequest(service dao.Service, tranIdSet bool) *
 	return res
 }
 
-func TestUnitHandleGetractitionerResources(t *testing.T) {
+func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -386,36 +386,6 @@ func TestUnitHandleGetractitionerResources(t *testing.T) {
 		res := serveGetPractitionerResourcesRequest(mock_dao.NewMockService(mockCtrl), false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-	})
-
-	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetPractitionersResource to be called once and return an error
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-
-		res := serveGetPractitionerResourcesRequest(mockService, true)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-	})
-
-	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetPractitionersResource to be called once and return an error
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-
-		res := serveGetPractitionerResourcesRequest(mockService, true)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
