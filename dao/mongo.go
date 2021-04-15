@@ -180,11 +180,11 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("There was a problem handling your request - could not delete practitioner with id %s", practitionerID)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request - could not delete practitioner with id %s", practitionerID)
 	}
 	// Check if Mongo updated the collection
 	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("Item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
+		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
 		log.Error(err)
 		return http.StatusNotFound, err
 	}
