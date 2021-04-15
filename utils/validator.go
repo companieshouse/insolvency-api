@@ -21,6 +21,13 @@ func Validate(data interface{}) string {
 	english := en.New()
 	uni := ut.New(english, english)
 	trans, _ := uni.GetTranslator("en")
+	v.RegisterTranslation("required_without", trans, func(ut ut.Translator) error {
+		return ut.Add("required_without", "{0} is a required field", true)
+	}, func(ut ut.Translator, fe validator.FieldError) string {
+		t, _ := ut.T("required_without", fe.Field())
+
+		return t
+	})
 	_ = en_translations.RegisterDefaultTranslations(v, trans)
 
 	err := v.Struct(data)

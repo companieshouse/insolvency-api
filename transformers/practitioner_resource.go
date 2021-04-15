@@ -8,9 +8,11 @@ import (
 func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
 
 	dao := &models.PractitionerResourceDao{
-		IPCode:    req.IPCode,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
+		IPCode:          req.IPCode,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		TelephoneNumber: req.TelephoneNumber,
+		Email:           req.Email,
 		Address: models.AddressResourceDao{
 			AddressLine1: req.Address.AddressLine1,
 			AddressLine2: req.Address.AddressLine2,
@@ -28,9 +30,11 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 // PractitionerResourceDaoToCreatedResponse transforms the dao model to the created response model
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
 	return &models.CreatedPractitionerResource{
-		IPCode:    model.IPCode,
-		FirstName: model.FirstName,
-		LastName:  model.LastName,
+		IPCode:          model.IPCode,
+		FirstName:       model.FirstName,
+		LastName:        model.LastName,
+		TelephoneNumber: model.TelephoneNumber,
+		Email:           model.Email,
 		Address: models.CreatedAddressResource{
 			AddressLine1: model.Address.AddressLine1,
 			AddressLine2: model.Address.AddressLine2,
