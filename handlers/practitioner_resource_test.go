@@ -541,7 +541,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Error when retrieving practitioner resources from mongo - insolvency case not found", t, func() {
+	Convey("Error when retrieving practitioner resources from mongo - insolvency case or practitioner not found", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
@@ -550,21 +550,6 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return nil, nil
 		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, nil).Times(1)
-
-		res := serveDeletePractitionerRequest(mockService, true)
-
-		So(res.Code, ShouldEqual, http.StatusNotFound)
-	})
-
-	Convey("Error when retrieving practitioner resources from mongo - specificied practitioner not assigned to insolvency case", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect DeletePractitioner to be called once and return empty list, nil
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s - no practitioner with IP Code %s assigned to this case", transactionID, practitionerID)).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true)
 
