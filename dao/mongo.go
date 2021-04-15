@@ -10,7 +10,6 @@ import (
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -85,9 +84,6 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
-
-	// Generate ID for practitioner
-	dao.ID = utils.GenerateID()
 
 	filter := bson.M{"transaction_id": transactionID}
 
