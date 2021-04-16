@@ -548,7 +548,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return an error
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusBadRequest).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 
@@ -563,7 +563,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return nil, nil
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, nil).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(nil, http.StatusNotFound).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 
@@ -578,7 +578,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return http status NoContent, nil
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNoContent, nil).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(nil, http.StatusNoContent).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 

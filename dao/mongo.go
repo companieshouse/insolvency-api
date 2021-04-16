@@ -168,7 +168,7 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
-func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
+func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific practitioner to delete
@@ -180,14 +180,14 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("There was a problem handling your request - could not delete practitioner with id %s", practitionerID)
+		return fmt.Errorf("there was a problem handling your request - could not delete practitioner with id %s", practitionerID), http.StatusInternalServerError
 	}
 	// Check if Mongo updated the collection
 	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("Item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
+		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
 		log.Error(err)
-		return http.StatusNotFound, err
+		return err, http.StatusNotFound
 	}
 
-	return http.StatusNoContent, nil
+	return nil, http.StatusNoContent
 }

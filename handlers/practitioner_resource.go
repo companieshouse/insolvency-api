@@ -140,7 +140,7 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start DELETE request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
 		// Delete practitioner from Mongo
-		statusCode, err := svc.DeletePractitioner(practitionerID, transactionID)
+		err, statusCode := svc.DeletePractitioner(practitionerID, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
