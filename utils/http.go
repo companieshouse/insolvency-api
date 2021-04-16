@@ -28,3 +28,14 @@ func GetTransactionIDFromVars(vars map[string]string) string {
 
 	return transactionID
 }
+
+// GetPractitionerIDFromVars returns the practitioner id from the supplied request vars.
+func GetPractitionerIDFromVars(vars map[string]string) string {
+
+	practitionerID := vars["practitioner_id"]
+	if practitionerID == "" {
+		return ""
+	}
+
+	return practitionerID
+}

@@ -19,11 +19,12 @@ type CreatedInsolvencyResourceLinks struct {
 
 // CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
 type CreatedPractitionerResource struct {
-	IPCode    string                 `json:"ip_code"`
-	FirstName string                 `json:"first_name"`
-	LastName  string                 `json:"last_name"`
-	Address   CreatedAddressResource `json:"address"`
-	Role      string                 `json:"role"`
+	IPCode    string                           `json:"ip_code"`
+	FirstName string                           `json:"first_name"`
+	LastName  string                           `json:"last_name"`
+	Address   CreatedAddressResource           `json:"address"`
+	Role      string                           `json:"role"`
+	Links     CreatedPractitionerLinksResource `json:"links"`
 }
 
 // CreatedAddressResource contains the address fields for the created practitioner resource
@@ -34,6 +35,10 @@ type CreatedAddressResource struct {
 	Locality     string `json:"locality"`
 	Region       string `json:"region"`
 	PostalCode   string `json:"postal_code"`
+}
+
+type CreatedPractitionerLinksResource struct {
+	Self string `json:"self"`
 }
 
 // ResponseResource is the object returned in an error case

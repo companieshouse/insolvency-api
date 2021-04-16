@@ -15,6 +15,9 @@ type Service interface {
 
 	// GetPractitionerResources will retrieve a list of persisted practitioners
 	GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error)
+
+	// DeletePractitioner will delete a practitioner from the Insolvency resource
+	DeletePractitioner(practitionerID, transactionID string) (error, int)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

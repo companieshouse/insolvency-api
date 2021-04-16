@@ -50,3 +50,19 @@ func TestUnitGetTransactionIDFromVars(t *testing.T) {
 		So(transactionID, ShouldBeEmpty)
 	})
 }
+
+func TestUnitGetPractitionerIDFromVars(t *testing.T) {
+	Convey("Get Practitioner ID", t, func() {
+		vars := map[string]string{
+			"practitioner_id": "67890",
+		}
+		PractitionerID := GetPractitionerIDFromVars(vars)
+		So(PractitionerID, ShouldEqual, "67890")
+	})
+
+	Convey("No Practitioner ID", t, func() {
+		vars := map[string]string{}
+		PractitionerID := GetPractitionerIDFromVars(vars)
+		So(PractitionerID, ShouldBeEmpty)
+	})
+}

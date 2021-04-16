@@ -1,13 +1,20 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // PractitionerResourceRequestToDB transforms practitioner request model to the dao model
 func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
 
+	id := utils.GenerateID()
+	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id)
+
 	dao := &models.PractitionerResourceDao{
+		ID:        id,
 		IPCode:    req.IPCode,
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -20,6 +27,9 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 			PostalCode:   req.Address.PostalCode,
 		},
 		Role: req.Role,
+		Links: models.PractitionerResourceLinksDao{
+			Self: selfLink,
+		},
 	}
 
 	return dao
@@ -40,6 +50,9 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 			PostalCode:   model.Address.PostalCode,
 		},
 		Role: model.Role,
+		Links: models.CreatedPractitionerLinksResource{
+			Self: model.Links.Self,
+		},
 	}
 }
 
