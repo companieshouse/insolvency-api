@@ -498,11 +498,14 @@ func TestUnitHandleGetractitionerResources(t *testing.T) {
 func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practIdSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
+	vars := make(map[string]string)
 	if tranIdSet {
-		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+		vars["transaction_id"] = transactionID
+		req = mux.SetURLVars(req, vars)
 	}
 	if practIdSet {
-		req = mux.SetURLVars(req, map[string]string{"practitioner_id": practitionerID})
+		vars["practitioner_id"] = practitionerID
+		req = mux.SetURLVars(req, vars)
 	}
 	res := httptest.NewRecorder()
 
@@ -562,7 +565,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect DeletePractitioner to be called once and return nil, nil
+		// Expect DeletePractitioner to be called once and return nil, 404
 		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(nil, http.StatusNotFound).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
