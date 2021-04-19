@@ -11,7 +11,6 @@ import (
 // InsolvencyResourceRequestToDB will take the input request from the REST call and transform it to a dao ready for
 // insertion into the database
 func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string) *models.InsolvencyResourceDao {
-
 	kind := "insolvency-resource#insolvency-resource"
 
 	etag, err := utils.GenerateEtag()
@@ -55,6 +54,17 @@ func InsolvencyResourceDaoToCreatedResponse(model *models.InsolvencyResourceDao)
 			Self:             model.Links.Self,
 			Transaction:      model.Links.Transaction,
 			ValidationStatus: model.Links.ValidationStatus,
+		},
+	}
+}
+
+// AppointmentResourceDaoToAppointedResponse transforms an appointment resource dao into a response entity
+func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResourceDao) *models.AppointedPractitionerResource {
+	return &models.AppointedPractitionerResource{
+		AppointedOn: model.AppointedOn,
+		MadeBy:      model.MadeBy,
+		Links: models.AppointedPractitionerLinksResource{
+			Self: model.Links.Self,
 		},
 	}
 }

@@ -25,3 +25,9 @@ type Address struct {
 	Region       string `json:"region"`
 	PostalCode   string `json:"postal_code"`
 }
+
+// PractitionerAppointment is the model to represent appointment data for a practitioner
+type PractitionerAppointment struct {
+	AppointedOn string `json:"appointed_on" validate:"required,datetime=2006-01-02"`
+	MadeBy      string `json:"made_by" validate:"required"`
+}
