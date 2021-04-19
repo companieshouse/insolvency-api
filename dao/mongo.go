@@ -164,6 +164,12 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 		return nil, err
 	}
 
+	// Return an empty array instead of nil so the handler can check
+	// that there are no practitioners
+	if insolvencyResource.Data.Practitioners == nil {
+		return make([]models.PractitionerResourceDao, 0), nil
+	}
+
 	return insolvencyResource.Data.Practitioners, nil
 }
 
@@ -171,20 +177,33 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
 	collection := m.db.Collection(m.CollectionName)
 
-	// Choose specific practitioner to delete
-	pullQuery := bson.M{"data.practitioners": bson.M{"id": practitionerID}}
-
 	// Choose specific transaction for insolvency case with practitioner to be removed
 	filter := bson.M{"transaction_id": transactionID}
+
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return fmt.Errorf("there was a problem handling your request for transaction id %s - insolvency case not found", transactionID), http.StatusNotFound
+		}
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction id %s", transactionID), http.StatusInternalServerError
+	}
+
+	// Choose specific practitioner to delete
+	pullQuery := bson.M{"data.practitioners": bson.M{"id": practitionerID}}
 
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
 		log.Error(err)
-		return fmt.Errorf("there was a problem handling your request - could not delete practitioner with id %s", practitionerID), http.StatusInternalServerError
+		return fmt.Errorf("there was a problem handling your request for transaction id %s - could not delete practitioner with id %s", transactionID, practitionerID), http.StatusInternalServerError
 	}
-	// Check if Mongo updated the collection
+
+	// Return error if Mongo could not update the document
 	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
+		err = fmt.Errorf("there was a problem handling your request for transaction id %s - practitioner with id %s not found", transactionID, practitionerID)
 		log.Error(err)
 		return err, http.StatusNotFound
 	}
