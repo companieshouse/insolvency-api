@@ -69,3 +69,16 @@ func (m *MockService) GetPractitionerResources(transactionID string) ([]models.P
 func (mr *MockServiceMockRecorder) GetPractitionerResources(transactionID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionerResources", reflect.TypeOf((*MockService)(nil).GetPractitionerResources), transactionID)
 }
+
+// DeletePractitioner mocks base method
+func (m *MockService) DeletePractitioner(practitionerID, transactionID string) (error, int) {
+	ret := m.ctrl.Call(m, "DeletePractitioner", practitionerID, transactionID)
+	ret0, _ := ret[0].(error)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// DeletePractitioner indicates an expected call of DeletePractitioner
+func (mr *MockServiceMockRecorder) DeletePractitioner(practitionerID, transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitioner", reflect.TypeOf((*MockService)(nil).DeletePractitioner), practitionerID, transactionID)
+}

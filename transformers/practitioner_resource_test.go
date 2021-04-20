@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/constants"
@@ -26,18 +27,24 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 
 		response := PractitionerResourceRequestToDB(incomingRequest, transactionID)
 
+		So(response.ID, ShouldNotBeBlank)
 		So(response.IPCode, ShouldEqual, incomingRequest.IPCode)
 		So(response.FirstName, ShouldEqual, incomingRequest.FirstName)
 		So(response.LastName, ShouldEqual, incomingRequest.LastName)
 		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
 		So(response.Role, ShouldEqual, incomingRequest.Role)
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("/transactions/"+transactionID+"/insolvency/practitioners/"+response.ID))
 	})
 }
 
 func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
+	transactionID := "1234"
+	id := "123"
+
 	Convey("field mappings are correct", t, func() {
 		dao := &models.PractitionerResourceDao{
+			ID:        id,
 			IPCode:    "1111",
 			FirstName: "First",
 			LastName:  "Last",
@@ -46,6 +53,9 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 				Locality:     "locality",
 			},
 			Role: constants.FinalLiquidator.String(),
+			Links: models.PractitionerResourceLinksDao{
+				Self: fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id),
+			},
 		}
 
 		response := PractitionerResourceDaoToCreatedResponse(dao)
@@ -56,6 +66,7 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 		So(response.Address.AddressLine1, ShouldEqual, dao.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, dao.Address.Locality)
 		So(response.Role, ShouldEqual, dao.Role)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
 	})
 }
 
