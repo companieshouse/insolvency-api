@@ -24,8 +24,6 @@ func CheckPractitionerAlreadyAppointed(svc dao.Service, transactionID string, pr
 		return err, false
 	}
 	for _, v := range practitionerResources {
-		fmt.Println(v.ID)
-
 		if v.ID == practitionerID && v.Appointment.AppointedOn != "" {
 			log.Info("practitioner ID [%s] already appointed to transaction ID [%s]")
 			return nil, true
