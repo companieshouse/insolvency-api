@@ -8,14 +8,6 @@ import (
 	"github.com/companieshouse/insolvency-api/dao"
 )
 
-/*
-// InsolvencyService contains the DAO for db access
-type InsolvencyService struct {
-	DAO    dao.Service
-	Config *config.Config
-}
-*/
-
 // CheckPractitionerAlreadyAppointed will check with the transaction api that the provided transaction id exists
 func CheckPractitionerAlreadyAppointed(svc dao.Service, transactionID string, practitionerID string, req *http.Request) (error, bool) {
 	practitionerResources, err := svc.GetPractitionerResources(transactionID)
