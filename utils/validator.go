@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/companieshouse/insolvency-api/models"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -21,13 +22,6 @@ func Validate(data interface{}) string {
 	english := en.New()
 	uni := ut.New(english, english)
 	trans, _ := uni.GetTranslator("en")
-	v.RegisterTranslation("required_without", trans, func(ut ut.Translator) error {
-		return ut.Add("required_without", "{0} is a required field", true)
-	}, func(ut ut.Translator, fe validator.FieldError) string {
-		t, _ := ut.T("required_without", fe.Field())
-
-		return t
-	})
 	_ = en_translations.RegisterDefaultTranslations(v, trans)
 
 	err := v.Struct(data)
@@ -54,4 +48,14 @@ func extractJson(fld reflect.StructField) string {
 	}
 
 	return name
+}
+
+// ValidatePractitionerContactDetails checks if the telephone number and email are missing
+// in the request body. If they are missing, the method returns a human-readable error message.
+func ValidatePractitionerContactDetails(practitioner models.PractitionerRequest) string {
+	if practitioner.TelephoneNumber == "" && practitioner.Email == "" {
+		return "either telephone_number or email are required"
+	}
+
+	return ""
 }

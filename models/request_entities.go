@@ -12,8 +12,8 @@ type PractitionerRequest struct {
 	IPCode          string  `json:"ip_code" validate:"required"`
 	FirstName       string  `json:"first_name" validate:"required"`
 	LastName        string  `json:"last_name" validate:"required"`
-	TelephoneNumber string  `json:"telephone_number" validate:"required_without=Email~telephone_number or email is required"`
-	Email           string  `json:"email" validate:"required_without=TelephoneNumber~telephone_number or email is required"`
+	TelephoneNumber string  `json:"telephone_number"`
+	Email           string  `json:"email"`
 	Address         Address `json:"address" validate:"required"`
 	Role            string  `json:"role" validate:"required"`
 }
