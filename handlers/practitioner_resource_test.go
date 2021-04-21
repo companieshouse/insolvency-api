@@ -130,6 +130,28 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "last_name is a required field")
 	})
 
+	Convey("Incoming request has invalid last name", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(models.PractitionerRequest{
+			IPCode:    "1234",
+			FirstName: "F1rst",
+			LastName:  "Last",
+			Address: models.Address{
+				AddressLine1: "addressline1",
+				Locality:     "locality",
+			},
+			Role: constants.FinalLiquidator.String(),
+		})
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "failed on the 'name_rule' tag")
+	})
+
 	Convey("Incoming request has address missing", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
@@ -344,8 +366,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		body, _ := json.Marshal(models.PractitionerRequest{
 			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
+			FirstName: "Jack-W",
+			LastName:  "O'Donald",
 			Address: models.Address{
 				AddressLine1: "addressline1",
 				Locality:     "locality",

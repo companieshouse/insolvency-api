@@ -10,8 +10,8 @@ type InsolvencyRequest struct {
 // PractitionerRequest is the model that should be sent when creating a new insolvency practitioner
 type PractitionerRequest struct {
 	IPCode    string  `json:"ip_code" validate:"required"`
-	FirstName string  `json:"first_name" validate:"required"`
-	LastName  string  `json:"last_name" validate:"required"`
+	FirstName string  `json:"first_name" validate:"required,name_rule"`
+	LastName  string  `json:"last_name" validate:"required,name_rule"`
 	Address   Address `json:"address" validate:"required"`
 	Role      string  `json:"role" validate:"required"`
 }

@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/locales/en"
@@ -18,6 +19,7 @@ func Validate(data interface{}) string {
 	uni := ut.New(english, english)
 	trans, _ := uni.GetTranslator("en")
 	_ = en_translations.RegisterDefaultTranslations(v, trans)
+	registerOfficerNameValidation(v)
 
 	err := v.Struct(data)
 
@@ -43,4 +45,14 @@ func extractJson(fld reflect.StructField) string {
 	}
 
 	return name
+}
+
+// registerOfficerNameValidation creates a validator rule to check names match our expected validation regex
+func registerOfficerNameValidation(v *validator.Validate) {
+	_ = v.RegisterValidation(`name_rule`, func(fl validator.FieldLevel) bool {
+		nameRuleRegexString := `^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$`
+		nameRuleRegex := regexp.MustCompile(nameRuleRegexString)
+
+		return nameRuleRegex.MatchString(fl.Field().String())
+	})
 }
