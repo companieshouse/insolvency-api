@@ -6,7 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIsValidRole(t *testing.T) {
+func TestUnitIsValidRole(t *testing.T) {
 	Convey("role supplied is valid", t, func() {
 		practitionerRole := "final-liquidator"
 
@@ -24,7 +24,7 @@ func TestIsValidRole(t *testing.T) {
 	})
 }
 
-func TestString(t *testing.T) {
+func TestUnitString(t *testing.T) {
 	Convey("provide a string for practitioner role", t, func() {
 		practitionerRole := ReceiverManager.String()
 

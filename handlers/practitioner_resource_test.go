@@ -23,10 +23,10 @@ import (
 
 const practitionerID = "00001234"
 
-func serveHandleCreatePractitionersResource(body []byte, service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
+func serveHandleCreatePractitionersResource(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/practitioners"
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
-	if tranIdSet {
+	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
 	res := httptest.NewRecorder()
@@ -356,13 +356,12 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
-
 }
 
-func serveGetPractitionerResourcesRequest(service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
+func serveGetPractitionerResourcesRequest(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/" + transactionID + "/insolvency/practitioners"
 	req := httptest.NewRequest(http.MethodGet, path, nil)
-	if tranIdSet {
+	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
 	res := httptest.NewRecorder()
@@ -373,7 +372,7 @@ func serveGetPractitionerResourcesRequest(service dao.Service, tranIdSet bool) *
 	return res
 }
 
-func TestUnitHandleGetractitionerResources(t *testing.T) {
+func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -492,7 +491,6 @@ func TestUnitHandleGetractitionerResources(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusOK)
 	})
-
 }
 
 func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practIdSet bool) *httptest.ResponseRecorder {
@@ -503,6 +501,7 @@ func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practId
 		vars["transaction_id"] = transactionID
 		req = mux.SetURLVars(req, vars)
 	}
+
 	if practIdSet {
 		vars["practitioner_id"] = practitionerID
 		req = mux.SetURLVars(req, vars)
@@ -587,5 +586,281 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusNoContent)
 	})
+}
 
+func serveHandleAppointPractitioner(body []byte, service dao.Service, tranIdSet bool, practitionerIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/practitioners/abcd/appointment"
+	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
+	vars := make(map[string]string)
+	if tranIdSet {
+		vars["transaction_id"] = transactionID
+	}
+
+	if practitionerIDSet {
+		vars["practitioner_id"] = practitionerID
+	}
+	req = mux.SetURLVars(req, vars)
+	res := httptest.NewRecorder()
+
+	handler := HandleAppointPractitioner(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleAppointPractitioner(t *testing.T) {
+
+	Convey("Must have a transaction ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(&models.PractitionerAppointment{})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), false, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must have a practitioner ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(&models.PractitionerAppointment{})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Failed to read request body", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body := []byte(`{"appointed_on":error`)
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("mandatory fields not supplied", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(models.PractitionerAppointment{})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "made_by is a required field")
+	})
+
+	Convey("invalid made_by field supplied", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "invalid",
+		})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "made_by supplied is not valid")
+	})
+
+	Convey("error checking practitioner details", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error checking practitioner details")
+	})
+
+	Convey("practitioner already appointed", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{
+			{
+				ID: practitionerID,
+				Appointment: models.AppointmentResourceDao{
+					AppointedOn: "2012-01-23",
+				},
+			},
+		}
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).AnyTimes()
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "already appointed")
+	})
+
+	Convey("error checking practitioner details for appointment date", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("error"))
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error checking practitioner details")
+	})
+
+	Convey("appointment date differs", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{
+			{
+				ID: practitionerID,
+			},
+			{
+				ID: "123",
+				Appointment: models.AppointmentResourceDao{
+					AppointedOn: "2013-01-01",
+				},
+			},
+		}
+
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("error storing appointment in DB", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("err"), http.StatusInternalServerError)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("error getting practitioner for response", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, fmt.Errorf("error"))
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("empty practitioner returned", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, nil)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("successful appointment", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
+		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{ID: "123"}, nil)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+		res := serveHandleAppointPractitioner(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
 }

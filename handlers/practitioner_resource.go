@@ -169,7 +169,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check for a transaction id in request
+		// Check for a practitioner ID in request
 		practitionerID := utils.GetPractitionerIDFromVars(vars)
 		if practitionerID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no Practitioner ID in the URL path"))

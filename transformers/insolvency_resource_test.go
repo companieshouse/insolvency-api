@@ -67,3 +67,20 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 		So(response.Links.ValidationStatus, ShouldEqual, dao.Links.ValidationStatus)
 	})
 }
+
+func TestUnitAppointmentResourceDaoToAppointedResponse(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+		dao := &models.AppointmentResourceDao{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+			Links: models.AppointmentResourceLinksDao{
+				Self: "/self/link",
+			},
+		}
+
+		response := AppointmentResourceDaoToAppointedResponse(dao)
+		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
+		So(response.MadeBy, ShouldEqual, dao.MadeBy)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+	})
+}
