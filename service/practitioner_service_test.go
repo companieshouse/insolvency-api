@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIsValidPractitioner(t *testing.T) {
+func TestIsValidPractitionerDetails(t *testing.T) {
 	Convey("Practitioner request supplied is valid - both telephone number and email are supplied", t, func() {
 		practitioner := generatePractitioner()
 		err := ValidatePractitionerContactDetails(practitioner)
