@@ -14,10 +14,12 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id)
 
 	dao := &models.PractitionerResourceDao{
-		ID:        id,
-		IPCode:    req.IPCode,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
+		ID:              id,
+		IPCode:          req.IPCode,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		TelephoneNumber: req.TelephoneNumber,
+		Email:           req.Email,
 		Address: models.AddressResourceDao{
 			AddressLine1: req.Address.AddressLine1,
 			AddressLine2: req.Address.AddressLine2,
@@ -38,9 +40,11 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 // PractitionerResourceDaoToCreatedResponse transforms the dao model to the created response model
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
 	return &models.CreatedPractitionerResource{
-		IPCode:    model.IPCode,
-		FirstName: model.FirstName,
-		LastName:  model.LastName,
+		IPCode:          model.IPCode,
+		FirstName:       model.FirstName,
+		LastName:        model.LastName,
+		TelephoneNumber: model.TelephoneNumber,
+		Email:           model.Email,
 		Address: models.CreatedAddressResource{
 			AddressLine1: model.Address.AddressLine1,
 			AddressLine2: model.Address.AddressLine2,
