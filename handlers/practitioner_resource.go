@@ -9,6 +9,7 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/service"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
@@ -46,7 +47,7 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		// if they are supplied, the default go validator below will
 		// be used to validate that email and telephone number supplied
 		// are of the correct format
-		if errs := utils.ValidatePractitionerContactDetails(request); errs != "" {
+		if errs := service.ValidatePractitionerContactDetails(request); errs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
 			m := models.NewMessageResponse("invalid request body: " + errs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)

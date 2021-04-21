@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/companieshouse/insolvency-api/models"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -48,14 +47,4 @@ func extractJson(fld reflect.StructField) string {
 	}
 
 	return name
-}
-
-// ValidatePractitionerContactDetails checks if the telephone number and email are missing
-// in the request body. If they are missing, the method returns a human-readable error message.
-func ValidatePractitionerContactDetails(practitioner models.PractitionerRequest) string {
-	if practitioner.TelephoneNumber == "" && practitioner.Email == "" {
-		return "either telephone_number or email are required"
-	}
-
-	return ""
 }
