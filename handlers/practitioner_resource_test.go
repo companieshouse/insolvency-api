@@ -73,15 +73,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.IPCode = ""
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -94,15 +88,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:   "1234",
-			LastName: "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.FirstName = ""
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -115,15 +103,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.LastName = ""
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -136,12 +118,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Role:      constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{}
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -154,15 +133,11 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				Locality: "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{
+			Locality: "locality",
+		}
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -175,15 +150,11 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{
+			AddressLine1: "addressline1",
+		}
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -196,15 +167,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-		})
+		practitioner := generatePractitioner()
+		practitioner.Role = ""
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -217,19 +182,28 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: "error-role",
-		})
+		practitioner := generatePractitioner()
+		practitioner.Role = "error-role"
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Incoming request has telephone number and email missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = ""
+		practitioner.Email = ""
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "invalid request body: either telephone_number or email are required")
 	})
 
 	Convey("Generic error when adding practitioners resource to mongo", t, func() {
@@ -242,16 +216,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError).Times(1)
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
@@ -267,16 +233,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID), http.StatusNotFound).Times(1)
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
@@ -292,16 +250,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID), http.StatusBadRequest).Times(1)
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -317,16 +267,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect CreatePractitioners to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID), http.StatusBadRequest).Times(1)
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -342,20 +284,27 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect CreatePractitionersResource to be called once and not return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(nil, http.StatusCreated).Times(1)
 
-		body, _ := json.Marshal(models.PractitionerRequest{
-			IPCode:    "1234",
-			FirstName: "First",
-			LastName:  "Last",
-			Address: models.Address{
-				AddressLine1: "addressline1",
-				Locality:     "locality",
-			},
-			Role: constants.FinalLiquidator.String(),
-		})
+		practitioner := generatePractitioner()
+		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
+}
+
+func generatePractitioner() models.PractitionerRequest {
+	return models.PractitionerRequest{
+		IPCode:          "1234",
+		FirstName:       "Joe",
+		LastName:        "Bloggs",
+		TelephoneNumber: "123456",
+		Email:           "email",
+		Address: models.Address{
+			AddressLine1: "addressline1",
+			Locality:     "locality",
+		},
+		Role: constants.FinalLiquidator.String(),
+	}
 }
 
 func serveGetPractitionerResourcesRequest(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {

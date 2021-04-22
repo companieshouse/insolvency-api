@@ -16,7 +16,7 @@ func CheckPractitionerAlreadyAppointed(svc dao.Service, transactionID string, pr
 		return err, false
 	}
 	for _, practitioner := range practitionerResources {
-		if practitioner.ID == practitionerID && practitioner.Appointment.AppointedOn != "" {
+		if practitioner.ID == practitionerID && practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" {
 			log.Info("practitioner ID [%s] already appointed to transaction ID [%s]")
 			return nil, true
 		}
@@ -32,7 +32,7 @@ func CheckAppointmentDateValid(svc dao.Service, transactionID string, appointedO
 		return err, false
 	}
 	for _, practitioner := range practitionerResources {
-		if practitioner.Appointment.AppointedOn != "" && practitioner.Appointment.AppointedOn != appointedOn {
+		if practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" && practitioner.Appointment.AppointedOn != appointedOn {
 			return nil, false
 		}
 	}

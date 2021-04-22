@@ -29,26 +29,28 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	ID          string                       `bson:"id"`
-	IPCode      string                       `bson:"ip_code"`
-	FirstName   string                       `bson:"first_name"`
-	LastName    string                       `bson:"last_name"`
-	Address     AddressResourceDao           `bson:"address"`
-	Role        string                       `bson:"role"`
-	Links       PractitionerResourceLinksDao `bson:"links"`
-	Appointment AppointmentResourceDao       `bson:"appointment"`
+	ID              string                       `bson:"id"`
+	IPCode          string                       `bson:"ip_code"`
+	FirstName       string                       `bson:"first_name"`
+	LastName        string                       `bson:"last_name"`
+	TelephoneNumber string                       `bson:"telephone_number,omitempty"`
+	Email           string                       `bson:"email,omitempty"`
+	Address         AddressResourceDao           `bson:"address"`
+	Role            string                       `bson:"role"`
+	Links           PractitionerResourceLinksDao `bson:"links"`
+	Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
 }
 
 // AppointmentResourceDao contains the appointment data for a practitioner
 type AppointmentResourceDao struct {
 	AppointedOn string                      `bson:"appointed_on,omitempty"`
 	MadeBy      string                      `bson:"made_by,omitempty"`
-	Links       AppointmentResourceLinksDao `bson:"links"`
+	Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
 }
 
 // AppointmentResourceLinksDao contains the Links data for an appointment
 type AppointmentResourceLinksDao struct {
-	Self string `bson:"self"`
+	Self string `bson:"self,omitempty"`
 }
 
 // AddressResourceDao contains the data for any addresses in Mongo
