@@ -258,8 +258,9 @@ func (m *MongoService) AppointPractitioner(dao *models.AppointmentResourceDao, t
 
 	update, err := collection.UpdateOne(context.Background(), filter, updateDocument)
 	if err != nil {
-		log.Error(err)
-		return fmt.Errorf("there was a problem handling your request - could not add practitioner appointment to id %s", practitionerID), http.StatusInternalServerError
+		errMsg := fmt.Errorf("could not add practitioner appointment to id %s: %s", practitionerID, err)
+		log.Error(errMsg)
+		return errMsg, http.StatusInternalServerError
 	}
 	// Check if a match was found
 	if update.MatchedCount == 0 {

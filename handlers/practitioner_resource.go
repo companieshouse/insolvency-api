@@ -175,7 +175,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 		transactionID := utils.GetTransactionIDFromVars(vars)
 		if transactionID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no Transaction ID in the URL path"))
-			m := models.NewMessageResponse("Transaction ID is not in the URL path")
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -184,7 +184,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 		practitionerID := utils.GetPractitionerIDFromVars(vars)
 		if practitionerID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no Practitioner ID in the URL path"))
-			m := models.NewMessageResponse("Practitioner ID is not in the URL path")
+			m := models.NewMessageResponse("practitioner ID is not in the URL path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -263,15 +263,18 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 
 		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
 		if err != nil {
-			log.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 
 		// Check if practitioner is empty (not found). This should not happen, as appointment has just been added.
 		if practitioner == (models.PractitionerResourceDao{}) {
-			log.ErrorR(req, fmt.Errorf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID))
-			w.WriteHeader(http.StatusInternalServerError)
+			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
+			log.InfoR(req, msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 
