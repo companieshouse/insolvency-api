@@ -43,19 +43,16 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Validating contact details being present first because
-		// if they are supplied, the default go validator below will
-		// be used to validate that email and telephone number supplied
-		// are of the correct format
-		if errs := service.ValidatePractitionerContactDetails(request); errs != "" {
+		// Validate all mandatory fields
+		if errs := utils.Validate(request); errs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
 			m := models.NewMessageResponse("invalid request body: " + errs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
-		// Validate all mandatory fields
-		if errs := utils.Validate(request); errs != "" {
+		// Validates that the provided practitioner details are in the correct format
+		if errs := service.ValidatePractitionerDetails(request); errs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
 			m := models.NewMessageResponse("invalid request body: " + errs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)

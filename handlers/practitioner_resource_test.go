@@ -203,7 +203,39 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Incoming request has invalid first name", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.FirstName = "J4ck"
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "the first name contains a character which is not allowed")
+	})
+
+	Convey("Incoming request has telephone number and email missing and an invalid last name", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.LastName = "wr0ng"
+		practitioner.TelephoneNumber = ""
+		practitioner.Email = ""
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "invalid request body: either telephone_number or email are required")
+		So(res.Body.String(), ShouldContainSubstring, "the last name contains a character which is not allowed")
 	})
 
 	Convey("Generic error when adding practitioners resource to mongo", t, func() {
@@ -286,6 +318,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
+
 		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
