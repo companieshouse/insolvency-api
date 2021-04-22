@@ -39,7 +39,20 @@ type CreatedAddressResource struct {
 	PostalCode   string `json:"postal_code"`
 }
 
+// CreatedPractitionerLinksResource contains the links details for a practitioner
 type CreatedPractitionerLinksResource struct {
+	Self string `json:"self"`
+}
+
+// AppointedPractitionerResource contains the details of an appointed practitioner
+type AppointedPractitionerResource struct {
+	AppointedOn string                             `json:"appointed_on"`
+	MadeBy      string                             `json:"made_by"`
+	Links       AppointedPractitionerLinksResource `json:"links"`
+}
+
+// AppointedPractitionerLinksResource contains the links details for a practitioner appointment
+type AppointedPractitionerLinksResource struct {
 	Self string `json:"self"`
 }
 

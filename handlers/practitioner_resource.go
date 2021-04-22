@@ -163,3 +163,120 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		w.WriteHeader(statusCode)
 	})
 }
+
+// HandleAppointPractitioner adds appointment details to a practitioner resource on a transaction
+func HandleAppointPractitioner(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no Transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check for a practitioner ID in request
+		practitionerID := utils.GetPractitionerIDFromVars(vars)
+		if practitionerID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no Practitioner ID in the URL path"))
+			m := models.NewMessageResponse("practitioner ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start POST request for practitioner appointment with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		// Decode the incoming request
+		var request models.PractitionerAppointment
+		err := json.NewDecoder(req.Body).Decode(&request)
+		// Request body failed to get decoded
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("invalid request"))
+			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transactionID [%s] and practitionerID [%s]", transactionID, practitionerID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Validate all mandatory fields
+		if errs := utils.Validate(request); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request body: " + errs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check if made_by supplied is valid
+		if ok := constants.IsAppointmentMadeByInList(request.MadeBy); !ok {
+			log.ErrorR(req, fmt.Errorf("invalid appointment made_by"))
+			m := models.NewMessageResponse(fmt.Sprintf("the appointment made_by supplied is not valid: [%s]", request.MadeBy))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check whether practitioner has already been appointed
+		err, alreadyAppointed := service.CheckPractitionerAlreadyAppointed(svc, transactionID, practitionerID, req)
+		if err != nil {
+			m := models.NewMessageResponse("error checking practitioner details")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if alreadyAppointed {
+			msg := fmt.Sprintf("practitioner ID [%s] already appointed for transaction ID [%s]", practitionerID, transactionID)
+			log.Info(msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Check appointment date valid
+		err, validAppointmentDate := service.CheckAppointmentDateValid(svc, transactionID, request.AppointedOn, req)
+		if err != nil {
+			m := models.NewMessageResponse("error checking practitioner details")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if !validAppointmentDate {
+			msg := fmt.Sprintf("appointment Date [%s] differs for practitioner ID [%s] and transaction ID [%s]", request.AppointedOn, practitionerID, transactionID)
+			log.Info(msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		practitionerAppointmentDao := transformers.PractitionerAppointmentRequestToDB(&request, transactionID, practitionerID)
+
+		// Store appointment in DB
+		err, statusCode := svc.AppointPractitioner(practitionerAppointmentDao, transactionID, practitionerID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully added practitioner appointment with transaction ID [%s] and practitioner ID [%s] to mongo", transactionID, practitionerID))
+
+		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		// Check if practitioner is empty (not found). This should not happen, as appointment has just been added.
+		if practitioner == (models.PractitionerResourceDao{}) {
+			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
+			log.InfoR(req, msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(*practitioner.Appointment)
+
+		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
+	})
+}

@@ -95,3 +95,38 @@ func TestUnitPractitionerResourceDaoListToCreatedResponseList(t *testing.T) {
 		So(response[0].Role, ShouldEqual, daoList[0].Role)
 	})
 }
+
+func TestUnitPractitionerAppointmentRequestToDB(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+		dao := &models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		}
+		transactionID := "123"
+		practitionerID := "456"
+
+		response := PractitionerAppointmentRequestToDB(dao, transactionID, practitionerID)
+
+		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
+		So(response.MadeBy, ShouldEqual, dao.MadeBy)
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("/transactions/"+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
+	})
+}
+
+func TestUnitPractitionerAppointmentDaoToResponse(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+		dao := models.AppointmentResourceDao{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+			Links: models.AppointmentResourceLinksDao{
+				Self: "/links/self",
+			},
+		}
+
+		response := PractitionerAppointmentDaoToResponse(dao)
+
+		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
+		So(response.MadeBy, ShouldEqual, dao.MadeBy)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+	})
+}

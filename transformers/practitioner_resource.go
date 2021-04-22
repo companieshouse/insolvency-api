@@ -71,3 +71,29 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 
 	return createdPractitioners
 }
+
+// PractitionerAppointmentRequestToDB transforms an appointment request to a dao model
+func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
+
+	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID + "/appointment")
+	dao := &models.AppointmentResourceDao{
+		AppointedOn: req.AppointedOn,
+		MadeBy:      req.MadeBy,
+		Links: models.AppointmentResourceLinksDao{
+			Self: selfLink,
+		},
+	}
+
+	return dao
+}
+
+// PractitionerAppointmentDaoToResponse transforms an appointment dao model to a response
+func PractitionerAppointmentDaoToResponse(appointment models.AppointmentResourceDao) models.AppointedPractitionerResource {
+	return models.AppointedPractitionerResource{
+		AppointedOn: appointment.AppointedOn,
+		MadeBy:      appointment.MadeBy,
+		Links: models.AppointedPractitionerLinksResource{
+			Self: appointment.Links.Self,
+		},
+	}
+}

@@ -31,7 +31,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InsolvencyResource'
-                
+
   /transactions/{transaction_id}/insolvency/attachments:
     post:
       tags:
@@ -73,7 +73,7 @@ paths:
         required: true
         description: The unique attachment id
         schema:
-          type: string 
+          type: string
     get:
       tags:
         - "Attachments"
@@ -88,7 +88,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Attachment'
-  
+
     delete:
       tags:
         - "Attachments"
@@ -191,7 +191,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Practitioner'
-          
+
     delete:
       tags:
         - "Practitioner"
@@ -234,7 +234,7 @@ paths:
           description: The unique practitioner id
           schema:
             type: string
-            format: uuid 
+            format: uuid
       security:
         - oauth2: [submit_insolvency_data]
       operationId: createPractitionerAppointment
@@ -245,11 +245,6 @@ paths:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                  format: email
-                telephone_number:
-                  type: string
                 appointed_on:
                   type: string
                   format: date
@@ -265,32 +260,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PractitionerAppointment'
-
-  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment/{appointment_id}:
-    parameters:
-      - in: path
-        name: transaction_id
-        required: true
-        description: The transaction that this insolvency case is applied to
-        schema:
-          type: string
-      - in: path
-        name: practitioner_id
-        required: true
-        description: The unique liquidator id
-        schema:
-          type: string
-          format: uuid
-      - in: path
-        name: appointment_id
-        required: true
-        description: The unique appointment id
-        schema:
-          type: string
-          format: uuid
     get:
       tags:
         - "Practitioner"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid
       security:
         - oauth2: [submit_insolvency_data]
       operationId: getAppointment
@@ -305,6 +291,20 @@ paths:
     delete:
       tags:
         - "Practitioner"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid
       security:
         - oauth2: [submit_insolvency_data]
       operationId: deleteAppointment
@@ -362,7 +362,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StatementOfAffairs'
-  
+
     delete:
       tags:
         - "Statement of Affairs"
@@ -421,9 +421,9 @@ paths:
                   date_of_resolution:
                     type: string
                     format: date
-      
 
-      
+
+
 components:
   schemas:
     InsolvencyResourceWritable:
@@ -438,7 +438,7 @@ components:
           enum:
             - members-voluntary-liquidation
             - creditors-voluntary-liquidation
-    
+
     InsolvencyResource:
       type: object
       properties:
@@ -501,14 +501,14 @@ components:
           type: string
         postal_code:
           type: string
-  
+
     AttachmentContextTypes:
       type: string
       enum:
-         - resolution
-         - statement-of-affairs-liquidator
-         - statement-of-affairs-director
-         - statement-of-concurrence
+        - resolution
+        - statement-of-affairs-liquidator
+        - statement-of-affairs-director
+        - statement-of-concurrence
     AttachmentWritable:
       type: object
       properties:
@@ -579,7 +579,11 @@ components:
             - administrative-receiver
             - practitioner
             - interim-liquidator
-  
+        email:
+          type: string
+          format: email
+        telephone_number:
+          type: string
     Practitioner:
       type: object
       properties:
@@ -648,7 +652,7 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment/{appointment_id}
-  
+
     StatementOfAffairsWritable:
       type: object
       properties:
@@ -660,7 +664,7 @@ components:
           items:
             type: string
             format: uuid
-  
+
     StatementOfAffairs:
       type: object
       properties:

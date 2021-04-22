@@ -29,6 +29,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	appRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
 	appRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
 	appRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleDeletePractitioner(svc)).Methods(http.MethodDelete).Name("deletePractitioner")
+	appRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleAppointPractitioner(svc)).Methods(http.MethodPost).Name("appointPractitioner")
 
 	mainRouter.Use(log.Handler)
 }
