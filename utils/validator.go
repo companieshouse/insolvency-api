@@ -3,7 +3,6 @@ package utils
 import (
 	"fmt"
 	"reflect"
-	"regexp"
 	"strings"
 
 	"github.com/go-playground/locales/en"
@@ -12,6 +11,10 @@ import (
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 )
 
+// Validate takes in any request object and checks whether it has met
+// the validation criteria according to the annotations on that object.
+// If the object is invalid, the method returns a human-readable string
+// which can then be added to the message response for the API user
 func Validate(data interface{}) string {
 	v := validator.New()
 	v.RegisterTagNameFunc(extractJson)
@@ -19,7 +22,6 @@ func Validate(data interface{}) string {
 	uni := ut.New(english, english)
 	trans, _ := uni.GetTranslator("en")
 	_ = en_translations.RegisterDefaultTranslations(v, trans)
-	registerOfficerNameValidation(v)
 
 	err := v.Struct(data)
 
@@ -45,14 +47,4 @@ func extractJson(fld reflect.StructField) string {
 	}
 
 	return name
-}
-
-// registerOfficerNameValidation creates a validator rule to check names match our expected validation regex
-func registerOfficerNameValidation(v *validator.Validate) {
-	_ = v.RegisterValidation(`name_rule`, func(fl validator.FieldLevel) bool {
-		nameRuleRegexString := `^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$`
-		nameRuleRegex := regexp.MustCompile(nameRuleRegexString)
-
-		return nameRuleRegex.MatchString(fl.Field().String())
-	})
 }

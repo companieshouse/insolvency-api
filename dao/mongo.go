@@ -10,7 +10,6 @@ import (
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -85,9 +84,6 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
-
-	// Generate ID for practitioner
-	dao.ID = utils.GenerateID()
 
 	filter := bson.M{"transaction_id": transactionID}
 
@@ -168,30 +164,49 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 		return nil, err
 	}
 
+	// Return an empty array instead of nil so the handler can check
+	// that there are no practitioners
+	if insolvencyResource.Data.Practitioners == nil {
+		return make([]models.PractitionerResourceDao, 0), nil
+	}
+
 	return insolvencyResource.Data.Practitioners, nil
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
-func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
+func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
 	collection := m.db.Collection(m.CollectionName)
-
-	// Choose specific practitioner to delete
-	pullQuery := bson.M{"data.practitioners": bson.M{"id": practitionerID}}
 
 	// Choose specific transaction for insolvency case with practitioner to be removed
 	filter := bson.M{"transaction_id": transactionID}
 
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return fmt.Errorf("there was a problem handling your request for transaction id %s - insolvency case not found", transactionID), http.StatusNotFound
+		}
+		log.Error(err)
+		return fmt.Errorf("there was a problem handling your request for transaction id %s", transactionID), http.StatusInternalServerError
+	}
+
+	// Choose specific practitioner to delete
+	pullQuery := bson.M{"data.practitioners": bson.M{"id": practitionerID}}
+
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("There was a problem handling your request - could not delete practitioner with id %s", practitionerID)
-	}
-	// Check if Mongo updated the collection
-	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("Item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
-		log.Error(err)
-		return http.StatusNotFound, err
+		return fmt.Errorf("there was a problem handling your request for transaction id %s - could not delete practitioner with id %s", transactionID, practitionerID), http.StatusInternalServerError
 	}
 
-	return http.StatusNoContent, nil
+	// Return error if Mongo could not update the document
+	if update.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id %s - practitioner with id %s not found", transactionID, practitionerID)
+		log.Error(err)
+		return err, http.StatusNotFound
+	}
+
+	return nil, http.StatusNoContent
 }

@@ -71,10 +71,10 @@ func (mr *MockServiceMockRecorder) GetPractitionerResources(transactionID interf
 }
 
 // DeletePractitioner mocks base method
-func (m *MockService) DeletePractitioner(practitionerID, transactionID string) (int, error) {
+func (m *MockService) DeletePractitioner(practitionerID, transactionID string) (error, int) {
 	ret := m.ctrl.Call(m, "DeletePractitioner", practitionerID, transactionID)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
+	ret0, _ := ret[0].(error)
+	ret1, _ := ret[1].(int)
 	return ret0, ret1
 }
 

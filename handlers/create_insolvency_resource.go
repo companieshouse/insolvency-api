@@ -13,7 +13,6 @@ import (
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
-	"gopkg.in/go-playground/validator.v9"
 )
 
 // HandleCreateInsolvencyResource creates an insolvency resource
@@ -44,11 +43,10 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check all required fields are populated
-		v := validator.New()
-		if v.Struct(request) != nil {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation"))
-			m := models.NewMessageResponse("invalid request body")
+		// Validate all mandatory fields
+		if errs := utils.Validate(request); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request body: " + errs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -61,8 +59,18 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
+		// Check with transaction API that provided transaction ID exists
+		err, httpStatus := service.CheckTransactionID(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("transaction id [%s] was not found valid for insolvency request against company [%s] when checking transaction api: [%v]",
+				transactionID, request.CompanyNumber, err))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction id [%s] was not found valid for insolvency: %v", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+
 		// Check with company profile API if company is valid
-		err, httpStatus := service.CheckCompanyInsolvencyValid(&request, req)
+		err, httpStatus = service.CheckCompanyInsolvencyValid(&request, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
@@ -81,10 +89,17 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
+		// Patch transaction API with new insolvency resource
+		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, model, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+
 		log.InfoR(req, fmt.Sprintf("successfully added insolvency resource with transaction ID: %s, to mongo", transactionID))
 
 		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
-
-		// TODO: Update transaction API with new insolvency resource
 	})
 }

@@ -1,16 +1,25 @@
 package transformers
 
 import (
+	"fmt"
+
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // PractitionerResourceRequestToDB transforms practitioner request model to the dao model
 func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
 
+	id := utils.GenerateID()
+	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id)
+
 	dao := &models.PractitionerResourceDao{
-		IPCode:    req.IPCode,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
+		ID:              id,
+		IPCode:          req.IPCode,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		TelephoneNumber: req.TelephoneNumber,
+		Email:           req.Email,
 		Address: models.AddressResourceDao{
 			AddressLine1: req.Address.AddressLine1,
 			AddressLine2: req.Address.AddressLine2,
@@ -20,6 +29,9 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 			PostalCode:   req.Address.PostalCode,
 		},
 		Role: req.Role,
+		Links: models.PractitionerResourceLinksDao{
+			Self: selfLink,
+		},
 	}
 
 	return dao
@@ -28,9 +40,11 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 // PractitionerResourceDaoToCreatedResponse transforms the dao model to the created response model
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
 	return &models.CreatedPractitionerResource{
-		IPCode:    model.IPCode,
-		FirstName: model.FirstName,
-		LastName:  model.LastName,
+		IPCode:          model.IPCode,
+		FirstName:       model.FirstName,
+		LastName:        model.LastName,
+		TelephoneNumber: model.TelephoneNumber,
+		Email:           model.Email,
 		Address: models.CreatedAddressResource{
 			AddressLine1: model.Address.AddressLine1,
 			AddressLine2: model.Address.AddressLine2,
@@ -40,6 +54,9 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 			PostalCode:   model.Address.PostalCode,
 		},
 		Role: model.Role,
+		Links: models.CreatedPractitionerLinksResource{
+			Self: model.Links.Self,
+		},
 	}
 }
 
