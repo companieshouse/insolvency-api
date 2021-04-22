@@ -173,21 +173,39 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 	return insolvencyResource.Data.Practitioners, nil
 }
 
-// GetPractitionerResource gets a single practitioners for an insolvency case with the specified transactionID and practitionerID
+// GetPractitionerResource gets a single practitioner for an insolvency case with the specified transactionID and practitionerID
 func (m *MongoService) GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error) {
-	practitioners, err := m.GetPractitionerResources(transactionID)
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id":        transactionID,
+		"data.practitioners.id": practitionerID,
+	}
+
+	projection := bson.M{"_id": 0, "data.practitioners.$": 1}
+
+	// Retrieve insolvency case from Mongo
+	opts := options.FindOne().SetProjection(projection)
+	practitioner := collection.FindOne(context.Background(), filter, opts)
+	err := practitioner.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return models.PractitionerResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return models.PractitionerResourceDao{}, err
+	}
+	err = practitioner.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return models.PractitionerResourceDao{}, err
 	}
 
-	for _, practitioner := range practitioners {
-		if practitioner.ID == practitionerID {
-			return practitioner, nil
-		}
-	}
-
-	return models.PractitionerResourceDao{}, nil
+	return insolvencyResource.Data.Practitioners[0], nil
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
