@@ -261,7 +261,7 @@ func (m *MongoService) AppointPractitioner(dao *models.AppointmentResourceDao, t
 		log.Error(err)
 		return fmt.Errorf("there was a problem handling your request - could not add practitioner appointment to id %s", practitionerID), http.StatusInternalServerError
 	}
-	// Check if Mongo updated the collection
+	// Check if a match was found
 	if update.MatchedCount == 0 {
 		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
 		log.Error(err)

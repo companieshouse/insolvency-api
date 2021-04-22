@@ -3,7 +3,7 @@ package constants
 // AppointmentMadeBy Enum Type
 type AppointmentMadeBy int
 
-// Enumeration containing all possible practitioner roles
+// Enumeration containing all permitted values for AppointedBy
 const (
 	Company AppointmentMadeBy = 1 + iota
 	Creditors
@@ -14,7 +14,7 @@ var appointmentMadeByTypes = [...]string{
 	"creditors",
 }
 
-// String returns the correctly formatted practitioner role
+// String returns the correctly formatted AppointmentMadeBy
 func (appointmentMadeBy AppointmentMadeBy) String() string {
 	return appointmentMadeByTypes[appointmentMadeBy-1]
 }
