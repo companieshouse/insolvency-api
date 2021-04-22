@@ -167,6 +167,7 @@ func (m *MongoService) GetPractitionerResources(transactionID string) ([]models.
 	return insolvencyResource.Data.Practitioners, nil
 }
 
+// GetPractitionerResource gets a single practitioners for an insolvency case with the specified transactionID and practitionerID
 func (m *MongoService) GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error) {
 	practitioners, err := m.GetPractitionerResources(transactionID)
 	if err != nil {
@@ -208,6 +209,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	return nil, http.StatusNoContent
 }
 
+// AppointPractitioner adds appointment details insolvency case with the specified transactionID and practitionerID
 func (m *MongoService) AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int) {
 
 	collection := m.db.Collection(m.CollectionName)
