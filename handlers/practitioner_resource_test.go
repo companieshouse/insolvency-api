@@ -653,7 +653,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		practitionersDao := []models.PractitionerResourceDao{
 			{
 				ID: practitionerID,
-				Appointment: models.AppointmentResourceDao{
+				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-01-23",
 				},
 			},
@@ -704,7 +704,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			},
 			{
 				ID: "123",
-				Appointment: models.AppointmentResourceDao{
+				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2013-01-01",
 				},
 			},
@@ -797,12 +797,23 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		practitionersDao := []models.PractitionerResourceDao{
+			{
+				ID: "321",
+				Appointment: &models.AppointmentResourceDao{
+					AppointedOn: "2012-02-23",
+					MadeBy:      "company",
+					Links: models.AppointmentResourceLinksDao{
+						Self: "/links/self",
+					},
+				},
+			},
+		}
 
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
 		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
-		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{ID: "123"}, nil)
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(practitionersDao[0], nil)
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
 			AppointedOn: "2012-02-23",

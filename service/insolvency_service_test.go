@@ -40,7 +40,7 @@ func TestUnitCheckPractitionerAlreadyAppointed(t *testing.T) {
 		practitionersResponse := []models.PractitionerResourceDao{
 			{
 				ID: practitionerID,
-				Appointment: models.AppointmentResourceDao{
+				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-01-23",
 				},
 			},
@@ -95,7 +95,7 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 		practitionersResponse := []models.PractitionerResourceDao{
 			{
 				ID: "456",
-				Appointment: models.AppointmentResourceDao{
+				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-02-23",
 				},
 			},
@@ -117,7 +117,7 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 		practitionersResponse := []models.PractitionerResourceDao{
 			{
 				ID: "456",
-				Appointment: models.AppointmentResourceDao{
+				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-01-23",
 				},
 			},
