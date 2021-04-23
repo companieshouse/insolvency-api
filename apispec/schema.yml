@@ -651,7 +651,7 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment/{appointment_id}
+              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
     StatementOfAffairsWritable:
       type: object
