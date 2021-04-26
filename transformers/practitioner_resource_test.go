@@ -28,7 +28,7 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 		response := PractitionerResourceRequestToDB(incomingRequest, transactionID)
 
 		So(response.ID, ShouldNotBeBlank)
-		So(response.IPCode, ShouldEqual, incomingRequest.IPCode)
+		So(response.IPCode, ShouldEqual, "00001111")
 		So(response.FirstName, ShouldEqual, incomingRequest.FirstName)
 		So(response.LastName, ShouldEqual, incomingRequest.LastName)
 		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)

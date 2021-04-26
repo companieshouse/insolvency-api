@@ -51,9 +51,6 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Pad IP Code with leading zeros
-		request.IPCode = fmt.Sprintf("%08s", request.IPCode)
-
 		// Validates that the provided practitioner details are in the correct format
 		if errs := service.ValidatePractitionerDetails(request); errs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
