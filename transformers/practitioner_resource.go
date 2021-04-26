@@ -13,6 +13,9 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 	id := utils.GenerateID()
 	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id)
 
+	// Pad IP Code with leading zeros
+	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
+
 	dao := &models.PractitionerResourceDao{
 		ID:              id,
 		IPCode:          req.IPCode,
