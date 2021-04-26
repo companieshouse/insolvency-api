@@ -82,6 +82,36 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "ip_code is a required field")
 	})
 
+	Convey("Incoming request has invalid IP code - not numerics", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.IPCode = "abc123"
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a valid numeric value")
+	})
+
+	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.IPCode = "123456789"
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a maximum of 8 characters in length")
+	})
+
 	Convey("Incoming request has first name missing", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
