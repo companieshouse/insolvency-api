@@ -45,7 +45,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 	Convey("Must need a transaction ID in the url", t, func() {
 		httpmock.Activate()
-		mockCtl := gomock.NewController(t)
+		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
