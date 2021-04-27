@@ -416,36 +416,6 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
-	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetPractitionersResource to be called once and return an error
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-
-		res := serveGetPractitionerResourcesRequest(mockService, true)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-	})
-
-	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetPractitionersResource to be called once and return an error
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-
-		res := serveGetPractitionerResourcesRequest(mockService, true)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-	})
-
 	Convey("Error when retrieving practitioner resources from mongo - insolvency case not found", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
