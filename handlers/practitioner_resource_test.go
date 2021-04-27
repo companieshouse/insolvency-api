@@ -82,19 +82,19 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "ip_code is a required field")
 	})
 
-	Convey("Incoming request has invalid IP code - not numerics", t, func() {
+	Convey("Incoming request has invalid IP code - not a number", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
-		practitioner.IPCode = "abc123"
+		practitioner.IPCode = "+1234"
 		body, _ := json.Marshal(practitioner)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a valid numeric value")
+		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a valid number")
 	})
 
 	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
