@@ -16,6 +16,14 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 		errs = append(errs, "either telephone_number or email are required")
 	}
 
+	// Set allowed telephone number convention
+	telephoneNumberRuleRegexString := `^^[0][1-9]\d{9}$`
+	telephoneNumberRuleRegex := regexp.MustCompile(telephoneNumberRuleRegexString)
+
+	if practitioner.TelephoneNumber != "" && !telephoneNumberRuleRegex.MatchString(practitioner.TelephoneNumber) {
+		errs = append(errs, "telephone_number must start with 0 and be 11 digits long")
+	}
+
 	// Set allowed naming conventions for names
 	nameRuleRegexString := `^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$`
 	nameRuleRegex := regexp.MustCompile(nameRuleRegexString)
