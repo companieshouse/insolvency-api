@@ -121,7 +121,6 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 		}
 
 		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResources), http.StatusOK)
-
 	})
 }
 
@@ -131,18 +130,10 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
-		transactionID := utils.GetTransactionIDFromVars(vars)
-		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
-			m := models.NewMessageResponse("transaction id is not in the url path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-			return
-		}
-		// Check for a practitioner id in request
-		practitionerID := utils.GetPractitionerIDFromVars(vars)
-		if practitionerID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no practitioner id in the url path"))
-			m := models.NewMessageResponse("practitioner id is not in the url path")
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -169,19 +160,10 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
-		transactionID := utils.GetTransactionIDFromVars(vars)
-		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no Transaction ID in the URL path"))
-			m := models.NewMessageResponse("transaction ID is not in the URL path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-			return
-		}
-
-		// Check for a practitioner ID in request
-		practitionerID := utils.GetPractitionerIDFromVars(vars)
-		if practitionerID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no Practitioner ID in the URL path"))
-			m := models.NewMessageResponse("practitioner ID is not in the URL path")
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -190,7 +172,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 
 		// Decode the incoming request
 		var request models.PractitionerAppointment
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 		// Request body failed to get decoded
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("invalid request"))
@@ -279,4 +261,68 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 
 		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
 	})
+}
+
+// HandleGetPractitionerAppointment retrieves appointment details
+// for the specified transactionID and practitionerID
+func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		vars := mux.Vars(req)
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		// Check if practitioner is empty (not found).
+		if practitioner == (models.PractitionerResourceDao{}) {
+			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
+			log.InfoR(req, msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		// Check if practitioner has an appointment
+		if practitioner.Appointment == nil {
+			msg := fmt.Sprintf("No appointment found for practitionerID [%s] an transactionID [%s]", practitionerID, transactionID)
+			log.InfoR(req, msg)
+			m := models.NewMessageResponse(msg)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(*practitioner.Appointment)
+
+		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
+	})
+}
+
+func getTransactionIDAndPractitionerIDFromVars(vars map[string]string) (transactionID string, practitionerID string, err error) {
+	transactionID = utils.GetTransactionIDFromVars(vars)
+	if transactionID == "" {
+		err = fmt.Errorf("there is no Transaction ID in the URL path")
+		return
+	}
+
+	// Check for a practitioner ID in request
+	practitionerID = utils.GetPractitionerIDFromVars(vars)
+	if practitionerID == "" {
+		err = fmt.Errorf("there is no Practitioner ID in the URL path")
+		return
+	}
+	return transactionID, practitionerID, nil
 }
