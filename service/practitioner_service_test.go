@@ -45,27 +45,7 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must start with 0 and be 11 digits long")
-	})
-
-	Convey("Practitioner request supplied is invalid - telephone number is not 11 digits long", t, func() {
-		practitioner := generatePractitioner()
-		practitioner.TelephoneNumber = "077777777771"
-
-		err := ValidatePractitionerDetails(practitioner)
-
-		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must start with 0 and be 11 digits long")
-	})
-
-	Convey("Practitioner request supplied is invalid - telephone number is not a valid format", t, func() {
-		practitioner := generatePractitioner()
-		practitioner.TelephoneNumber = "0712345678O"
-
-		err := ValidatePractitionerDetails(practitioner)
-
-		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must start with 0 and be 11 digits long")
+		So(err, ShouldContainSubstring, "telephone_number must start with 0")
 	})
 
 	Convey("Practitioner request supplied is invalid - first name does not match regex", t, func() {
