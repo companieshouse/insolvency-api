@@ -12,7 +12,7 @@ type PractitionerRequest struct {
 	IPCode          string  `json:"ip_code" validate:"required,number,max=8"`
 	FirstName       string  `json:"first_name" validate:"required"`
 	LastName        string  `json:"last_name" validate:"required"`
-	TelephoneNumber string  `json:"telephone_number"`
+	TelephoneNumber string  `json:"telephone_number" validate:"omitempty,min=10,max=11,number"`
 	Email           string  `json:"email" validate:"omitempty,email"`
 	Address         Address `json:"address" validate:"required"`
 	Role            string  `json:"role" validate:"required"`
