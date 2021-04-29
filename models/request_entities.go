@@ -13,7 +13,7 @@ type PractitionerRequest struct {
 	FirstName       string  `json:"first_name" validate:"required"`
 	LastName        string  `json:"last_name" validate:"required"`
 	TelephoneNumber string  `json:"telephone_number"`
-	Email           string  `json:"email" validate:"email"`
+	Email           string  `json:"email"`
 	Address         Address `json:"address" validate:"required"`
 	Role            string  `json:"role" validate:"required"`
 }
