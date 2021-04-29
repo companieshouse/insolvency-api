@@ -360,8 +360,8 @@ func generatePractitioner() models.PractitionerRequest {
 		IPCode:          "1234",
 		FirstName:       "Joe",
 		LastName:        "Bloggs",
-		TelephoneNumber: "123456",
-		Email:           "email",
+		TelephoneNumber: "07777777777",
+		Email:           "a@b.com",
 		Address: models.Address{
 			AddressLine1: "addressline1",
 			Locality:     "locality",
