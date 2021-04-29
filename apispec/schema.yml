@@ -632,11 +632,6 @@ components:
     PractitionerAppointment:
       type: object
       properties:
-        email:
-          type: string
-          format: email
-        telephone_number:
-          type: string
         appointed_on:
           type: string
           format: date
