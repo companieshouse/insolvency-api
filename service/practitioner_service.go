@@ -17,11 +17,9 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 	}
 
 	// Set allowed telephone number convention
-	telephoneNumberRuleRegexString := `^[0][1-9]\d{9}$`
-	telephoneNumberRuleRegex := regexp.MustCompile(telephoneNumberRuleRegexString)
 
-	if practitioner.TelephoneNumber != "" && !telephoneNumberRuleRegex.MatchString(practitioner.TelephoneNumber) {
-		errs = append(errs, "telephone_number must start with 0 and be 11 digits long")
+	if practitioner.TelephoneNumber != "" && !strings.HasPrefix(practitioner.TelephoneNumber, "0") {
+		errs = append(errs, "telephone_number must start with 0")
 	}
 
 	// Set allowed naming conventions for names
