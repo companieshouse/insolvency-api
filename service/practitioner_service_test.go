@@ -20,18 +20,57 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		So(err, ShouldContainSubstring, "either telephone_number or email are required")
 	})
 
-	Convey("Practitioner request supplied is valid - telephone number is supplied", t, func() {
+	Convey("Practitioner request supplied is valid - email is supplied", t, func() {
 		practitioner := generatePractitioner()
-		practitioner.Email = ""
+		practitioner.TelephoneNumber = ""
 
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldBeBlank)
 	})
 
-	Convey("Practitioner request supplied is valid - email is supplied", t, func() {
+	Convey("Practitioner request supplied is valid - email is supplied with co.uk domain", t, func() {
 		practitioner := generatePractitioner()
-		practitioner.TelephoneNumber = ""
+		practitioner.Email = "test@test.co.uk"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldBeBlank)
+	})
+
+	Convey("Practitioner request supplied is invalid - email address is missing @ symbol", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.Email = "a.com"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "email_address must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is invalid - email address is missing prefix", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.Email = "@.com"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "email_address must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is invalid - email address is missing domain", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.Email = "a@"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "email_address must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is valid - telephone number is supplied", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.Email = ""
 
 		err := ValidatePractitionerDetails(practitioner)
 
@@ -129,7 +168,7 @@ func generatePractitioner() models.PractitionerRequest {
 		FirstName:       "Joe",
 		LastName:        "Bloggs",
 		TelephoneNumber: "01234567890",
-		Email:           "email",
+		Email:           "a@b.com",
 		Address: models.Address{
 			AddressLine1: "addressline1",
 			Locality:     "locality",
