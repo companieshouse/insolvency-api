@@ -16,7 +16,6 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
-	"github.com/jarcoal/httpmock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -44,9 +43,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -56,9 +53,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body := []byte(`{"first_name":error`)
@@ -68,9 +63,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has IP code missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -83,9 +76,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - not a number", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -98,9 +89,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -113,9 +102,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has first name missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -128,9 +115,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has last name missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -143,9 +128,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -158,9 +141,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address line 1 missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -175,9 +156,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has locality missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -192,9 +171,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has role missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -207,9 +184,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has an invalid role", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -221,9 +196,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -236,9 +209,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid first name", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -251,9 +222,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing and an invalid last name", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitioner := generatePractitioner()
@@ -269,9 +238,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Generic error when adding practitioners resource to mongo", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -286,9 +253,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - insolvency case not found", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -303,9 +268,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - 5 practitioners already exist", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -320,9 +283,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - the limit of practitioners will exceed", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -337,9 +298,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -391,9 +350,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	}
 
 	Convey("Must need a transactionID in the URL", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		res := serveGetPractitionerResourcesRequest(mock_dao.NewMockService(mockCtrl), false)
@@ -402,9 +359,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	})
 
 	Convey("Generic error when retrieving practitioner resources from mongo", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -417,9 +372,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	})
 
 	Convey("Error when retrieving practitioner resources from mongo - insolvency case not found", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -432,9 +385,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	})
 
 	Convey("Error when retrieving practitioner resources from mongo - no practitioners assigned to insolvency case", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -448,9 +399,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	})
 
 	Convey("Successfully retrieve practitioners for insolvency case", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -503,9 +452,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	}
 
 	Convey("Must need a transactionID in the URL", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		res := serveDeletePractitionerRequest(mock_dao.NewMockService(mockCtrl), false, true)
@@ -514,9 +461,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Must need a practitionerID in the URL", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		res := serveDeletePractitionerRequest(mock_dao.NewMockService(mockCtrl), true, false)
@@ -525,9 +470,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Generic error when deleting practitioner resource from mongo", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -540,9 +483,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Error when retrieving practitioner resources from mongo - insolvency case or practitioner not found", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -555,9 +496,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Successfully retrieve practitioners for insolvency case", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -593,9 +532,7 @@ func serveHandleAppointPractitioner(body []byte, service dao.Service, tranIdSet 
 func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 	Convey("Must have a transaction ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -605,9 +542,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -617,9 +552,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body := []byte(`{"appointed_on":error`)
@@ -629,9 +562,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("mandatory fields not supplied", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(models.PractitionerAppointment{})
@@ -642,9 +573,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("invalid made_by field supplied", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
@@ -658,9 +587,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -677,9 +604,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("practitioner already appointed", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -704,9 +629,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details for appointment date", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -725,9 +648,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("appointment date differs", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -756,9 +677,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error storing appointment in DB", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -778,9 +697,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error getting practitioner for response", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -801,9 +718,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("empty practitioner returned", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -824,9 +739,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("successful appointment", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -880,9 +793,7 @@ func serveHandleGetPractitionerAppointment(body []byte, service dao.Service, tra
 
 func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	Convey("Must have a transaction ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -892,9 +803,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -904,9 +813,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("error getting practitioner for response", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -922,9 +829,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("empty practitioner returned", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -940,9 +845,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("empty appointment returned", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -958,9 +861,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("success - appointment returned", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		practitionersDao := models.PractitionerResourceDao{
@@ -1009,9 +910,7 @@ func serveHandleDeletePractitionerAppointment(service dao.Service, tranIdSet boo
 
 func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 	Convey("Must have a transaction ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), false, false)
@@ -1020,9 +919,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, false)
@@ -1031,9 +928,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("Generic error when deleting practitioner appointment from mongo", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -1045,9 +940,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("Successful deletion of appointment", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
