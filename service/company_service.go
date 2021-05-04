@@ -40,6 +40,27 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 
 }
 
+func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, error) {
+	// Create SDK session
+	api, err := manager.GetSDK(req)
+	if err != nil {
+		return "", fmt.Errorf("error creating SDK to call company profile: [%v]", err.Error())
+	}
+
+	// Call company profile api to retrieve company details
+	companyProfile, err := api.Profile.Get(companyNumber).Do()
+	if err != nil {
+		// If 404 then return that company not found
+		if companyProfile.HTTPStatusCode == http.StatusNotFound {
+			return "", fmt.Errorf("company not found")
+		}
+		// Else there has been an error contacting the company profile api
+		return "", fmt.Errorf("error communicating with the company profile api")
+	}
+
+	return companyProfile.DateOfCreation, nil
+}
+
 // checkCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
 func checkCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile, insolvencyRequest *models.InsolvencyRequest) error {
 
