@@ -986,3 +986,75 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusOK)
 	})
 }
+
+func serveHandleDeletePractitionerAppointment(service dao.Service, tranIdSet bool, practitionerIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/practitioners/abcd/appointment"
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	vars := make(map[string]string)
+	if tranIdSet {
+		vars["transaction_id"] = transactionID
+	}
+
+	if practitionerIDSet {
+		vars["practitioner_id"] = practitionerID
+	}
+	req = mux.SetURLVars(req, vars)
+	res := httptest.NewRecorder()
+
+	handler := HandleDeletePractitionerAppointment(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
+	Convey("Must have a transaction ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), false, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must have a practitioner ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Generic error when deleting practitioner appointment from mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(fmt.Errorf("err"), http.StatusBadRequest)
+
+		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Successful deletion of appointment", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(nil, http.StatusNoContent)
+
+		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusNoContent)
+	})
+}
