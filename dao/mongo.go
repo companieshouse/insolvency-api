@@ -79,6 +79,7 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return nil
 }
 
+// GetInsolvencyResource retrieves all the data for an insolvency case with the specified transactionID
 func (m *MongoService) GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)

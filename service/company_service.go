@@ -40,6 +40,7 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 
 }
 
+// GetCompanyIncorporatedOn retrieves the date that the company was created
 func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, error) {
 	// Create SDK session
 	api, err := manager.GetSDK(req)
