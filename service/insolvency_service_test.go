@@ -91,6 +91,7 @@ func companyProfileDateResponse(dateOfCreation string) string {
 
 func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	transactionID := "123"
+	apiURL := "https://api.companieshouse.gov.uk"
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
@@ -109,7 +110,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("error getting company details", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -128,7 +128,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("error parsing incorporatedOn date", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -147,7 +146,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("error parsing appointedOn date", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -166,7 +164,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("invalid date - date supplied is before company incorporation date", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -184,7 +181,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("invalid date - date supplied is in the future", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -203,7 +199,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("invalid date - appointment date supplied is different from appointment date of already appointed practitioner", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
@@ -227,7 +222,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 	})
 
 	Convey("valid date", t, func() {
-		apiURL := "https://api.companieshouse.gov.uk"
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.Reset()
