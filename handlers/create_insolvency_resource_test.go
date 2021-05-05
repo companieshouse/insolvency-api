@@ -253,6 +253,32 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
+	Convey("Insolvency case already exists for transaction ID", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return a valid transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		// Expect the company profile api to be called and return a valid company
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect CreateInsolvencyResource to be called once and return an error
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("insolvency case already exists"), http.StatusConflict).Times(1)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{
+			CaseType:      constants.CVL.String(),
+			CompanyName:   companyName,
+			CompanyNumber: companyNumber,
+		})
+		res := serveHandleCreateInsolvencyResource(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusConflict)
+	})
+
 	Convey("Error adding insolvency resource to mongo", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
@@ -267,7 +293,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("error when creating mongo resource")).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("error when creating mongo resource"), http.StatusInternalServerError).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),
@@ -296,7 +322,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),
@@ -325,7 +351,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),
@@ -354,7 +380,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.CVL.String(),

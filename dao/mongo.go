@@ -65,18 +65,37 @@ func getMongoDatabase(mongoDBURL, databaseName string) MongoDatabaseInterface {
 }
 
 // CreateInsolvencyResource will store the insolvency request into the database
-func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) error {
+func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (error, int) {
 
 	dao.ID = primitive.NewObjectID()
 
 	collection := m.db.Collection(m.CollectionName)
-	_, err := collection.InsertOne(context.Background(), dao)
+
+	filter := bson.M{"transaction_id": dao.TransactionID}
+
+	// Try to retrieve existing insolvency case from Mongo
+	existingInsolvency := collection.FindOne(context.Background(), filter)
+	err := existingInsolvency.Err()
 	if err != nil {
+		// If no documents can be found then the insolvency case can be created
+		if err == mongo.ErrNoDocuments {
+			_, err = collection.InsertOne(context.Background(), dao)
+			if err != nil {
+				log.Error(err)
+				return fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err), http.StatusInternalServerError
+			}
+
+			return nil, http.StatusCreated
+		}
+
+		// If there is an error but it is not ErrNoDocuments then an error happened checking the existence of the insolvency case
 		log.Error(err)
-		return err
+		return fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err), http.StatusInternalServerError
 	}
 
-	return nil
+	// If there is no error retrieving the insolvency case, then it already exists
+	log.Info("an insolvency case already exists for this transaction id")
+	return fmt.Errorf("an insolvency case already exists for this transaction id"), http.StatusConflict
 }
 
 // CreatePractitionersResource stores an incoming practitioner to the list of practitioners for the insolvency case
