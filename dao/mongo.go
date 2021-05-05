@@ -284,9 +284,29 @@ func (m *MongoService) AppointPractitioner(dao *models.AppointmentResourceDao, t
 
 	updateDocument := bson.M{"$set": bson.M{"data.practitioners.$.appointment": dao}}
 
+	err, status := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
+
+	return err, status
+}
+
+// DeletePractitionerAppointment deletes an appointment for the specified transactionID and practitionerID
+func (m *MongoService) DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific practitioner to update
+	filter := bson.M{"transaction_id": transactionID, "data.practitioners.id": practitionerID}
+
+	updateDocument := bson.M{"$unset": bson.M{"data.practitioners.$.appointment": ""}}
+
+	err, status := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
+
+	return err, status
+}
+
+func updatePractitioner(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (error, int) {
 	update, err := collection.UpdateOne(context.Background(), filter, updateDocument)
 	if err != nil {
-		errMsg := fmt.Errorf("could not add practitioner appointment to id %s: %s", practitionerID, err)
+		errMsg := fmt.Errorf("could not update practitioner appointment for practitionerID %s: %s", practitionerID, err)
 		log.Error(errMsg)
 		return errMsg, http.StatusInternalServerError
 	}

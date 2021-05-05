@@ -121,3 +121,16 @@ func (m *MockService) AppointPractitioner(dao *models.AppointmentResourceDao, tr
 func (mr *MockServiceMockRecorder) AppointPractitioner(dao, transactionID, practitionerID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppointPractitioner", reflect.TypeOf((*MockService)(nil).AppointPractitioner), dao, transactionID, practitionerID)
 }
+
+// DeletePractitionerAppointment mocks base method
+func (m *MockService) DeletePractitionerAppointment(transactionID, practitionerID string) (error, int) {
+	ret := m.ctrl.Call(m, "DeletePractitionerAppointment", transactionID, practitionerID)
+	ret0, _ := ret[0].(error)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// DeletePractitionerAppointment indicates an expected call of DeletePractitionerAppointment
+func (mr *MockServiceMockRecorder) DeletePractitionerAppointment(transactionID, practitionerID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitionerAppointment", reflect.TypeOf((*MockService)(nil).DeletePractitionerAppointment), transactionID, practitionerID)
+}

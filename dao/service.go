@@ -27,6 +27,9 @@ type Service interface {
 
 	// AppointPractitioner will appoint add appointment details to a practitioner resource
 	AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int)
+
+	// DeletePractitionerAppointment will delete the appointment for a practitioner
+	DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

@@ -311,6 +311,33 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleDeletePractitionerAppointment deletes an appointment
+// for the specified transactionID and practitionerID
+func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		err, statusCode := svc.DeletePractitionerAppointment(transactionID, practitionerID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		w.WriteHeader(statusCode)
+	})
+}
+
 func getTransactionIDAndPractitionerIDFromVars(vars map[string]string) (transactionID string, practitionerID string, err error) {
 	transactionID = utils.GetTransactionIDFromVars(vars)
 	if transactionID == "" {
