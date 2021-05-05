@@ -38,6 +38,46 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		So(err, ShouldBeBlank)
 	})
 
+	Convey("Practitioner request supplied is invalid - telephone number is less than 10 digits", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = "07777777"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is invalid - telephone number is more than 11 digits", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = "077777777777"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is invalid - telephone number does not consist solely of digits", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = "077777777OO"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+	})
+
+	Convey("Practitioner request supplied is invalid - telephone number contains spaces", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = "0777777 7777"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "telephone_number must not contain spaces")
+	})
+
 	Convey("Practitioner request supplied is invalid - telephone number does not begin with 0", t, func() {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "77777777777"
