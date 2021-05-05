@@ -220,7 +220,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 			return
 		}
 		if !validAppointmentDate {
-			msg := fmt.Sprintf("appointment Date [%s] differs for practitioner ID [%s] and transaction ID [%s]", request.AppointedOn, practitionerID, transactionID)
+			msg := fmt.Sprintf("appointment date [%s] must be the same for all practitioners assigned to transaction ID [%s], should not be after today and should not be before the company incorporation date", request.AppointedOn, transactionID)
 			log.Info(msg)
 			m := models.NewMessageResponse(msg)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)

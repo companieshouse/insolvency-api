@@ -16,6 +16,7 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
+	"github.com/jarcoal/httpmock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -530,6 +531,7 @@ func serveHandleAppointPractitioner(body []byte, service dao.Service, tranIdSet 
 }
 
 func TestUnitHandleAppointPractitioner(t *testing.T) {
+	apiURL := "https://api.companieshouse.gov.uk"
 
 	Convey("Must have a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
@@ -635,7 +637,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
 			AppointedOn: "2012-02-23",
@@ -647,11 +649,16 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "error checking practitioner details")
 	})
 
-	Convey("appointment date differs", t, func() {
+	Convey("appointment date invalid - date differs", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
 		practitionersDao := []models.PractitionerResourceDao{
 			{
 				ID: practitionerID,
@@ -664,8 +671,17 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			},
 		}
 
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
+
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
 			AppointedOn: "2012-02-23",
@@ -677,14 +693,27 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error storing appointment in DB", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
 
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("err"), http.StatusInternalServerError)
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
@@ -697,14 +726,27 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error getting practitioner for response", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
 
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, fmt.Errorf("error"))
 
@@ -718,14 +760,27 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("empty practitioner returned", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
 
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, nil)
 
@@ -739,8 +794,13 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("successful appointment", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{
@@ -755,9 +815,17 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 				},
 			},
 		}
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
 
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
-		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(practitionersDao[0], nil)
 
@@ -789,6 +857,25 @@ func serveHandleGetPractitionerAppointment(body []byte, service dao.Service, tra
 	handler.ServeHTTP(res, req)
 
 	return res
+}
+
+func companyProfileDateResponse(dateOfCreation string) string {
+	return `
+{
+ "company_name": "companyName",
+ "company_number": "01234567",
+ "jurisdiction": "england-wales",
+ "company_status": "active",
+ "type": "private-shares-exemption-30",
+ "date_of_creation": "` + dateOfCreation + `",
+ "registered_office_address" : {
+   "postal_code" : "CF14 3UZ",
+   "address_line_2" : "Cardiff",
+   "address_line_1" : "1 Crown Way"
+  }
+}
+`
+
 }
 
 func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
