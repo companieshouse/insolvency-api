@@ -25,6 +25,7 @@ func companyProfileResponse(jurisdiction string, companyStatus string, companyTy
  "company_number": "01234567",
  "jurisdiction": "` + jurisdiction + `",
  "company_status": "` + companyStatus + `",
+ "date_of_creation": "2000-06-26 00:00:00.000Z",
  "type": "` + companyType + `",
  "registered_office_address" : {
    "postal_code" : "CF14 3UZ",
@@ -36,11 +37,11 @@ func companyProfileResponse(jurisdiction string, companyStatus string, companyTy
 
 }
 
+var apiURL = "https://api.companieshouse.gov.uk"
+
 func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 
 	Convey("CheckCompanyInsolvencyValidFromCompanyProfileAPI", t, func() {
-
-		apiURL := "https://api.companieshouse.gov.uk"
 
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
@@ -124,6 +125,42 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 			err, statusCode := CheckCompanyInsolvencyValid(request, &http.Request{})
 			So(err, ShouldBeNil)
 			So(statusCode, ShouldEqual, http.StatusOK)
+		})
+	})
+}
+
+func TestUnitGetCompanyIncorporatedOn(t *testing.T) {
+	Convey("CheckCompanyInsolvencyValidFromCompanyProfileAPI", t, func() {
+
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		companyNumber := "01234567"
+
+		Convey("Company cannot be found on company profile api", func() {
+			defer httpmock.Reset()
+			httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/01234567", httpmock.NewStringResponder(http.StatusNotFound, "Message: Company not found"))
+
+			date, err := GetCompanyIncorporatedOn(companyNumber, &http.Request{})
+			So(date, ShouldBeEmpty)
+			So(err.Error(), ShouldEqual, `company not found`)
+		})
+
+		Convey("Error contacting the company profile api", func() {
+			defer httpmock.Reset()
+			httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/01234567", httpmock.NewStringResponder(http.StatusTeapot, ""))
+
+			date, err := GetCompanyIncorporatedOn(companyNumber, &http.Request{})
+			So(date, ShouldBeEmpty)
+			So(err.Error(), ShouldEqual, `error communicating with the company profile api`)
+		})
+
+		Convey("Successfully retrieve incorporated on date", func() {
+			defer httpmock.Reset()
+			httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse("england-wales", "active", "private-shares-exemption-30")))
+
+			date, err := GetCompanyIncorporatedOn(companyNumber, &http.Request{})
+			So(date, ShouldEqual, "2000-06-26 00:00:00.000Z")
+			So(err, ShouldBeNil)
 		})
 	})
 }
