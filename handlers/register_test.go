@@ -27,6 +27,7 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("deletePractitioner"), ShouldNotBeNil)
 		So(router.GetRoute("appointPractitioner"), ShouldNotBeNil)
 		So(router.GetRoute("getPractitionerAppointment"), ShouldNotBeNil)
+		So(router.GetRoute("deletePractitionerAppointment"), ShouldNotBeNil)
 	})
 }
 
