@@ -15,6 +15,7 @@ type Service interface {
 
 	// CreatePractitionerResource will persist a newly created practitioner resource
 	CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int)
+
 	// GetPractitionerResources will retrieve a list of persisted practitioners
 	GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error)
 

@@ -249,21 +249,6 @@ func TestUnitCheckAppointmentDateValid(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(validDate, ShouldBeTrue)
 	})
-
-	/*Convey("valid date", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		insolvencyResponse := generateInsolvencyResource()
-
-		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetPractitionerResources(gomock.Any()).Return(practitionersResponse, nil)
-
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		err, validDate := CheckAppointmentDateValid(mockService, transactionID, "2012-01-23", req)
-		So(err, ShouldBeNil)
-		So(validDate, ShouldBeTrue)
-	})*/
 }
 
 func generateInsolvencyResource() models.InsolvencyResourceDao {
