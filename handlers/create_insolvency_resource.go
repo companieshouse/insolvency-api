@@ -81,11 +81,11 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		// Add new insolvency resource to mongo
 		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
 
-		err = svc.CreateInsolvencyResource(model)
+		err, httpStatus = svc.CreateInsolvencyResource(model)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database"))
-			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction %s", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database for transaction [%s]: %v", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction [%s]: %v", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 
