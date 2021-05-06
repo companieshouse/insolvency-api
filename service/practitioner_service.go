@@ -16,8 +16,21 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 		errs = append(errs, "either telephone_number or email are required")
 	}
 
-	// Set allowed telephone number convention
+	// Set allowed regexp for telephone number
+	telephoneNumberRuleRegexString := `^[0]\d{9}$|^[0]\d{10}$`
+	telephoneNumberRegex := regexp.MustCompile(telephoneNumberRuleRegexString)
 
+	// Check that telephone number is a valid format
+	if practitioner.TelephoneNumber != "" && !telephoneNumberRegex.MatchString(practitioner.TelephoneNumber) {
+		errs = append(errs, "telephone_number must be a valid format")
+	}
+
+	// Check that telephone number does not contain spaces
+	if practitioner.TelephoneNumber != "" && strings.Contains(practitioner.TelephoneNumber, " ") {
+		errs = append(errs, "telephone_number must not contain spaces")
+	}
+
+	// Check that telephone number starts with 0
 	if practitioner.TelephoneNumber != "" && !strings.HasPrefix(practitioner.TelephoneNumber, "0") {
 		errs = append(errs, "telephone_number must start with 0")
 	}
