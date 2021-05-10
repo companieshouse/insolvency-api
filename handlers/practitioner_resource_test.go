@@ -17,7 +17,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -602,12 +601,16 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-		So(res.Body.String(), ShouldContainSubstring, "error checking practitioner details")
+		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 	})
 
 	Convey("practitioner already appointed", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{
@@ -618,7 +621,16 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 				},
 			},
 		}
+		insolvencyDao := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				CompanyNumber: "1234",
+				CaseType:      "CVL",
+				CompanyName:   "Company",
+				Practitioners: practitionersDao,
+			},
+		}
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
 			AppointedOn: "2012-02-23",
@@ -646,7 +658,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-		So(res.Body.String(), ShouldContainSubstring, "error checking practitioner details")
+		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 	})
 
 	Convey("appointment date invalid - date differs", t, func() {

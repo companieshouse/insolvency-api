@@ -197,32 +197,17 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check whether practitioner has already been appointed
-		err, alreadyAppointed := service.CheckPractitionerAlreadyAppointed(svc, transactionID, practitionerID, req)
+		// Validate all appointment details are of the correct format and criteria
+		validationErrs, err := service.ValidateAppointmentDetails(svc, request, transactionID, practitionerID, req)
 		if err != nil {
-			m := models.NewMessageResponse("error checking practitioner details")
+			log.ErrorR(req, fmt.Errorf("failed to validate appointment details: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
-		if alreadyAppointed {
-			msg := fmt.Sprintf("practitioner ID [%s] already appointed for transaction ID [%s]", practitionerID, transactionID)
-			log.Info(msg)
-			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-			return
-		}
-
-		// Check appointment date valid
-		err, validAppointmentDate := service.CheckAppointmentDateValid(svc, transactionID, request.AppointedOn, req)
-		if err != nil {
-			m := models.NewMessageResponse("error checking practitioner details")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-			return
-		}
-		if !validAppointmentDate {
-			msg := fmt.Sprintf("appointment date [%s] must be the same for all practitioners assigned to transaction ID [%s], should not be after today and should not be before the company incorporation date", request.AppointedOn, transactionID)
-			log.Info(msg)
-			m := models.NewMessageResponse(msg)
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request body: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

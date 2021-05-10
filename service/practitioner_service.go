@@ -1,9 +1,15 @@
 package service
 
 import (
+	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 )
 
@@ -50,4 +56,100 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 	}
 
 	return strings.Join(errs, ", ")
+}
+
+// ValidateAppointment checks that the incoming appointment details are valid
+func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) (string, error) {
+	var errs []string
+
+	// Check if practitioner is already appointed
+	practitionerResources, err := svc.GetPractitionerResources(transactionID)
+	if err != nil {
+		err = fmt.Errorf("error getting pracititioner resources from DB: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
+	}
+	for _, practitioner := range practitionerResources {
+		if practitioner.ID == practitionerID && practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" {
+			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
+			log.Info(msg)
+			errs = append(errs, msg)
+		}
+	}
+
+	// Check if appointment date supplied is in the future or before company was incorporated
+	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
+	if err != nil {
+		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
+	}
+	// Retrieve company incorporation date
+	incorporatedOn, err := GetCompanyIncorporatedOn(insolvencyResource.Data.CompanyNumber, req)
+	if err != nil {
+		err = fmt.Errorf("error getting company details from DB: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
+	}
+
+	ok, err := isValidAppointmentDate(appointment.AppointedOn, incorporatedOn)
+	if err != nil {
+		err = fmt.Errorf("error parsing date: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
+	}
+	if !ok {
+		errs = append(errs, fmt.Sprintf("appointed_on [%s] should not be in the future or before the company was incorporated", appointment.AppointedOn))
+	}
+
+	// Check if appointment date supplied is different from stored appointment dates in DB
+	for _, practitioner := range practitionerResources {
+		if practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" && practitioner.Appointment.AppointedOn != appointment.AppointedOn {
+			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner ID [%s] who was appointed on [%s]", appointment.AppointedOn, practitioner.ID, practitioner.Appointment.AppointedOn))
+		}
+	}
+
+	// Check that a CVL case is only made by creditors
+	if appointment.MadeBy != "" {
+		if insolvencyResource.Data.CaseType == constants.CVL.String() && appointment.MadeBy != constants.Creditors.String() {
+			errs = append(errs, fmt.Sprintf("made_by cannot be [%s] for insolvency case of type CVL", appointment.MadeBy))
+		}
+	}
+
+	return strings.Join(errs, ", "), nil
+}
+
+// isValidAppointmentDate is a helper function to check if the appointment date
+// supplied is after today or before the company was incorporated
+func isValidAppointmentDate(appointedOn string, incorporatedOn string) (bool, error) {
+	layout := "2006-01-02"
+	today := time.Now()
+	appointedDate, err := time.Parse(layout, appointedOn)
+	if err != nil {
+		log.Error(fmt.Errorf("error when parsing appointedOn to date: [%s]", err))
+		return false, err
+	}
+
+	// Retrieve only the date portion of the incorporatedOn datetime string
+	if idx := strings.Index(incorporatedOn, " "); idx != -1 {
+		incorporatedOn = incorporatedOn[:idx]
+	}
+
+	incorporatedDate, err := time.Parse(layout, incorporatedOn)
+	if err != nil {
+		log.Error(fmt.Errorf("error when parsing incorporatedOn to date: [%s]", err))
+		return false, err
+	}
+
+	// Check if appointedOn is in the future
+	if today.Before(appointedDate) {
+		return false, nil
+	}
+
+	// Check if appointedOn is before company was incorporated
+	if appointedDate.Before(incorporatedDate) {
+		return false, nil
+	}
+
+	return true, nil
 }
