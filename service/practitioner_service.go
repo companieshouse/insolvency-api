@@ -8,10 +8,8 @@ import (
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
-	"github.com/companieshouse/insolvency-api/dao"
-
 	"github.com/companieshouse/insolvency-api/constants"
-
+	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 )
 

@@ -8,10 +8,9 @@ import (
 	"time"
 
 	"github.com/companieshouse/insolvency-api/mocks"
+	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/jarcoal/httpmock"
-
-	"github.com/companieshouse/insolvency-api/models"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
