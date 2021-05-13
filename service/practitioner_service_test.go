@@ -52,7 +52,7 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number is more than 11 digits", t, func() {
@@ -62,7 +62,7 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number does not consist solely of digits", t, func() {
@@ -72,7 +72,18 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must be a valid format")
+		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
+	})
+
+	Convey("Practitioner request supplied is invalid - telephone number does not consist solely of digits", t, func() {
+		practitioner := generatePractitioner()
+		practitioner.TelephoneNumber = "07777OO"
+
+		err := ValidatePractitionerDetails(practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
+		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number contains spaces", t, func() {
@@ -92,7 +103,7 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 		err := ValidatePractitionerDetails(practitioner)
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "telephone_number must start with 0")
+		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
 	})
 
 	Convey("Practitioner request supplied is invalid - first name does not match regex", t, func() {

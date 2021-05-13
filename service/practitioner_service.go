@@ -23,22 +23,22 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 	}
 
 	// Set allowed regexp for telephone number
-	telephoneNumberRuleRegexString := `^[0]\d{9}$|^[0]\d{10}$`
+	telephoneNumberRuleRegexString := `^\d+$`
 	telephoneNumberRegex := regexp.MustCompile(telephoneNumberRuleRegexString)
 
-	// Check that telephone number is a valid format
-	if practitioner.TelephoneNumber != "" && !telephoneNumberRegex.MatchString(practitioner.TelephoneNumber) {
-		errs = append(errs, "telephone_number must be a valid format")
+	// Check that telephone number starts with 0 and only contains digits
+	if practitioner.TelephoneNumber != "" && (!strings.HasPrefix(practitioner.TelephoneNumber, "0") || !telephoneNumberRegex.MatchString(practitioner.TelephoneNumber)) {
+		errs = append(errs, "telephone_number must start with 0 and contain only numeric characters")
+	}
+
+	// Check that telephone number is the correct length
+	if practitioner.TelephoneNumber != "" && !((len(practitioner.TelephoneNumber) == 10) || (len(practitioner.TelephoneNumber) == 11)) {
+		errs = append(errs, "telephone_number must be 10 or 11 digits long")
 	}
 
 	// Check that telephone number does not contain spaces
 	if practitioner.TelephoneNumber != "" && strings.Contains(practitioner.TelephoneNumber, " ") {
 		errs = append(errs, "telephone_number must not contain spaces")
-	}
-
-	// Check that telephone number starts with 0
-	if practitioner.TelephoneNumber != "" && !strings.HasPrefix(practitioner.TelephoneNumber, "0") {
-		errs = append(errs, "telephone_number must start with 0")
 	}
 
 	// Set allowed naming conventions for names
