@@ -103,3 +103,38 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
 	})
 }
+
+// HandleSubmitAttachment receives an attachment to be stored against the Insolvency case
+func HandleSubmitAttachment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start POST request for submit attachment with transaction id: %s", transactionID))
+
+		fileID, responseType, err := service.UploadAttachment(req, svc)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error creating payment resource: [%v]", err), log.Data{"service_response_type": responseType.String()})
+			switch responseType {
+			case service.InvalidData:
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			case service.Error:
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+		fmt.Println(fileID)
+		fmt.Println(responseType)
+		fmt.Println(err)
+	})
+}

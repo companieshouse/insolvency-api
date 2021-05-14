@@ -33,3 +33,8 @@ type PractitionerAppointment struct {
 	AppointedOn string `json:"appointed_on" validate:"required,datetime=2006-01-02"`
 	MadeBy      string `json:"made_by" validate:"required"`
 }
+
+type Attachment struct {
+	AttachmentType string `json:"attachment_type"`
+	File           string `json:"file"`
+}

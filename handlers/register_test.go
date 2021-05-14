@@ -21,13 +21,18 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		Register(router, mockService)
 
 		So(router.GetRoute("healthcheck"), ShouldNotBeNil)
+
 		So(router.GetRoute("createInsolvencyResource"), ShouldNotBeNil)
+
 		So(router.GetRoute("createPractitionersResource"), ShouldNotBeNil)
 		So(router.GetRoute("getPractitionerResources"), ShouldNotBeNil)
 		So(router.GetRoute("deletePractitioner"), ShouldNotBeNil)
+
 		So(router.GetRoute("appointPractitioner"), ShouldNotBeNil)
 		So(router.GetRoute("getPractitionerAppointment"), ShouldNotBeNil)
 		So(router.GetRoute("deletePractitionerAppointment"), ShouldNotBeNil)
+
+		So(router.GetRoute("submitAttachment"), ShouldNotBeNil)
 	})
 }
 
