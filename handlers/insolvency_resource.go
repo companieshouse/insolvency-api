@@ -103,3 +103,30 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
 	})
 }
+
+func HandleGetValidationStatus(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
+			m := models.NewMessageResponse("transaction id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for validating insolvency resource with transaction id: %s", transactionID))
+
+		isCaseValid, validationErrors := service.ValidateInsolvencyDetails(svc, transactionID)
+		if !isCaseValid {
+			log.ErrorR(req, fmt.Errorf("case for transaction id [%s] was not found valid for submission for reason(s): [%v]", transactionID, validationErrors))
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully finished GET request for validating insolvency resource with transaction id: %s", transactionID))
+
+		m := models.NewValidationStatusResponse(isCaseValid, validationErrors)
+		utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
+	})
+}

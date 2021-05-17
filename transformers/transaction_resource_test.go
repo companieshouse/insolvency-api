@@ -13,7 +13,8 @@ func TestUnitInsolvencyResourceDaoToTransactionResource(t *testing.T) {
 
 		incomingRequest := &models.InsolvencyResourceDao{
 			Links: models.InsolvencyResourceLinksDao{
-				Self: "/transactions/87654321/insolvency",
+				Self:             "/transactions/87654321/insolvency",
+				ValidationStatus: "/transactions/87654321/insolvency/validation-status",
 			},
 			Kind: "insolvency-resource#insolvency-resource",
 		}

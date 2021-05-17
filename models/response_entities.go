@@ -56,6 +56,35 @@ type AppointedPractitionerLinksResource struct {
 	Self string `json:"self"`
 }
 
+// ValidationStatusResponse is the object returned when checking the validation of a case
+type ValidationStatusResponse struct {
+	IsValid bool                              `json:"is_valid"`
+	Errors  []ValidationErrorResponseResource `json:"errors"`
+}
+
+// NewValidationStatusResponse - convenience function for creating a validation response resource
+func NewValidationStatusResponse(isValid bool, errors *[]ValidationErrorResponseResource) *ValidationStatusResponse {
+	return &ValidationStatusResponse{IsValid: isValid, Errors: *errors}
+}
+
+// ValidationResponseResource contains the details of an error when checking the validation for closing a case - as expected by transaction api
+type ValidationErrorResponseResource struct {
+	Error        string `json:"error"`
+	Location     string `json:"location"`
+	LocationType string `json:"location_type"`
+	Type         string `json:"type"`
+}
+
+// NewValidationErrorResponse - convenience function for creating validation error responses
+func NewValidationErrorResponse(validationError, location string) *ValidationErrorResponseResource {
+	return &ValidationErrorResponseResource{
+		Error:        validationError,
+		Location:     location,
+		LocationType: "json-path",
+		Type:         "ch:validation",
+	}
+}
+
 // ResponseResource is the object returned in an error case
 type ResponseResource struct {
 	Message string `json:"message"`

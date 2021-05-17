@@ -15,7 +15,8 @@ func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDa
 	transactionResource[req.Links.Self] = &companieshouseapi.Resource{
 		Kind: req.Kind,
 		Links: companieshouseapi.Links{
-			Resource: req.Links.Self,
+			Resource:         req.Links.Self,
+			ValidationStatus: req.Links.ValidationStatus,
 		},
 		Marshal: apicore.Marshal{},
 	}
