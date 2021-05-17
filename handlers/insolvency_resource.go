@@ -104,6 +104,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleGetValidationStatus returns whether a created insolvency case is acceptable to be closed by the transaction API
 func HandleGetValidationStatus(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
