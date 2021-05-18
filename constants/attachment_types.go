@@ -3,7 +3,7 @@ package constants
 // AttachmentType Enum Type
 type AttachmentType int
 
-// Enumeration containing all permitted values for AppointedBy
+// Enumeration containing all permitted values for attachment
 const (
 	Resolution AttachmentType = 1 + iota
 	StatementOfAffairsLiquidator
