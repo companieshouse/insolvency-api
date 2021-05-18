@@ -11,6 +11,8 @@ import (
 	"os"
 	"testing"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-session-handler/httpsession"
 	"github.com/companieshouse/go-session-handler/session"
@@ -390,5 +392,89 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		res := serveHandleCreateInsolvencyResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
+	})
+}
+
+func serveHandleGetValidationStatus(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/" + transactionID + "/insolvency/validation-status"
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetValidationStatus(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func createInsolvencyResource() models.InsolvencyResourceDao {
+	return models.InsolvencyResourceDao{
+		ID:            primitive.ObjectID{},
+		TransactionID: transactionID,
+		Etag:          "etag1234",
+		Kind:          "insolvency",
+		Data: models.InsolvencyResourceDaoData{
+			CompanyNumber: companyNumber,
+			CompanyName:   companyName,
+			CaseType:      "insolvency",
+		},
+		Links: models.InsolvencyResourceLinksDao{
+			Self:             "/transactions/123456789/insolvency",
+			ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+		},
+	}
+}
+
+func TestUnitHandleGetValidationStatus(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetValidationStatus(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Case is not found valid for submission - error returning insolvency case from mongoDB", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
+
+		res := serveHandleGetValidationStatus(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, `"is_valid":false`)
+		So(res.Body.String(), ShouldContainSubstring, `"error":"error getting insolvency resource from DB: [insolvency case does not exist]"`)
+	})
+
+	Convey("Case is found valid for submission", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+
+		res := serveHandleGetValidationStatus(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, `"is_valid":true`)
+		So(res.Body.String(), ShouldContainSubstring, `"errors":[]`)
 	})
 }
