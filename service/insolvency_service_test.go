@@ -4,13 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/companieshouse/insolvency-api/models"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	"github.com/companieshouse/insolvency-api/mocks"
+	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var transactionID = "12345678"

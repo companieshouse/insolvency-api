@@ -3,10 +3,9 @@ package service
 import (
 	"fmt"
 
-	"github.com/companieshouse/insolvency-api/models"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
+	"github.com/companieshouse/insolvency-api/models"
 )
 
 // ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission which is returned as a boolean
@@ -15,7 +14,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
-	// Retrieve details for the insolvency resource from MongoDB
+	// Retrieve details for the insolvency resource from DB
 	_, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
 		log.Error(fmt.Errorf("error getting insolvency resource from DB [%s]", err))
