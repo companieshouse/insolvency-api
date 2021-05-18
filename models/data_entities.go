@@ -18,6 +18,7 @@ type InsolvencyResourceDaoData struct {
 	CaseType      string                    `bson:"case_type"`
 	CompanyName   string                    `bson:"company_name"`
 	Practitioners []PractitionerResourceDao `bson:"practitioners"`
+	Attachments   []AttachmentResourceDao   `bson:"attachments"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
@@ -66,4 +67,18 @@ type AddressResourceDao struct {
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
 	Self string `bson:"self"`
+}
+
+// AttachmentResourceDao contains the data for for the practitioner DB resource
+type AttachmentResourceDao struct {
+	ID     string                     `bson:"id"`
+	Type   string                     `bson:"type"`
+	Status string                     `bson:"status"`
+	Links  AttachmentResourceLinksDao `bson:"links"`
+}
+
+// AttachmentResourceLinksDao contains the Links data for a practitioner
+type AttachmentResourceLinksDao struct {
+	Self     string `bson:"self"`
+	Download string `bson:"download"`
 }

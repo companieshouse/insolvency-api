@@ -20,7 +20,6 @@ func WriteJSONWithStatus(w http.ResponseWriter, r *http.Request, data interface{
 
 // GetTransactionIDFromVars returns the transaction id from the supplied request vars.
 func GetTransactionIDFromVars(vars map[string]string) string {
-
 	transactionID := vars["transaction_id"]
 	if transactionID == "" {
 		return ""
@@ -31,11 +30,24 @@ func GetTransactionIDFromVars(vars map[string]string) string {
 
 // GetPractitionerIDFromVars returns the practitioner id from the supplied request vars.
 func GetPractitionerIDFromVars(vars map[string]string) string {
-
 	practitionerID := vars["practitioner_id"]
 	if practitionerID == "" {
 		return ""
 	}
 
 	return practitionerID
+}
+
+// ResponseTypeToStatus converts a response type to an http status
+func ResponseTypeToStatus(responseType string) (int, error) {
+	switch responseType {
+	case "invalid-data":
+		return http.StatusBadRequest, nil
+	case "error":
+		return http.StatusInternalServerError, nil
+	case "success":
+		return http.StatusOK, nil
+	default:
+		return 0, fmt.Errorf("response type not recognised")
+	}
 }

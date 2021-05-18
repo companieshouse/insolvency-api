@@ -30,6 +30,9 @@ type Service interface {
 
 	// DeletePractitionerAppointment will delete the appointment for a practitioner
 	DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int)
+
+	// AddAttachmentToInsolvencyResource will add an attachment to an insolvency resource
+	AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

@@ -118,23 +118,62 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start POST request for submit attachment with transaction id: %s", transactionID))
 
-		fileID, responseType, err := service.UploadAttachment(req, svc)
+		attachmentType := req.FormValue("attachment_type")
+
+		file, header, err := req.FormFile("file")
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error reading form from request"))
+			m := models.NewMessageResponse("error reading form from request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Validate that the provided attachment details are correct
+		if errs := service.ValidateAttachmentDetails(attachmentType); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request: " + errs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		fileID, responseType, err := service.UploadAttachment(file, header, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error creating payment resource: [%v]", err), log.Data{"service_response_type": responseType.String()})
-			switch responseType {
-			case service.InvalidData:
-				w.WriteHeader(http.StatusBadRequest)
-				return
-			case service.Error:
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			default:
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
+			w.WriteHeader(status)
+			return
 		}
-		fmt.Println(fileID)
-		fmt.Println(responseType)
-		fmt.Println(err)
+		if responseType != service.Success {
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				log.ErrorR(req, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+
+		attachmentDao, err := svc.AddAttachmentToInsolvencyResource(transactionID, fileID, attachmentType)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to add attachment to insolvency resource in db for transaction [%s]: %v", transactionID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+		}
+
+		utils.WriteJSONWithStatus(w, req, attachmentResponse, http.StatusCreated)
 	})
 }

@@ -46,7 +46,7 @@ paths:
       security:
         - oauth2: [submit_insolvency_data]
       operationId: submitFileAttachment
-      summary: Send a file attchement for the case
+      summary: Send a file attachment for the case
       requestBody:
         content:
           multipart/form-data:
