@@ -149,6 +149,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 			return
 		}
 		if responseType != service.Success {
+			log.ErrorR(req, fmt.Errorf("file upload was unsuccessful"))
 			status, err := utils.ResponseTypeToStatus(responseType.String())
 			if err != nil {
 				log.ErrorR(req, err)
@@ -172,6 +173,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
 		}
 
 		utils.WriteJSONWithStatus(w, req, attachmentResponse, http.StatusCreated)
