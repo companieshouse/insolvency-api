@@ -1,1 +1,1 @@
-test_file
+This txt file is used by attachment_resource_test.go to generate a file for uploading
