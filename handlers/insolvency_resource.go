@@ -122,7 +122,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 
 		file, header, err := req.FormFile("file")
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error reading form from request"))
+			log.ErrorR(req, fmt.Errorf("error reading form from request: %s", err))
 			m := models.NewMessageResponse("error reading form from request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
@@ -138,7 +138,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 
 		fileID, responseType, err := service.UploadAttachment(file, header, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error creating payment resource: [%v]", err), log.Data{"service_response_type": responseType.String()})
+			log.ErrorR(req, fmt.Errorf("error uploading attachment: [%v]", err), log.Data{"service_response_type": responseType.String()})
 
 			status, err := utils.ResponseTypeToStatus(responseType.String())
 			if err != nil {

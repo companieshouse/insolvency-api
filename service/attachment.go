@@ -11,7 +11,7 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 )
 
-// UploadAttachment sends a file to be uploaded to the File Transfer API
+// UploadAttachment sends a file to be uploaded to the File Transfer API and returns the ID
 func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *http.Request) (string, ResponseType, error) {
 	// Create SDK session
 	api, err := manager.GetSDK(req)
