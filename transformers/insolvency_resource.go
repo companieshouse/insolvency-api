@@ -71,7 +71,6 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and a fileHeader into a response entity
-// func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, filename string, size int64, contentType string) (*models.AttachmentResource, error) {
 func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, fileHeader *multipart.FileHeader) (*models.AttachmentResource, error) {
 	etag, err := utils.GenerateEtag()
 	if err != nil {
