@@ -17,8 +17,8 @@ type InsolvencyResourceDaoData struct {
 	CompanyNumber string                    `bson:"company_number"`
 	CaseType      string                    `bson:"case_type"`
 	CompanyName   string                    `bson:"company_name"`
-	Practitioners []PractitionerResourceDao `bson:"practitioners"`
-	Attachments   []AttachmentResourceDao   `bson:"attachments"`
+	Practitioners []PractitionerResourceDao `bson:"practitioners,omitempty"`
+	Attachments   []AttachmentResourceDao   `bson:"attachments,omitempty"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
