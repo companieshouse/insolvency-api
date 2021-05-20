@@ -29,6 +29,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	for _, practitioner := range insolvencyResource.Data.Practitioners {
 		if practitioner.Appointment != nil {
 			hasAppointedPractitioner = true
+			break
 		}
 	}
 	if hasAppointedPractitioner {
@@ -41,8 +42,6 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 			}
 		}
 	}
-
-	//TODO: Validation checks for insolvency case
 
 	return true, &validationErrors
 }
