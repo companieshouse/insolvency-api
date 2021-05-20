@@ -78,9 +78,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -90,9 +88,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body := []byte(`{"company_name":error`)
@@ -102,9 +98,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has company number missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -118,9 +112,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has company name missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -134,9 +126,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has case type missing", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -150,9 +140,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming case type is not CVL", t, func() {
-		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{

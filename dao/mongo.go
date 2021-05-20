@@ -344,3 +344,36 @@ func updatePractitioner(transactionID string, practitionerID string, filter bson
 
 	return nil, http.StatusNoContent
 }
+
+func (m *MongoService) AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{"transaction_id": transactionID}
+
+	attachmentDao := models.AttachmentResourceDao{
+		ID:     fileID,
+		Type:   attachmentType,
+		Status: "submitted",
+		Links: models.AttachmentResourceLinksDao{
+			Self:     "/transactions/" + transactionID + "/insolvency/attachments/" + fileID,
+			Download: "/transactions/" + transactionID + "/insolvency/attachments/" + fileID + "/download",
+		},
+	}
+
+	update := bson.M{
+		"$push": bson.M{
+			"data.attachments": attachmentDao,
+		},
+	}
+
+	result, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return nil, fmt.Errorf("error updating mongo for transaction [%s]: [%s]", transactionID, err)
+	}
+
+	if result.MatchedCount != 1 || result.ModifiedCount != 1 {
+		return nil, fmt.Errorf("no documents updated")
+	}
+
+	return &attachmentDao, nil
+}

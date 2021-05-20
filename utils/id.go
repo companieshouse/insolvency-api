@@ -6,8 +6,7 @@ import (
 	"time"
 )
 
-// GenerateID generates an ID for a resource in Mongo
-// in the format of [A-Z]{2}[0-9]{8}
+// GenerateID generates an ID in the format of [A-Z]{2}[0-9]{8}
 func GenerateID() string {
 	rand.Seed(time.Now().UTC().UnixNano())
 	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -56,6 +56,29 @@ type AppointedPractitionerLinksResource struct {
 	Self string `json:"self"`
 }
 
+// AttachmentResource contains the details of an attachment
+type AttachmentResource struct {
+	AttachmentType string                  `json:"attachment_type"`
+	File           AttachmentFile          `json:"file"`
+	Etag           string                  `json:"etag"`
+	Kind           string                  `json:"kind"`
+	Status         string                  `json:"status"`
+	Links          AttachmentLinksResource `json:"links"`
+}
+
+// AttachmentFile contains the details of an attachment file
+type AttachmentFile struct {
+	Name        string `json:"name"`
+	Size        int64  `json:"size"`
+	ContentType string `json:"content_type"`
+}
+
+// AttachmentLinksResource contains the details of the links associated with an attachment
+type AttachmentLinksResource struct {
+	Self     string `json:"self"`
+	Download string `json:"download"`
+}
+
 // ValidationStatusResponse is the object returned when checking the validation of a case
 type ValidationStatusResponse struct {
 	IsValid bool                              `json:"is_valid"`
