@@ -37,12 +37,20 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 }
 
 // ValidateAttachmentDetails checks that the incoming attachment details are valid
-func ValidateAttachmentDetails(attachmentType string) string {
+func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHeader) string {
 	var errs []string
 
+	// Check attachment is of valid type
 	if !constants.IsAttachmentTypeValid(attachmentType) {
 		errs = append(errs, "attachment_type is invalid")
 	}
 
+	// Check if attachment size is less than 4.5MB
+	fileHeader := make([]byte, 512)
+
+	// Copy the headers into the FileHeader buffer
+	if _, err := file.Read(fileHeader); err != nil {
+		return err
+	}
 	return strings.Join(errs, ", ")
 }
