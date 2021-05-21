@@ -35,7 +35,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	if hasAppointedPractitioner {
 		for _, practitioner := range insolvencyResource.Data.Practitioners {
 			if practitioner.Appointment == nil || practitioner.Appointment.AppointedOn == "" {
-				validationError := fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] have been not appointed", insolvencyResource.TransactionID)
+				validationError := fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyResource.TransactionID)
 				log.Error(fmt.Errorf(validationError))
 				validationErrors = addValidationError(validationErrors, validationError, "appointment")
 				return false, &validationErrors
