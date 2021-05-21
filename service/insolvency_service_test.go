@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/mocks"
@@ -26,6 +27,38 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			CompanyNumber: companyNumber,
 			CompanyName:   companyName,
 			CaseType:      "insolvency",
+			Practitioners: []models.PractitionerResourceDao{
+				{
+					ID:              "1234",
+					IPCode:          "1234",
+					FirstName:       "Name",
+					LastName:        "LastName",
+					TelephoneNumber: "1234",
+					Email:           "name@email.com",
+					Address:         models.AddressResourceDao{},
+					Role:            "final-liquidator",
+					Links:           models.PractitionerResourceLinksDao{},
+					Appointment: &models.AppointmentResourceDao{
+						AppointedOn: "2020-01-01",
+						MadeBy:      "creditors",
+					},
+				},
+				{
+					ID:              "5678",
+					IPCode:          "5678",
+					FirstName:       "FirstName",
+					LastName:        "LastName",
+					TelephoneNumber: "5678",
+					Email:           "firstname@email.com",
+					Address:         models.AddressResourceDao{},
+					Role:            "final-liquidator",
+					Links:           models.PractitionerResourceLinksDao{},
+					Appointment: &models.AppointmentResourceDao{
+						AppointedOn: "2020-01-01",
+						MadeBy:      "creditors",
+					},
+				},
+			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             "/transactions/123456789/insolvency",
@@ -61,6 +94,80 @@ func TestValidateInsolvencyDetails(t *testing.T) {
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("error - one practitioner is appointed but not all practitioners have been appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Remove appointment for one practitioner
+		insolvencyCase.Data.Practitioners[1].Appointment = nil
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] have been not appointed", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
+	})
+
+	Convey("error - one practitioner is appointed but not all practitioners have been appointed - missing date", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Remove appointment for one practitioner
+		insolvencyCase.Data.Practitioners[1].Appointment.AppointedOn = ""
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] have been not appointed", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
+	})
+
+	Convey("successful validation of practitioner appointments - all practitioners appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("successful validation of practitioner appointments - no practitioners are appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Remove appointment details for all practitioners
+		insolvencyCase.Data.Practitioners[0].Appointment = nil
+		insolvencyCase.Data.Practitioners[1].Appointment = nil
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
