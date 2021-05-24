@@ -18,5 +18,4 @@ require (
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/smartystreets/goconvey v1.6.4
 	go.mongodb.org/mongo-driver v1.4.6
-	google.golang.org/appengine v1.4.0
 )

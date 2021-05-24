@@ -37,7 +37,7 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 }
 
 // ValidateAttachmentDetails checks that the incoming attachment details are valid
-func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHeader) string {
+func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHeader, file multipart.File) (string, error) {
 	var errs []string
 
 	// Check attachment is of valid type
@@ -45,12 +45,25 @@ func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHead
 		errs = append(errs, "attachment_type is invalid")
 	}
 
-	// Check if attachment size is less than 4.5MB
+	// Check if attachment file format is PDF
 	fileHeader := make([]byte, 512)
 
 	// Copy the headers into the FileHeader buffer
 	if _, err := file.Read(fileHeader); err != nil {
-		return err
+		log.Error(fmt.Errorf("error reading file: [%s]", err))
+		return "", fmt.Errorf("error reading file")
 	}
-	return strings.Join(errs, ", ")
+
+	fileType := http.DetectContentType(fileHeader)
+	if fileType != "application/pdf" {
+		errs = append(errs, "attachment file format is not pdf")
+	}
+
+	// Check if attachment size is less than 4.5MB
+	fmt.Println("File size: ", header.Size)
+	if header.Size > 4500 {
+		errs = append(errs, "attachment file size is too large to be processed")
+	}
+
+	return strings.Join(errs, ", "), nil
 }
