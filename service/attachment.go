@@ -11,6 +11,8 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 )
 
+const maxFileSize = 1048576 * 4 // 4MB
+
 // UploadAttachment sends a file to be uploaded to the File Transfer API and returns the ID
 func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *http.Request) (string, ResponseType, error) {
 	// Create SDK session
@@ -61,7 +63,7 @@ func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHead
 
 	// Check if attachment size is less than 4.5MB
 	fmt.Println("File size: ", header.Size)
-	if header.Size > 4500 {
+	if header.Size > maxFileSize {
 		errs = append(errs, "attachment file size is too large to be processed")
 	}
 
