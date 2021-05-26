@@ -12,8 +12,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jarcoal/httpmock"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-session-handler/httpsession"
 	"github.com/companieshouse/go-session-handler/session"
@@ -22,6 +20,7 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
+	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -53,7 +53,7 @@ func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHead
 		errs = append(errs, "attachment file format should be pdf")
 	}
 
-	// Check if attachment size is less than 4MB
+	// Check if attachment size is less than maxFileSize
 	if header.Size > maxFileSize {
 		errs = append(errs, "attachment file size is too large to be processed")
 	}
