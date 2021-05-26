@@ -4,10 +4,11 @@ go 1.12
 
 require (
 	github.com/companieshouse/api-sdk-go v0.1.13
-	github.com/companieshouse/chs.go v1.2.2
+	github.com/companieshouse/chs.go v1.2.4
 	github.com/companieshouse/go-sdk-manager v0.1.7
 	github.com/companieshouse/go-session-handler v0.1.5
 	github.com/companieshouse/gofigure v0.1.4
+	github.com/companieshouse/lfp-pay-api v0.0.0-20210412134412-60173480c86c
 	github.com/companieshouse/private-api-sdk-go v0.1.8
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
