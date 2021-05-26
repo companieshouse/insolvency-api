@@ -4,10 +4,9 @@
 package mocks
 
 import (
-	reflect "reflect"
-
 	models "github.com/companieshouse/insolvency-api/models"
 	gomock "github.com/golang/mock/gomock"
+	reflect "reflect"
 )
 
 // MockService is a mock of Service interface

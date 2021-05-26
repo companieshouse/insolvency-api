@@ -24,6 +24,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+const (
+	pdfFilePath = "handlers/attachment_test.pdf"
+	txtFilePath = "handlers/attachment_test.txt"
+)
+
 func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
 	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
@@ -39,8 +44,8 @@ func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet boo
 	return res
 }
 
-func getBodyWithFile(attachmentType string) (*bytes.Buffer, error) {
-	file, err := os.Open("handlers/attachment_test.txt")
+func getBodyWithFile(attachmentType string, filePath string) (*bytes.Buffer, error) {
+	file, err := os.Open(filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +54,7 @@ func getBodyWithFile(attachmentType string) (*bytes.Buffer, error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 	writer.SetBoundary("test_boundary")
-	part, err := writer.CreateFormFile("file", "handlers/attachment_test.txt")
+	part, err := writer.CreateFormFile("file", filePath)
 	if attachmentType != "" {
 		writer.WriteField("attachment_type", attachmentType)
 	}
@@ -88,11 +93,25 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Validation failed", t, func() {
+	Convey("Validation failed - invalid attachment type", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		body, err := getBodyWithFile("")
+		body, err := getBodyWithFile("", pdfFilePath)
+		if err != nil {
+			t.Error(err)
+		}
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Validation failed - invalid attachment file format", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		body, err := getBodyWithFile("resolution", txtFilePath)
 		if err != nil {
 			t.Error(err)
 		}
@@ -106,7 +125,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		body, err := getBodyWithFile("resolution")
+		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}
@@ -127,7 +146,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
 
-		body, err := getBodyWithFile("resolution")
+		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}
@@ -151,7 +170,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		}
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(&daoResponse, nil)
 
-		body, err := getBodyWithFile("resolution")
+		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}

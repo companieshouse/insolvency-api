@@ -11,6 +11,8 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 )
 
+const maxFileSize = 1048576 * 4 // 4MB
+
 // UploadAttachment sends a file to be uploaded to the File Transfer API and returns the ID
 func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *http.Request) (string, ResponseType, error) {
 	// Create SDK session
@@ -37,11 +39,23 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 }
 
 // ValidateAttachmentDetails checks that the incoming attachment details are valid
-func ValidateAttachmentDetails(attachmentType string) string {
+func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHeader) string {
 	var errs []string
 
+	// Check attachment is of valid type
 	if !constants.IsAttachmentTypeValid(attachmentType) {
 		errs = append(errs, "attachment_type is invalid")
+	}
+
+	// Check file type is PDF
+	fileType := header.Header.Get("Content-Type")
+	if fileType != "application/pdf" && header.Filename[len(header.Filename)-3:] != "pdf" {
+		errs = append(errs, "attachment file format should be pdf")
+	}
+
+	// Check if attachment size is less than maxFileSize
+	if header.Size > maxFileSize {
+		errs = append(errs, "attachment file size is too large to be processed")
 	}
 
 	return strings.Join(errs, ", ")

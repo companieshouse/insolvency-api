@@ -38,9 +38,10 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 		}
 
 		// Validate that the provided attachment details are correct
-		if errs := service.ValidateAttachmentDetails(attachmentType); errs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-			m := models.NewMessageResponse("invalid request: " + errs)
+		validationErrs := service.ValidateAttachmentDetails(attachmentType, header)
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
