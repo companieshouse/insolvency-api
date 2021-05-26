@@ -48,6 +48,7 @@ paths:
       operationId: submitFileAttachment
       summary: Send a file attachment for the case
       requestBody:
+        description: Files attached in request can be a maximum of 4MB in size
         content:
           multipart/form-data:
             schema:
