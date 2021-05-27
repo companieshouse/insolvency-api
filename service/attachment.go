@@ -9,6 +9,7 @@ import (
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-sdk-manager/manager"
 	"github.com/companieshouse/insolvency-api/constants"
+	"github.com/companieshouse/insolvency-api/dao"
 )
 
 const maxFileSize = 1048576 * 4 // 4MB
@@ -39,12 +40,26 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 }
 
 // ValidateAttachmentDetails checks that the incoming attachment details are valid
-func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHeader) string {
+func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachmentType string, header *multipart.FileHeader) (string, error) {
 	var errs []string
 
 	// Check attachment is of valid type
 	if !constants.IsAttachmentTypeValid(attachmentType) {
 		errs = append(errs, "attachment_type is invalid")
+	}
+
+	// Check if attachment has already been filed
+	attachments, err := svc.GetAttachmentResources(transactionID)
+	if err != nil {
+		return "", err
+	}
+	if len(attachments) > 0 {
+		for _, a := range attachments {
+			if a.Type == attachmentType {
+				errs = append(errs, fmt.Sprintf("attachment of type [%s] has already been filed for insolvency case with transaction ID [%s]", attachmentType, transactionID))
+				break
+			}
+		}
 	}
 
 	// Check file type is PDF
@@ -58,5 +73,5 @@ func ValidateAttachmentDetails(attachmentType string, header *multipart.FileHead
 		errs = append(errs, "attachment file size is too large to be processed")
 	}
 
-	return strings.Join(errs, ", ")
+	return strings.Join(errs, ", "), nil
 }

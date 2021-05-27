@@ -11,6 +11,8 @@ github.com/companieshouse/api-sdk-go v0.1.13/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9F
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2 h1:ltbQj2i3EkrF+zkilS0w94Z2hTLeN3OaqHu1/djGJVo=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
+github.com/companieshouse/chs.go v1.2.4 h1:zoSAZb9l6JCyX+3F2y2es95Mk7KRexhWNtBd8+q3FxM=
+github.com/companieshouse/chs.go v1.2.4/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6ppcTDBmQ=
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
 github.com/companieshouse/go-sdk-manager v0.1.7 h1:/g6bpTM3klgE3U3S/6YGnPXQpIED5K9Ha4j2pUTtiwo=

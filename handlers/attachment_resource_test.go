@@ -102,7 +102,10 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mock_dao.NewMockService(mockCtrl), true)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -116,7 +119,33 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mock_dao.NewMockService(mockCtrl), true)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Validation failed - attachment with type has already been filed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		body, err := getBodyWithFile("resolution", txtFilePath)
+		if err != nil {
+			t.Error(err)
+		}
+
+		attachments := []models.AttachmentResourceDao{
+			{
+				Type: "resolution",
+			},
+		}
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachments, nil)
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -130,7 +159,10 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mock_dao.NewMockService(mockCtrl), true)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -145,6 +177,28 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+
+		body, err := getBodyWithFile("resolution", pdfFilePath)
+		if err != nil {
+			t.Error(err)
+		}
+
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Error when retrieving existing attachments from DB", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(nil, fmt.Errorf("err"))
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
@@ -169,6 +223,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			Type: "attachment",
 		}
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(&daoResponse, nil)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
