@@ -12,17 +12,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jarcoal/httpmock"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-session-handler/httpsession"
 	"github.com/companieshouse/go-session-handler/session"
 	"github.com/companieshouse/insolvency-api/dao"
-	"github.com/companieshouse/insolvency-api/mocks"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
+	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -104,7 +102,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
 		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
@@ -121,7 +119,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
 		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
@@ -144,7 +142,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			},
 		}
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachments, nil)
 
 		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
@@ -161,7 +159,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
 		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
