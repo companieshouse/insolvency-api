@@ -87,7 +87,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 		return nil, Error, err
 	}
 
-	joetest, err := api.FileTransfer.GetFile(id).Do()
+	FTResponse, err := api.FileTransfer.GetFile(id).Do()
 
 	if err != nil {
 		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
@@ -96,9 +96,9 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 	}
 
 	GetFileResponse := models.AttachmentFile{
-		Name:        joetest.Name,
-		Size:        joetest.Size,
-		ContentType: joetest.ContentType,
+		Name:        FTResponse.Name,
+		Size:        FTResponse.Size,
+		ContentType: FTResponse.ContentType,
 	}
 
 	if (models.AttachmentFile{}) == GetFileResponse {
