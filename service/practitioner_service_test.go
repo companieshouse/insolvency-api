@@ -14,7 +14,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIsValidPractitionerDetails(t *testing.T) {
+func TestUnitIsValidPractitionerDetails(t *testing.T) {
 
 	Convey("Practitioner request supplied is invalid - neither email or telephone number are supplied", t, func() {
 		practitioner := generatePractitioner()
@@ -161,7 +161,7 @@ func TestIsValidPractitionerDetails(t *testing.T) {
 	})
 }
 
-func TestIsValidAppointment(t *testing.T) {
+func TestUnitIsValidAppointment(t *testing.T) {
 	transactionID := "123"
 	practitionerID := "456"
 	apiURL := "https://api.companieshouse.gov.uk"
