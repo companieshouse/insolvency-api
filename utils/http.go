@@ -38,6 +38,16 @@ func GetPractitionerIDFromVars(vars map[string]string) string {
 	return practitionerID
 }
 
+// GetTransactionIDFromVars returns the transaction id from the supplied request vars.
+func GetAttachmentIDFromVars(vars map[string]string) string {
+	attachmentID := vars["attachment_id"]
+	if attachmentID == "" {
+		return ""
+	}
+
+	return attachmentID
+}
+
 // ResponseTypeToStatus converts a response type to an http status
 func ResponseTypeToStatus(responseType string) (int, error) {
 	switch responseType {

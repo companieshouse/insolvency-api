@@ -10,6 +10,7 @@ import (
 	"github.com/companieshouse/go-sdk-manager/manager"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
+	"github.com/companieshouse/insolvency-api/models"
 )
 
 const maxFileSize = 1048576 * 4 // 4MB
@@ -74,4 +75,37 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 	}
 
 	return strings.Join(errs, ", "), nil
+}
+
+// GetAttachmentDetails gets a file from File Transfer API and returns the deets
+func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile, ResponseType, error) {
+	// Create SDK session
+	api, err := manager.GetSDK(req)
+	if err != nil {
+		err = fmt.Errorf("error creating SDK to get attachment details: [%v]", err)
+		log.ErrorR(req, err)
+		return nil, Error, err
+	}
+
+	joetest, err := api.FileTransfer.GetFile(id).Do()
+
+	if err != nil {
+		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		log.ErrorR(req, err)
+		return nil, Error, err
+	}
+
+	GetFileResponse := models.AttachmentFile{
+		Name:        joetest.Name,
+		Size:        joetest.Size,
+		ContentType: joetest.ContentType,
+	}
+
+	if (models.AttachmentFile{}) == GetFileResponse {
+		err = fmt.Errorf("error getting file: [%v]", err)
+		log.ErrorR(req, err)
+		return nil, Error, err
+	}
+
+	return &GetFileResponse, Success, nil
 }

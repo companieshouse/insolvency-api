@@ -412,3 +412,43 @@ func (m *MongoService) GetAttachmentResources(transactionID string) ([]models.At
 
 	return insolvencyResource.Data.Attachments, nil
 }
+
+// GetAttachmentFromInsolvencyResource retrieves an attachment filed for an Insolvency Case
+func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string, fileID string) ([]models.AttachmentResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id":      transactionID,
+		"data.attachments.id": fileID,
+	}
+
+	// Retrieve attachment from Mongo
+	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments": 1})
+	storedAttachment := collection.FindOne(context.Background(), filter, opts)
+	err := storedAttachment.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return nil, err
+		}
+
+		log.Error(err)
+		return nil, err
+	}
+
+	err = storedAttachment.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	// Return an empty array instead of nil to distinguish from insolvency case
+	// not found
+	if insolvencyResource.Data.Attachments == nil {
+		return make([]models.AttachmentResourceDao, 0), nil
+	}
+
+	return insolvencyResource.Data.Attachments, nil
+}
