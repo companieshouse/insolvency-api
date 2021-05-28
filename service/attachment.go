@@ -77,7 +77,7 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 	return strings.Join(errs, ", "), nil
 }
 
-// GetAttachmentDetails gets a file from File Transfer API and returns the deets
+// GetAttachmentDetails gets attachment details from File Transfer API
 func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile, ResponseType, error) {
 	// Create SDK session
 	api, err := manager.GetSDK(req)
@@ -94,7 +94,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 		log.ErrorR(req, err)
 		return nil, Error, err
 	}
-
+	// Add relevant file transfer attachment details to response
 	GetFileResponse := models.AttachmentFile{
 		Name:        FTResponse.Name,
 		Size:        FTResponse.Size,
