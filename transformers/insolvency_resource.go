@@ -2,7 +2,6 @@ package transformers
 
 import (
 	"fmt"
-	"mime/multipart"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
@@ -70,8 +69,8 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 	}
 }
 
-// AttachmentResourceDaoToResponse transforms an attachment resource dao and a fileHeader into a response entity
-func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, fileHeader *multipart.FileHeader) (*models.AttachmentResource, error) {
+// AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity
+func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string) (*models.AttachmentResource, error) {
 	etag, err := utils.GenerateEtag()
 	if err != nil {
 		return nil, fmt.Errorf("error generating etag")
@@ -80,9 +79,9 @@ func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, fileHead
 	attachmentResource := &models.AttachmentResource{
 		AttachmentType: dao.Type,
 		File: models.AttachmentFile{
-			Name:        fileHeader.Filename,
-			Size:        fileHeader.Size,
-			ContentType: fileHeader.Header.Get("Content-Type"),
+			Name:        name,
+			Size:        size,
+			ContentType: contentType,
 		},
 		Etag:   etag,
 		Kind:   "insolvency-resources#attachment",

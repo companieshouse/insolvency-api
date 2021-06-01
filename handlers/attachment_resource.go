@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"mime/multipart"
 	"net/http"
-	"net/textproto"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -86,7 +84,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header)
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header.Filename, header.Size, header.Header.Get("Content-Type"))
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
@@ -135,15 +133,6 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		partHeaders := textproto.MIMEHeader{}
-		partHeaders.Set("Content-Type", GetAttachmentDetailsResponse.ContentType)
-
-		header := multipart.FileHeader{
-			Filename: GetAttachmentDetailsResponse.Name,
-			Size:     GetAttachmentDetailsResponse.Size,
-			Header:   partHeaders,
-		}
-
 		//-------------------
 		//MONGO DB call
 
@@ -155,7 +144,7 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao[0], &header)
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao[0], GetAttachmentDetailsResponse.Name, GetAttachmentDetailsResponse.Size, GetAttachmentDetailsResponse.ContentType)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
