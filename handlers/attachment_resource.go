@@ -176,11 +176,39 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		// TODO get attachment data from mongo to check attachment_id is valid
+		// TODO Get attachment data from DB to check if attachment ID is valid
+		/*
+			attachmentResource, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
+			if err != nil {
+				log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
+				m := models.NewMessageResponse("there was a problem handling your request")
+				utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+				return
+			}
+		 */
 
-		// TODO don't return attachment if antivirus is incomplete
+		// get data from File Transfer API to check antivirus is complete
+		attachmentDetails, responseType, err := service.GetAttachmentDetails(attachmentID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error getting attachment details: [%v]", err), log.Data{"service_response_type": responseType.String()})
 
-		responseType, err := service.DownloadAttachment(attachmentID, req, w)
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				log.ErrorR(req, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+		if attachmentDetails.AVStatus != "clean" {
+			log.ErrorR(req, fmt.Errorf("antivirus status not clean for attachment ID [%s]",attachmentID))
+			m := models.NewMessageResponse("attachment unavailable for download")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusForbidden)
+			return
+		}
+
+		responseType, err = service.DownloadAttachment(attachmentID, req, w)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error downloading attachment: [%v]", err), log.Data{"service_response_type": responseType.String()})
 

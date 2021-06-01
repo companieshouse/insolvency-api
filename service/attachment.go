@@ -99,6 +99,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 		Name:        FTResponse.Name,
 		Size:        FTResponse.Size,
 		ContentType: FTResponse.ContentType,
+		AVStatus:    FTResponse.AvStatus,
 	}
 
 	if (models.AttachmentFile{}) == GetFileResponse {

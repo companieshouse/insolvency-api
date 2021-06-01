@@ -58,6 +58,6 @@ func ResponseTypeToStatus(responseType string) (int, error) {
 	case "success":
 		return http.StatusOK, nil
 	default:
-		return 0, fmt.Errorf("response type not recognised")
+		return 0, fmt.Errorf("response type [%s] not recognised", responseType)
 	}
 }

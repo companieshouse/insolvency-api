@@ -71,6 +71,7 @@ type AttachmentFile struct {
 	Name        string `json:"name"`
 	Size        int64  `json:"size"`
 	ContentType string `json:"content_type"`
+	AVStatus    string `json:"av_status,omitempty"`
 }
 
 // AttachmentLinksResource contains the details of the links associated with an attachment
