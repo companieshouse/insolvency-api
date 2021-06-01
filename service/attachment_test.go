@@ -3,12 +3,15 @@ package service
 import (
 	"fmt"
 	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"net/textproto"
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
+	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -92,7 +95,6 @@ func TestUnitValidateAttachmentDetails(t *testing.T) {
 		So(validationErrs, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})
-
 }
 
 func createHeader() *multipart.FileHeader {
@@ -119,4 +121,29 @@ func generateAttachment() []models.AttachmentResourceDao {
 			},
 		},
 	}
+}
+
+func TestUnitDownloadAttachment(t *testing.T) {
+	attachmentID := "123"
+
+	Convey("Download attachment - no response", t, func() {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+		responseType, err := DownloadAttachment(attachmentID, req, w)
+		So(responseType, ShouldEqual, Error)
+		So(err.Error(), ShouldEqual, "error communicating with the File Transfer API: [error downloading file, no response]")
+	})
+
+	Convey("Download attachment - success", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"id": "12345"}`))
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		w := httptest.NewRecorder()
+
+		responseType, err := DownloadAttachment(attachmentID, req, w)
+		So(responseType, ShouldEqual, Success)
+		So(err, ShouldBeNil)
+	})
 }

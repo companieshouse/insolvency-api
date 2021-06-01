@@ -155,3 +155,53 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, attachmentResponse, http.StatusOK)
 	})
 }
+
+// HandleDownloadAttachment download an attachment which is stored against an Insolvency case
+func HandleDownloadAttachment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
+		if attachmentID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
+			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// TODO get attachment data from mongo to check attachment_id is valid
+
+		// TODO don't return attachment if antivirus is incomplete
+
+		responseType, err := service.DownloadAttachment(attachmentID, req, w)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error downloading attachment: [%v]", err), log.Data{"service_response_type": responseType.String()})
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+		if responseType != service.Success {
+			log.ErrorR(req, fmt.Errorf("file download was unsuccessful"))
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				log.ErrorR(req, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+	})
+}

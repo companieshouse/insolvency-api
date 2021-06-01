@@ -235,3 +235,76 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
 }
+
+func serveHandleDownloadAttachment(body []byte, service dao.Service, tranIDSet bool, attachmentIDSet bool) *httptest.ResponseRecorder {
+	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
+	req := httptest.NewRequest(http.MethodGet, "/test", bytes.NewReader(body)).WithContext(ctx)
+	vars := make(map[string]string)
+	if tranIDSet {
+		vars["transaction_id"] = transactionID
+	}
+	if attachmentIDSet {
+		vars["attachment_id"] = "123"
+	}
+
+	req = mux.SetURLVars(req, vars)
+
+	res := httptest.NewRecorder()
+
+	handler := HandleDownloadAttachment(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleDownloadAttachment(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must have a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), false, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must have an attachment ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error downloading attachment", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Successful download", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"id": "12345"}`))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+}
