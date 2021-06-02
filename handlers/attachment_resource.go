@@ -118,8 +118,7 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for attachment with transaction id: %s, attachment id: %s", transactionID, attachmentID))
 
-		//MONGO DB call
-
+		// Calls the database and returns attachment stored against the Insolvency case
 		attachmentDao, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
