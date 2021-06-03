@@ -25,8 +25,9 @@ import (
 )
 
 const (
-	pdfFilePath = "handlers/attachment_test.pdf"
-	txtFilePath = "handlers/attachment_test.txt"
+	pdfFilePath  = "handlers/attachment_test.pdf"
+	txtFilePath  = "handlers/attachment_test.txt"
+	attachmentID = "987654321"
 )
 
 func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
@@ -233,5 +234,78 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
+	})
+}
+
+func serveHandleGetAttachmentDetails(service dao.Service, tranIDSet bool, attachmentIDSet bool) *httptest.ResponseRecorder {
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	vars := make(map[string]string)
+	if tranIDSet {
+		vars["transaction_id"] = transactionID
+	}
+	if attachmentIDSet {
+		vars["attachment_id"] = attachmentID
+	}
+	req = mux.SetURLVars(req, vars)
+	res := httptest.NewRecorder()
+
+	handler := HandleGetAttachmentDetails(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleGetAttachment(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must have a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetAttachmentDetails(mock_dao.NewMockService(mockCtrl), false, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must have an attachment ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetAttachmentDetails(mock_dao.NewMockService(mockCtrl), true, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Failed to get attachment from DB", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an error
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(nil, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
+
+		res := serveHandleGetAttachmentDetails(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("No attachment associated with Insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		//
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(nil, nil).Times(1)
+
+		res := serveHandleGetAttachmentDetails(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "attachment id is not valid")
 	})
 }

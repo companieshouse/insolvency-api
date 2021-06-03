@@ -149,6 +149,19 @@ func (mr *MockServiceMockRecorder) AddAttachmentToInsolvencyResource(transaction
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAttachmentToInsolvencyResource", reflect.TypeOf((*MockService)(nil).AddAttachmentToInsolvencyResource), transactionID, fileID, attachmentType)
 }
 
+// GetAttachmentFromInsolvencyResource mocks base method
+func (m *MockService) GetAttachmentFromInsolvencyResource(transactionID, attachmentID string) ([]models.AttachmentResourceDao, error) {
+	ret := m.ctrl.Call(m, "GetAttachmentFromInsolvencyResource", transactionID, attachmentID)
+	ret0, _ := ret[0].([]models.AttachmentResourceDao)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAttachmentFromInsolvencyResource indicates an expected call of GetAttachmentFromInsolvencyResource
+func (mr *MockServiceMockRecorder) GetAttachmentFromInsolvencyResource(transactionID, attachmentID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentFromInsolvencyResource", reflect.TypeOf((*MockService)(nil).GetAttachmentFromInsolvencyResource), transactionID, attachmentID)
+}
+
 // GetAttachmentResources mocks base method
 func (m *MockService) GetAttachmentResources(transactionID string) ([]models.AttachmentResourceDao, error) {
 	ret := m.ctrl.Call(m, "GetAttachmentResources", transactionID)

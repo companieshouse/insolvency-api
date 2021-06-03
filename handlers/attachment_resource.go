@@ -84,7 +84,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header)
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header.Filename, header.Size, header.Header.Get("Content-Type"))
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
@@ -93,5 +93,69 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 		}
 
 		utils.WriteJSONWithStatus(w, req, attachmentResponse, http.StatusCreated)
+	})
+}
+
+// HandleSubmitAttachment receives an attachment to be stored against the Insolvency case
+func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		if attachmentID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
+			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for attachment with transaction id: %s, attachment id: %s", transactionID, attachmentID))
+
+		// Calls the database and returns attachment stored against the Insolvency case
+		attachmentDao, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		if len(attachmentDao) == 0 {
+			m := models.NewMessageResponse("attachment id is not valid")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Calls File Transfer API to get attachment details
+		GetAttachmentDetailsResponse, responseType, err := service.GetAttachmentDetails(attachmentID, req)
+
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error getting attachment details: [%v]", err), log.Data{"service_response_type": responseType.String()})
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao[0], GetAttachmentDetailsResponse.Name, GetAttachmentDetailsResponse.Size, GetAttachmentDetailsResponse.ContentType)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		utils.WriteJSONWithStatus(w, req, attachmentResponse, http.StatusOK)
 	})
 }
