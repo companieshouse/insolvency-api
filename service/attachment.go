@@ -54,10 +54,18 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 		return "", err
 	}
 	if len(attachments) > 0 {
-		for _, a := range attachments {
-			if a.Type == attachmentType {
-				errs = append(errs, fmt.Sprintf("attachment of type [%s] has already been filed for insolvency case with transaction ID [%s]", attachmentType, transactionID))
-				break
+		if attachmentType == constants.StatementOfAffairsLiquidator.String() {
+			errs = append(errs, fmt.Sprintf("attachment of type [%s] cannot be filed for insolvency case with transaction ID [%s] - other attachments have already been filed for this case", attachmentType, transactionID))
+		} else {
+			for _, a := range attachments {
+				if a.Type == constants.StatementOfAffairsLiquidator.String() {
+					errs = append(errs, fmt.Sprintf("attachment of type [%s] has been filed for insolvency case with transaction ID [%s] - no other attachments can be filed for this case", a.Type, transactionID))
+					break
+				}
+				if a.Type == attachmentType {
+					errs = append(errs, fmt.Sprintf("attachment of type [%s] has already been filed for insolvency case with transaction ID [%s]", attachmentType, transactionID))
+					break
+				}
 			}
 		}
 	}
