@@ -270,7 +270,7 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Must have a attachment ID in the url", t, func() {
+	Convey("Must have an attachment ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 

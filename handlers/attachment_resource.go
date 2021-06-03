@@ -133,7 +133,7 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Call File Transfer API to get attachment details
+		// Calls File Transfer API to get attachment details
 		GetAttachmentDetailsResponse, responseType, err := service.GetAttachmentDetails(attachmentID, req)
 
 		if err != nil {
