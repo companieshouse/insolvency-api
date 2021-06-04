@@ -295,12 +295,10 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 
 	Convey("No attachment associated with Insolvency case", t, func() {
 		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		//
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(nil, nil).Times(1)
 
 		res := serveHandleGetAttachmentDetails(mockService, true, true)
@@ -357,7 +355,7 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Error downloading attachment", t, func() {
+	Convey("Error getting attachment details", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
@@ -367,20 +365,48 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
-	/*
-		Convey("Successful download", t, func() {
-			httpmock.Activate()
-			defer httpmock.DeactivateAndReset()
+	Convey("status not clean", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
 
-			mockCtrl := gomock.NewController(t)
-			defer mockCtrl.Finish()
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(http.MethodGet, `=~123$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "virus"}`))
 
-			httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"id": "12345"}`))
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
 
-			body, _ := json.Marshal(&models.InsolvencyRequest{})
-			res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
 
-			So(res.Code, ShouldEqual, http.StatusOK)
-		})
-	*/
+	Convey("Error downloading attachment", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		httpmock.RegisterResponder(http.MethodGet, `=~123$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "clean"}`))
+		httpmock.RegisterResponder(http.MethodGet, `=~download$`, httpmock.NewStringResponder(http.StatusTeapot, ""))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Successful download", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+
+		httpmock.RegisterResponder(http.MethodGet, `=~123$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "clean"}`))
+		httpmock.RegisterResponder(http.MethodGet, `=~download$`, httpmock.NewStringResponder(http.StatusOK, `downloaded`))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
 }

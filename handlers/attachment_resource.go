@@ -189,7 +189,7 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 				utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 				return
 			}
-		 */
+		*/
 
 		// get data from File Transfer API to check antivirus is complete
 		attachmentDetails, responseType, err := service.GetAttachmentDetails(attachmentID, req)
@@ -206,7 +206,7 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			return
 		}
 		if attachmentDetails.AVStatus != "clean" {
-			log.ErrorR(req, fmt.Errorf("antivirus status not clean for attachment ID [%s]",attachmentID))
+			log.ErrorR(req, fmt.Errorf("antivirus status not clean for attachment ID [%s]", attachmentID))
 			m := models.NewMessageResponse("attachment unavailable for download")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusForbidden)
 			return
