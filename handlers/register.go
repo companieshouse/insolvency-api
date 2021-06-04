@@ -39,6 +39,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 
 	appRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc)).Methods(http.MethodPost).Name("submitAttachment")
 	appRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc)).Methods(http.MethodGet).Name("GetAttachmentDetails")
+	appRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleDeleteAttachment(svc)).Methods(http.MethodDelete).Name("DeleteAttachment")
 
 	mainRouter.Use(log.Handler)
 }

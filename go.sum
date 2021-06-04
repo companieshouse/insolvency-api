@@ -6,8 +6,8 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/aws/aws-sdk-go v1.34.28 h1:sscPpn/Ns3i0F4HPEWAVcwdIRaZZCuL7llJ2/60yPIk=
 github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/+8rV9s48=
 github.com/companieshouse/api-sdk-go v0.1.0/go.mod h1:lf4uNUbwgU0FyJvoAToNAwNwN9GW2w6Vlpw3KGPtAeQ=
-github.com/companieshouse/api-sdk-go v0.1.14 h1:bIMNbsRAdDyS2+IlQAgg8zBuueHfidpoyTVqwe4L7HM=
-github.com/companieshouse/api-sdk-go v0.1.14/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
+github.com/companieshouse/api-sdk-go v0.1.16 h1:6AgXOsIwo5AFalYG4o3mIYUpivfKn/t18kMFtyfW95U=
+github.com/companieshouse/api-sdk-go v0.1.16/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2 h1:ltbQj2i3EkrF+zkilS0w94Z2hTLeN3OaqHu1/djGJVo=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
@@ -15,10 +15,8 @@ github.com/companieshouse/chs.go v1.2.4 h1:zoSAZb9l6JCyX+3F2y2es95Mk7KRexhWNtBd8
 github.com/companieshouse/chs.go v1.2.4/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6ppcTDBmQ=
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
-github.com/companieshouse/go-sdk-manager v0.1.7 h1:/g6bpTM3klgE3U3S/6YGnPXQpIED5K9Ha4j2pUTtiwo=
-github.com/companieshouse/go-sdk-manager v0.1.7/go.mod h1:5glMl96JZgXbRTBwyin01zXmmgAyQBuMkblKGhSWUFg=
-github.com/companieshouse/go-sdk-manager v0.1.8 h1:8iaYYbyMFt0GtPFS2cc3ycg41EUl0xzBQpmQms+YEw8=
-github.com/companieshouse/go-sdk-manager v0.1.8/go.mod h1:bupUCSN2k1A5WkL+lC5Oiosb2ZIykyq4zx0OZH4kLR4=
+github.com/companieshouse/go-sdk-manager v0.1.9 h1:FGugoJdEW1tUNKFz5puPPVN8YHfkY145gKqsY0HMfeY=
+github.com/companieshouse/go-sdk-manager v0.1.9/go.mod h1:uNSP/UZt88/4RqOLAZntYbSEc2GCZgKOmyIjcscKa3M=
 github.com/companieshouse/go-session-handler v0.1.1/go.mod h1:SxvarOscnlb8qivxJsjVmROri/7iuCm+Kcs6fglhKEE=
 github.com/companieshouse/go-session-handler v0.1.5 h1:lkiWJLE0hXNrkUawBQ9ul9VnK2qUNGeh9kzuvZXGJs8=
 github.com/companieshouse/go-session-handler v0.1.5/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
