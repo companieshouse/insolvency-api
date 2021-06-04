@@ -7,7 +7,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestGenerateID(t *testing.T) {
+func TestUnitGenerateID(t *testing.T) {
 	Convey("test generation of an ID", t, func() {
 		id := GenerateID()
 

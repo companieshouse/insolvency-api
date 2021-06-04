@@ -431,7 +431,7 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
-			return nil, err
+			return nil, nil
 		}
 
 		log.Error(err)

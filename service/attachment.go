@@ -55,10 +55,18 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 		return "", err
 	}
 	if len(attachments) > 0 {
-		for _, a := range attachments {
-			if a.Type == attachmentType {
-				errs = append(errs, fmt.Sprintf("attachment of type [%s] has already been filed for insolvency case with transaction ID [%s]", attachmentType, transactionID))
-				break
+		if attachmentType == constants.StatementOfAffairsLiquidator.String() {
+			errs = append(errs, fmt.Sprintf("attachment of type [%s] cannot be filed for insolvency case with transaction ID [%s] - other attachments have already been filed for this case", attachmentType, transactionID))
+		} else {
+			for _, a := range attachments {
+				if a.Type == constants.StatementOfAffairsLiquidator.String() {
+					errs = append(errs, fmt.Sprintf("attachment of type [%s] has been filed for insolvency case with transaction ID [%s] - no other attachments can be filed for this case", a.Type, transactionID))
+					break
+				}
+				if a.Type == attachmentType {
+					errs = append(errs, fmt.Sprintf("attachment of type [%s] has already been filed for insolvency case with transaction ID [%s]", attachmentType, transactionID))
+					break
+				}
 			}
 		}
 	}
@@ -87,7 +95,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 		return nil, Error, err
 	}
 
-	FTResponse, err := api.FileTransfer.GetFile(id).Do()
+	response, err := api.FileTransfer.GetFile(id).Do()
 
 	if err != nil {
 		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
@@ -96,10 +104,10 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 	}
 	// Add relevant file transfer attachment details to response
 	GetFileResponse := models.AttachmentFile{
-		Name:        FTResponse.Name,
-		Size:        FTResponse.Size,
-		ContentType: FTResponse.ContentType,
-		AVStatus:    FTResponse.AvStatus,
+		Name:        response.Name,
+		Size:        response.Size,
+		ContentType: response.ContentType,
+		AVStatus:    response.AvStatus,
 	}
 
 	if (models.AttachmentFile{}) == GetFileResponse {

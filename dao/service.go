@@ -34,11 +34,11 @@ type Service interface {
 	// AddAttachmentToInsolvencyResource will add an attachment to an insolvency resource
 	AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error)
 
+	// GetAttachmentFromInsolvencyResource will retrieve an attachment from an insolvency resource
+	GetAttachmentFromInsolvencyResource(transactionID string, attachmentID string) ([]models.AttachmentResourceDao, error)
+
 	// GetAttachmentResources retrieves all attachments filed for an Insolvency Case
 	GetAttachmentResources(transactionID string) ([]models.AttachmentResourceDao, error)
-
-	// GetAttachmentFromInsolvencyResource will retrieve an attachment from an insolvency resource
-	GetAttachmentFromInsolvencyResource(transactionID string, fileID string) ([]models.AttachmentResourceDao, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

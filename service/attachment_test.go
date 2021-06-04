@@ -8,6 +8,7 @@ import (
 	"net/textproto"
 	"testing"
 
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
@@ -53,6 +54,36 @@ func TestUnitValidateAttachmentDetails(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
+	Convey("Invalid attachment details - statement of affairs liquidator filed for case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		attachmentResources := generateAttachment()
+		attachmentResources[0].Type = constants.StatementOfAffairsLiquidator.String()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachmentResources, nil)
+
+		validationErrs, err := ValidateAttachmentDetails(mockService, transactionID, "resolution", createHeader())
+		So(validationErrs, ShouldEqual, fmt.Sprintf("attachment of type [%s] has been filed for insolvency case with transaction ID [%s] - no other attachments can be filed for this case", constants.StatementOfAffairsLiquidator.String(), transactionID))
+		So(err, ShouldBeNil)
+	})
+
+	Convey("Invalid attachment details - attempt to file statement of affairs liquidator for case that already has attachments", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		attachmentResources := generateAttachment()
+		attachmentResources[0].Type = constants.Resolution.String()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachmentResources, nil)
+
+		validationErrs, err := ValidateAttachmentDetails(mockService, transactionID, constants.StatementOfAffairsLiquidator.String(), createHeader())
+		So(validationErrs, ShouldEqual, fmt.Sprintf("attachment of type [%s] cannot be filed for insolvency case with transaction ID [%s] - other attachments have already been filed for this case", constants.StatementOfAffairsLiquidator.String(), transactionID))
+		So(err, ShouldBeNil)
+	})
+
 	Convey("Invalid attachment details - invalid file format in header and name", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -84,7 +115,22 @@ func TestUnitValidateAttachmentDetails(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	Convey("Valid attachment details", t, func() {
+	Convey("Valid attachment details - with existing attachments filed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		attachmentResources := generateAttachment()
+		attachmentResources[0].Type = constants.Resolution.String()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachmentResources, nil)
+
+		validationErrs, err := ValidateAttachmentDetails(mockService, transactionID, constants.StatementOfAffairsDirector.String(), createHeader())
+		So(validationErrs, ShouldBeEmpty)
+		So(err, ShouldBeNil)
+	})
+
+	Convey("Valid attachment details - without existing attachments filed", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 

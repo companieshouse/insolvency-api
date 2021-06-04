@@ -67,7 +67,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 	}
 }
 
-func TestValidateInsolvencyDetails(t *testing.T) {
+func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
@@ -117,7 +117,7 @@ func TestValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] have been not appointed", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
 	})
 
@@ -137,7 +137,7 @@ func TestValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] have been not appointed", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
 	})
 

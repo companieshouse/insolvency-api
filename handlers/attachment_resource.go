@@ -110,15 +110,30 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 		}
 
 		if attachmentID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no file ID in the URL path"))
-			m := models.NewMessageResponse("file ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
+			m := models.NewMessageResponse("attachment ID is not in the URL path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
-		log.InfoR(req, fmt.Sprintf("start GET request for attachment with transaction id: %s, file id: %s", transactionID, attachmentID))
+		log.InfoR(req, fmt.Sprintf("start GET request for attachment with transaction id: %s, attachment id: %s", transactionID, attachmentID))
 
-		// Call File Transfer API to get attachment details
+		// Calls the database and returns attachment stored against the Insolvency case
+		attachmentDao, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		if len(attachmentDao) == 0 {
+			m := models.NewMessageResponse("attachment id is not valid")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Calls File Transfer API to get attachment details
 		GetAttachmentDetailsResponse, responseType, err := service.GetAttachmentDetails(attachmentID, req)
 
 		if err != nil {
@@ -130,17 +145,6 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 				return
 			}
 			w.WriteHeader(status)
-			return
-		}
-
-		//-------------------
-		//MONGO DB call
-
-		attachmentDao, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
-			m := models.NewMessageResponse("there was a problem handling your request")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 

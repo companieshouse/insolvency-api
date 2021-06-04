@@ -99,6 +99,6 @@ func TestUnitResponseTypeToStatus(t *testing.T) {
 
 		r, err = ResponseTypeToStatus("default")
 		So(r, ShouldEqual, 0)
-		So(err.Error(), ShouldEqual, "response type not recognised")
+		So(err.Error(), ShouldEqual, "response type [default] not recognised")
 	})
 }

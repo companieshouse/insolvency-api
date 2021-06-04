@@ -5,6 +5,9 @@ github.com/Shopify/sarama v1.23.1/go.mod h1:XLH1GYJnLVE0XCr6KdJGVJRTwY30moWNJ4sE
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/aws/aws-sdk-go v1.34.28 h1:sscPpn/Ns3i0F4HPEWAVcwdIRaZZCuL7llJ2/60yPIk=
 github.com/aws/aws-sdk-go v1.34.28/go.mod h1:H7NKnBqNVzoTJpGfLrQkkD+ytBA93eiDYi/+8rV9s48=
+github.com/companieshouse/api-sdk-go v0.1.0/go.mod h1:lf4uNUbwgU0FyJvoAToNAwNwN9GW2w6Vlpw3KGPtAeQ=
+github.com/companieshouse/api-sdk-go v0.1.14 h1:bIMNbsRAdDyS2+IlQAgg8zBuueHfidpoyTVqwe4L7HM=
+github.com/companieshouse/api-sdk-go v0.1.14/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2 h1:ltbQj2i3EkrF+zkilS0w94Z2hTLeN3OaqHu1/djGJVo=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
@@ -14,6 +17,8 @@ github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6p
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
 github.com/companieshouse/go-sdk-manager v0.1.7 h1:/g6bpTM3klgE3U3S/6YGnPXQpIED5K9Ha4j2pUTtiwo=
 github.com/companieshouse/go-sdk-manager v0.1.7/go.mod h1:5glMl96JZgXbRTBwyin01zXmmgAyQBuMkblKGhSWUFg=
+github.com/companieshouse/go-sdk-manager v0.1.8 h1:8iaYYbyMFt0GtPFS2cc3ycg41EUl0xzBQpmQms+YEw8=
+github.com/companieshouse/go-sdk-manager v0.1.8/go.mod h1:bupUCSN2k1A5WkL+lC5Oiosb2ZIykyq4zx0OZH4kLR4=
 github.com/companieshouse/go-session-handler v0.1.1/go.mod h1:SxvarOscnlb8qivxJsjVmROri/7iuCm+Kcs6fglhKEE=
 github.com/companieshouse/go-session-handler v0.1.5 h1:lkiWJLE0hXNrkUawBQ9ul9VnK2qUNGeh9kzuvZXGJs8=
 github.com/companieshouse/go-session-handler v0.1.5/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
@@ -228,6 +233,7 @@ golang.org/x/tools v0.0.0-20190329151228-23e29df326fe/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20190416151739-9c9e1878f421/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190420181800-aa740d480789/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 golang.org/x/tools v0.0.0-20190531172133-b3315ee88b7d/go.mod h1:/rFqwRUd4F7ZHNgwSSTFct+R/Kf4OFW1sUzUTQQTgfc=
+golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e h1:aZzprAO9/8oim3qStq3wc1Xuxx4QmAGriC4VU4ojemQ=
 golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
