@@ -180,16 +180,27 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		// TODO Get attachment data from DB to check if attachment ID is valid
-		/*
-			attachmentResource, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
-			if err != nil {
-				log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
-				m := models.NewMessageResponse("there was a problem handling your request")
-				utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-				return
+		// Get attachment data from DB to check if attachment ID is valid
+		attachmentResource, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency db resource for transaction [%s] with attachment id [%s]: %v", transactionID, attachmentID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		validAttachmentID := false
+		for _, attachment := range attachmentResource {
+			if attachment.ID == attachmentID {
+				validAttachmentID = true
+				break
 			}
-		*/
+		}
+		if !validAttachmentID {
+			log.ErrorR(req, fmt.Errorf("invalid attachment ID [%s] for transaction ID [%s]", attachmentID, transactionID))
+			m := models.NewMessageResponse("Invalid Attachment ID")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
 
 		// get data from File Transfer API to check antivirus is complete
 		attachmentDetails, responseType, err := service.GetAttachmentDetails(attachmentID, req)
