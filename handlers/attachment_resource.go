@@ -127,9 +127,9 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		if len(attachmentDao) == 0 {
+		if attachmentDao == (models.AttachmentResourceDao{}) {
 			m := models.NewMessageResponse("attachment id is not valid")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
 
@@ -148,7 +148,7 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao[0], GetAttachmentDetailsResponse.Name, GetAttachmentDetailsResponse.Size, GetAttachmentDetailsResponse.ContentType)
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao, GetAttachmentDetailsResponse.Name, GetAttachmentDetailsResponse.Size, GetAttachmentDetailsResponse.ContentType)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
@@ -189,12 +189,10 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			return
 		}
 		validAttachmentID := false
-		for _, attachment := range attachmentResource {
-			if attachment.ID == attachmentID {
-				validAttachmentID = true
-				break
-			}
+		if attachmentResource.ID == attachmentID {
+			validAttachmentID = true
 		}
+
 		if !validAttachmentID {
 			log.ErrorR(req, fmt.Errorf("invalid attachment ID [%s] for transaction ID [%s]", attachmentID, transactionID))
 			m := models.NewMessageResponse("Invalid Attachment ID")
@@ -246,5 +244,53 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			w.WriteHeader(status)
 			return
 		}
+	})
+}
+
+// HandleDeleteAttachment deletes an attachment resource from the DB and deletes the stored file
+func HandleDeleteAttachment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		if attachmentID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
+			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start DELETE request for attachment with transaction id: %s, attachment id: %s", transactionID, attachmentID))
+
+		responseType, err := service.DeleteAttachment(attachmentID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error deleting attachment: [%v]", err), log.Data{"service_response_type": responseType.String()})
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+
+		// Delete attachment from DB
+		statusCode, err := svc.DeleteAttachmentResource(transactionID, attachmentID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		utils.WriteJSONWithStatus(w, req, "", http.StatusNoContent)
 	})
 }
