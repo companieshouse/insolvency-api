@@ -195,7 +195,7 @@ func HandleDeleteAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Delete attachment from Mongo
+		// Delete attachment from DB
 		statusCode, err := svc.DeleteAttachmentResource(transactionID, attachmentID)
 		if err != nil {
 			log.ErrorR(req, err)
