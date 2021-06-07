@@ -56,14 +56,14 @@ func TestUnitGetPractitionerIDFromVars(t *testing.T) {
 		vars := map[string]string{
 			"practitioner_id": "67890",
 		}
-		PractitionerID := GetPractitionerIDFromVars(vars)
-		So(PractitionerID, ShouldEqual, "67890")
+		practitionerID := GetPractitionerIDFromVars(vars)
+		So(practitionerID, ShouldEqual, "67890")
 	})
 
 	Convey("No Practitioner ID", t, func() {
 		vars := map[string]string{}
-		PractitionerID := GetPractitionerIDFromVars(vars)
-		So(PractitionerID, ShouldBeEmpty)
+		practitionerID := GetPractitionerIDFromVars(vars)
+		So(practitionerID, ShouldBeEmpty)
 	})
 }
 
@@ -72,14 +72,14 @@ func TestUnitGetAttachmentIDFromVars(t *testing.T) {
 		vars := map[string]string{
 			"attachment_id": "67890",
 		}
-		PractitionerID := GetAttachmentIDFromVars(vars)
-		So(PractitionerID, ShouldEqual, "67890")
+		attachmentID := GetAttachmentIDFromVars(vars)
+		So(attachmentID, ShouldEqual, "67890")
 	})
 
 	Convey("No Attachment ID", t, func() {
 		vars := map[string]string{}
-		PractitionerID := GetAttachmentIDFromVars(vars)
-		So(PractitionerID, ShouldBeEmpty)
+		attachmentID := GetAttachmentIDFromVars(vars)
+		So(attachmentID, ShouldBeEmpty)
 	})
 }
 
