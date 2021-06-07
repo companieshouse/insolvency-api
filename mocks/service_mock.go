@@ -150,9 +150,9 @@ func (mr *MockServiceMockRecorder) AddAttachmentToInsolvencyResource(transaction
 }
 
 // GetAttachmentFromInsolvencyResource mocks base method
-func (m *MockService) GetAttachmentFromInsolvencyResource(transactionID, attachmentID string) ([]models.AttachmentResourceDao, error) {
+func (m *MockService) GetAttachmentFromInsolvencyResource(transactionID, attachmentID string) (models.AttachmentResourceDao, error) {
 	ret := m.ctrl.Call(m, "GetAttachmentFromInsolvencyResource", transactionID, attachmentID)
-	ret0, _ := ret[0].([]models.AttachmentResourceDao)
+	ret0, _ := ret[0].(models.AttachmentResourceDao)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -173,4 +173,17 @@ func (m *MockService) GetAttachmentResources(transactionID string) ([]models.Att
 // GetAttachmentResources indicates an expected call of GetAttachmentResources
 func (mr *MockServiceMockRecorder) GetAttachmentResources(transactionID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentResources", reflect.TypeOf((*MockService)(nil).GetAttachmentResources), transactionID)
+}
+
+// DeleteAttachmentResource mocks base method
+func (m *MockService) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
+	ret := m.ctrl.Call(m, "DeleteAttachmentResource", transactionID, attachmentID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteAttachmentResource indicates an expected call of DeleteAttachmentResource
+func (mr *MockServiceMockRecorder) DeleteAttachmentResource(transactionID, attachmentID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachmentResource", reflect.TypeOf((*MockService)(nil).DeleteAttachmentResource), transactionID, attachmentID)
 }
