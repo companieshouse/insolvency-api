@@ -117,3 +117,30 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 
 	return &GetFileResponse, Success, nil
 }
+
+// DeleteAttachment deletes an attachment via the File Transfer API
+func DeleteAttachment(id string, req *http.Request) (ResponseType, error) {
+	// Create SDK session
+	api, err := manager.GetSDK(req)
+	if err != nil {
+		err = fmt.Errorf("error creating SDK to get attachment details: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+
+	response, err := api.FileTransfer.DeleteFile(id).Do()
+
+	if err != nil {
+		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+
+	if response == nil {
+		err = fmt.Errorf("error deleting file: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+
+	return Success, nil
+}
