@@ -160,6 +160,7 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleDeleteAttachment deletes an attachment resource from the DB and deletes the stored file
 func HandleDeleteAttachment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
