@@ -414,7 +414,7 @@ func (m *MongoService) GetAttachmentResources(transactionID string) ([]models.At
 }
 
 // GetAttachmentFromInsolvencyResource retrieves an attachment filed for an Insolvency Case
-func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string, fileID string) ([]models.AttachmentResourceDao, error) {
+func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string, fileID string) (models.AttachmentResourceDao, error) {
 
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
@@ -431,24 +431,55 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
-			return nil, nil
+			return models.AttachmentResourceDao{}, nil
 		}
 
 		log.Error(err)
-		return nil, err
+		return models.AttachmentResourceDao{}, err
 	}
 
 	err = storedAttachment.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return nil, err
+		return models.AttachmentResourceDao{}, err
 	}
 
-	// Return an empty array instead of nil to distinguish from insolvency case
-	// not found
-	if insolvencyResource.Data.Attachments == nil {
-		return make([]models.AttachmentResourceDao, 0), nil
+	return insolvencyResource.Data.Attachments[0], nil
+}
+
+func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific transaction for insolvency case with attachment to be removed
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
 	}
 
-	return insolvencyResource.Data.Attachments, nil
+	// Choose specific attachment to delete
+	pullQuery := bson.M{"data.attachments": bson.M{"id": attachmentID}}
+
+	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete attachment with id [%s]", transactionID, attachmentID)
+	}
+
+	// Return error if Mongo could not update the document
+	if update.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - attachment with id [%s] not found", transactionID, attachmentID)
+		log.Error(err)
+		return http.StatusNotFound, err
+	}
+
+	return http.StatusNoContent, nil
 }

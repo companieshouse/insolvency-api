@@ -35,10 +35,13 @@ type Service interface {
 	AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error)
 
 	// GetAttachmentFromInsolvencyResource will retrieve an attachment from an insolvency resource
-	GetAttachmentFromInsolvencyResource(transactionID string, attachmentID string) ([]models.AttachmentResourceDao, error)
+	GetAttachmentFromInsolvencyResource(transactionID string, attachmentID string) (models.AttachmentResourceDao, error)
 
 	// GetAttachmentResources retrieves all attachments filed for an Insolvency Case
 	GetAttachmentResources(transactionID string) ([]models.AttachmentResourceDao, error)
+
+	// DeleteAttachmentResource deletes an attachment in an Insolvency Case
+	DeleteAttachmentResource(transactionID, attachmentID string) (int, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the
