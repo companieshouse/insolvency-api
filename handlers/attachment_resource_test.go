@@ -413,7 +413,7 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 		res := serveHandleDownloadAttachment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
 	Convey("Error getting attachment details", t, func() {

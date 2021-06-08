@@ -189,8 +189,8 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			return
 		}
 		if attachmentResource == (models.AttachmentResourceDao{}) {
-			m := models.NewMessageResponse("attachment id is not valid")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			m := models.NewMessageResponse(fmt.Sprintf("attachment id [%s] is not found", attachmentID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
 
