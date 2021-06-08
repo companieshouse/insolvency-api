@@ -188,14 +188,8 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
-		validAttachmentID := false
-		if attachmentResource.ID == attachmentID {
-			validAttachmentID = true
-		}
-
-		if !validAttachmentID {
-			log.ErrorR(req, fmt.Errorf("invalid attachment ID [%s] for transaction ID [%s]", attachmentID, transactionID))
-			m := models.NewMessageResponse("Invalid Attachment ID")
+		if attachmentResource == (models.AttachmentResourceDao{}) {
+			m := models.NewMessageResponse("attachment id is not valid")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

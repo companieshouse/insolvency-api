@@ -407,11 +407,8 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		response := models.AttachmentResourceDao{
-			ID: "1111",
-		}
 
-		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(response, nil)
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(models.AttachmentResourceDao{}, nil)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 		res := serveHandleDownloadAttachment(body, mockService, true, true)
