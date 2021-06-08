@@ -160,6 +160,87 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleDownloadAttachment download an attachment which is stored against an Insolvency case
+func HandleDownloadAttachment(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
+		if attachmentID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
+			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Get attachment data from DB to check if attachment ID is valid
+		attachmentResource, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency db resource for transaction [%s] with attachment id [%s]: %v", transactionID, attachmentID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if attachmentResource == (models.AttachmentResourceDao{}) {
+			m := models.NewMessageResponse(fmt.Sprintf("attachment id [%s] is not found", attachmentID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+			return
+		}
+
+		// get data from File Transfer API to check antivirus is complete
+		attachmentDetails, responseType, err := service.GetAttachmentDetails(attachmentID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error getting attachment details: [%v]", err), log.Data{"service_response_type": responseType.String()})
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				log.ErrorR(req, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+		if attachmentDetails.AVStatus != "clean" {
+			log.ErrorR(req, fmt.Errorf("antivirus status not clean for attachment ID [%s]", attachmentID))
+			m := models.NewMessageResponse("attachment unavailable for download")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusForbidden)
+			return
+		}
+
+		responseType, err = service.DownloadAttachment(attachmentID, req, w)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error downloading attachment: [%v]", err), log.Data{"service_response_type": responseType.String()})
+
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+		if responseType != service.Success {
+			log.ErrorR(req, fmt.Errorf("file download was unsuccessful"))
+			status, err := utils.ResponseTypeToStatus(responseType.String())
+			if err != nil {
+				log.ErrorR(req, err)
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(status)
+			return
+		}
+	})
+}
+
 // HandleDeleteAttachment deletes an attachment resource from the DB and deletes the stored file
 func HandleDeleteAttachment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

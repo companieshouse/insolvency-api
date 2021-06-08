@@ -107,6 +107,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 		Name:        response.Name,
 		Size:        response.Size,
 		ContentType: response.ContentType,
+		AVStatus:    response.AvStatus,
 	}
 
 	if (models.AttachmentFile{}) == GetFileResponse {
@@ -116,6 +117,32 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 	}
 
 	return &GetFileResponse, Success, nil
+}
+
+// DownloadAttachment downloads a file from the File Transfer API writes it to a ResponseWriter
+func DownloadAttachment(attachmentID string, req *http.Request, w http.ResponseWriter) (ResponseType, error) {
+
+	// Create SDK session
+	api, err := manager.GetSDK(req)
+	if err != nil {
+		err = fmt.Errorf("error creating SDK to upload attachment: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+
+	downloadedFileResponse, err := api.FileTransfer.DownloadFile(attachmentID, w).Do()
+	if err != nil {
+		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+
+	if downloadedFileResponse == nil {
+		err = fmt.Errorf("error downloading file: [%v]", err)
+		log.ErrorR(req, err)
+		return Error, err
+	}
+	return Success, nil
 }
 
 // DeleteAttachment deletes an attachment via the File Transfer API

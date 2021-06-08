@@ -38,7 +38,7 @@ func GetPractitionerIDFromVars(vars map[string]string) string {
 	return practitionerID
 }
 
-// GetTransactionIDFromVars returns the transaction id from the supplied request vars.
+// GetAttachmentIDFromVars returns the attachment id from the supplied request vars
 func GetAttachmentIDFromVars(vars map[string]string) string {
 	attachmentID := vars["attachment_id"]
 	if attachmentID == "" {
@@ -58,6 +58,6 @@ func ResponseTypeToStatus(responseType string) (int, error) {
 	case "success":
 		return http.StatusOK, nil
 	default:
-		return 0, fmt.Errorf("response type not recognised")
+		return 0, fmt.Errorf("response type [%s] not recognised", responseType)
 	}
 }

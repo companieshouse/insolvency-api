@@ -56,13 +56,49 @@ func TestUnitGetPractitionerIDFromVars(t *testing.T) {
 		vars := map[string]string{
 			"practitioner_id": "67890",
 		}
-		PractitionerID := GetPractitionerIDFromVars(vars)
-		So(PractitionerID, ShouldEqual, "67890")
+		practitionerID := GetPractitionerIDFromVars(vars)
+		So(practitionerID, ShouldEqual, "67890")
 	})
 
 	Convey("No Practitioner ID", t, func() {
 		vars := map[string]string{}
-		PractitionerID := GetPractitionerIDFromVars(vars)
-		So(PractitionerID, ShouldBeEmpty)
+		practitionerID := GetPractitionerIDFromVars(vars)
+		So(practitionerID, ShouldBeEmpty)
+	})
+}
+
+func TestUnitGetAttachmentIDFromVars(t *testing.T) {
+	Convey("Get Attachment ID", t, func() {
+		vars := map[string]string{
+			"attachment_id": "67890",
+		}
+		attachmentID := GetAttachmentIDFromVars(vars)
+		So(attachmentID, ShouldEqual, "67890")
+	})
+
+	Convey("No Attachment ID", t, func() {
+		vars := map[string]string{}
+		attachmentID := GetAttachmentIDFromVars(vars)
+		So(attachmentID, ShouldBeEmpty)
+	})
+}
+
+func TestUnitResponseTypeToStatus(t *testing.T) {
+	Convey("Response Type to Status", t, func() {
+		r, err := ResponseTypeToStatus("invalid-data")
+		So(r, ShouldEqual, http.StatusBadRequest)
+		So(err, ShouldBeNil)
+
+		r, err = ResponseTypeToStatus("error")
+		So(r, ShouldEqual, http.StatusInternalServerError)
+		So(err, ShouldBeNil)
+
+		r, err = ResponseTypeToStatus("success")
+		So(r, ShouldEqual, http.StatusOK)
+		So(err, ShouldBeNil)
+
+		r, err = ResponseTypeToStatus("default")
+		So(r, ShouldEqual, 0)
+		So(err.Error(), ShouldEqual, "response type [default] not recognised")
 	})
 }
