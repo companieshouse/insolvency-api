@@ -43,6 +43,23 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		}
 	}
 
+	// Check if attachment type is "resolution", if not then at least one practitioner must be present
+	hasResolutionAttachment := false
+	for _, attachment := range insolvencyResource.Data.Attachments {
+		if attachment.Type == "resolution" {
+			hasResolutionAttachment = true
+			break
+		}
+	}
+	if !hasResolutionAttachment {
+		if len(insolvencyResource.Data.Practitioners) == 0 || insolvencyResource.Data.Practitioners == nil {
+			validationError := fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			log.Error(fmt.Errorf(validationError))
+			validationErrors = addValidationError(validationErrors, validationError, "attachment type")
+			return false, &validationErrors
+		}
+	}
+
 	return true, &validationErrors
 }
 
