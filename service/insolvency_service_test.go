@@ -59,6 +59,17 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					},
 				},
 			},
+			Attachments: []models.AttachmentResourceDao{
+				{
+					ID:     "id",
+					Type:   "type",
+					Status: "status",
+					Links: models.AttachmentResourceLinksDao{
+						Self:     "self",
+						Download: "download",
+					},
+				},
+			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             "/transactions/123456789/insolvency",
@@ -139,6 +150,91 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
+	})
+
+	Convey("error - attachment type is not resolution and practitioners key is absent", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				Attachments: []models.AttachmentResourceDao{
+					{
+						Type: "test",
+					},
+				},
+			},
+		}
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+	})
+
+	Convey("error - attachment type is not resolution and practitioners object is empty", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				Practitioners: []models.PractitionerResourceDao{},
+				Attachments: []models.AttachmentResourceDao{
+					{
+						Type: "test",
+					},
+				},
+			},
+		}
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+	})
+
+	Convey("successful validation of attachment type - attachment type is not resolution and practitioner present", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		insolvencyCase.Data.Attachments[0].Type = "test"
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("successful validation of resolution attachment - attachment type is resolution and practitioner present", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of practitioner appointments - all practitioners appointed", t, func() {
