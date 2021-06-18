@@ -62,7 +62,16 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			Attachments: []models.AttachmentResourceDao{
 				{
 					ID:     "id",
-					Type:   "type",
+					Type:   "type1",
+					Status: "status",
+					Links: models.AttachmentResourceLinksDao{
+						Self:     "self",
+						Download: "download",
+					},
+				},
+				{
+					ID:     "id",
+					Type:   "type2",
 					Status: "status",
 					Links: models.AttachmentResourceLinksDao{
 						Self:     "self",
@@ -317,6 +326,45 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Set attachment type to "resolution"
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("error - attachment type is statement-of-concurrence and attachment type statement-of-affairs-director is not present", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of concurrence attachment type")
+	})
+
+	Convey("successful validation of statement-of-concurrence attachment - attachment type is statement-of-concurrence and statement-of-affairs-director are present", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-director"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
