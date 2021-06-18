@@ -60,7 +60,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		}
 	}
 
-	// Check if attachment_type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
+	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
 	attachmentTypes := map[string]struct{}{}
 	for _, attachment := range insolvencyResource.Data.Attachments {
 		attachmentTypes[attachment.Type] = struct{}{}
