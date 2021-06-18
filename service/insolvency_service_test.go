@@ -217,7 +217,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "resolution attachment type")
 	})
 
 	Convey("error - attachment type is not resolution and practitioners object is empty", t, func() {
@@ -243,7 +243,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "resolution attachment type")
 	})
 
 	Convey("successful validation of attachment type - attachment type is not resolution and practitioner present", t, func() {
