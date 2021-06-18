@@ -31,9 +31,24 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start POST request for practitioners resource with transaction id: %s", transactionID))
 
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerRequest
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 
 		// Request body failed to get decoded
 		if err != nil {
@@ -139,6 +154,22 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		}
 
 		log.InfoR(req, fmt.Sprintf("start DELETE request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
+
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+
 		// Delete practitioner from Mongo
 		err, statusCode := svc.DeletePractitioner(practitionerID, transactionID)
 		if err != nil {
@@ -169,6 +200,21 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 		}
 
 		log.InfoR(req, fmt.Sprintf("start POST request for practitioner appointment with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
 
 		// Decode the incoming request
 		var request models.PractitionerAppointment
@@ -310,6 +356,21 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
 
 		err, statusCode := svc.DeletePractitionerAppointment(transactionID, practitionerID)
 		if err != nil {

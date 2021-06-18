@@ -54,3 +54,30 @@ func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyReso
 
 	return nil, transactionProfile.HTTPStatusCode
 }
+
+// CheckIfTransactionClosed checks against the transaction api if the transaction is closed or not
+func CheckIfTransactionClosed(transactionID string, req *http.Request) (bool, error, int) {
+
+	// Create SDK session
+	api, err := manager.GetSDK(req)
+	if err != nil {
+		return false, fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error()), http.StatusInternalServerError
+	}
+
+	// Call transaction api to retrieve details of the transaction
+	transactionProfile, err := api.Transaction.Get(transactionID).Do()
+	if err != nil {
+		// If 404 then return the transaction not found
+		if transactionProfile.HTTPStatusCode == http.StatusNotFound {
+			return false, fmt.Errorf("transaction not found"), http.StatusNotFound
+		}
+		// Else return that there has been an error contacting the transaction api
+		return false, fmt.Errorf("error getting transaction from transaction api: [%v]", err.Error()), transactionProfile.HTTPStatusCode
+	}
+
+	if transactionProfile.Status == "closed" {
+		return true, nil, http.StatusForbidden
+	}
+
+	return false, nil, http.StatusOK
+}

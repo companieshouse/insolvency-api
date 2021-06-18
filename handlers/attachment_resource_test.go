@@ -84,9 +84,44 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Failed to read request body", t, func() {
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
+	Convey("Failed to read request body", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"company_name":error`)
 		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
@@ -95,8 +130,13 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - invalid attachment type", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, err := getBodyWithFile("", pdfFilePath)
 		if err != nil {
@@ -112,8 +152,13 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - invalid attachment file format", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, err := getBodyWithFile("resolution", txtFilePath)
 		if err != nil {
@@ -129,8 +174,13 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - attachment with type has already been filed", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, err := getBodyWithFile("resolution", txtFilePath)
 		if err != nil {
@@ -152,8 +202,13 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Error uploading attachment", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
@@ -173,6 +228,9 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
@@ -196,6 +254,9 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -216,6 +277,9 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
@@ -539,11 +603,42 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
 	Convey("Failed to delete attachment from DB", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
 
@@ -565,6 +660,9 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
 
 		// Expect DeleteAttachmentResource to be called once and return a not found
@@ -582,6 +680,9 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
 

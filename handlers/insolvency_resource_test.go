@@ -49,7 +49,14 @@ var transactionProfileResponse = `
 {
  "company_name": "` + companyName + `",
  "company_number": "` + companyNumber + `",
- "id": "` + transactionID + `"
+ "id": "` + transactionID + `",
+ "status": "open"
+}
+`
+
+var transactionProfileResponseClosed = `
+{
+ "status": "closed"
 }
 `
 

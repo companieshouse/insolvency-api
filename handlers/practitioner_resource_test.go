@@ -52,9 +52,44 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
 	Convey("Failed to read request body", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"first_name":error`)
 		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
@@ -63,8 +98,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has IP code missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.IPCode = ""
@@ -76,8 +116,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - not a number", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.IPCode = "+1234"
@@ -89,8 +134,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.IPCode = "123456789"
@@ -102,8 +152,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has first name missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.FirstName = ""
@@ -115,8 +170,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has last name missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.LastName = ""
@@ -128,8 +188,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.Address = models.Address{}
@@ -141,8 +206,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address line 1 missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.Address = models.Address{
@@ -156,8 +226,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has locality missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.Address = models.Address{
@@ -171,8 +246,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has role missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.Role = ""
@@ -184,8 +264,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has an invalid role", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.Role = "error-role"
@@ -196,8 +281,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = ""
@@ -209,8 +299,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid first name", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "J4ck"
@@ -222,8 +317,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing and an invalid last name", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitioner := generatePractitioner()
 		practitioner.LastName = "wr0ng"
@@ -238,8 +338,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Generic error when adding practitioners resource to mongo", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
@@ -253,8 +358,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - insolvency case not found", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
@@ -268,8 +378,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - 5 practitioners already exist", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
@@ -283,8 +398,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - the limit of practitioners will exceed", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitioners to be called once and return an error
@@ -298,8 +418,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and not return an error
@@ -469,9 +594,42 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		res := serveDeletePractitionerRequest(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		res := serveDeletePractitionerRequest(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
 	Convey("Generic error when deleting practitioner resource from mongo", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return an error
@@ -483,8 +641,13 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Error when retrieving practitioner resources from mongo - insolvency case or practitioner not found", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return nil, 404
@@ -496,8 +659,13 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 	})
 
 	Convey("Successfully retrieve practitioners for insolvency case", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return http status NoContent, nil
@@ -552,9 +720,44 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		body, _ := json.Marshal(&models.PractitionerAppointment{})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		body, _ := json.Marshal(&models.PractitionerAppointment{})
+		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
 	Convey("Failed to read request body", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"appointed_on":error`)
 		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
@@ -563,8 +766,13 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("mandatory fields not supplied", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, _ := json.Marshal(models.PractitionerAppointment{})
 		res := serveHandleAppointPractitioner(body, mock_dao.NewMockService(mockCtrl), true, true)
@@ -574,8 +782,13 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("invalid made_by field supplied", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, _ := json.Marshal(models.PractitionerAppointment{
 			AppointedOn: "2012-02-23",
@@ -588,8 +801,13 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
@@ -610,6 +828,10 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
@@ -643,8 +865,13 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details for appointment date", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
@@ -670,6 +897,9 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitionersDao := []models.PractitionerResourceDao{
 			{
@@ -713,6 +943,9 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
 		insolvencyDao := models.InsolvencyResourceDao{
@@ -745,6 +978,9 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
@@ -780,6 +1016,9 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
 		insolvencyDao := models.InsolvencyResourceDao{
@@ -813,6 +1052,9 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		practitionersDao := []models.PractitionerResourceDao{
@@ -1026,9 +1268,42 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
 	Convey("Generic error when deleting practitioner appointment from mongo", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(fmt.Errorf("err"), http.StatusBadRequest)
@@ -1039,8 +1314,13 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 	})
 
 	Convey("Successful deletion of appointment", t, func() {
+		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(nil, http.StatusNoContent)
