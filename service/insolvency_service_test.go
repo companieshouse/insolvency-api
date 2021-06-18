@@ -196,7 +196,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			Data: models.InsolvencyResourceDaoData{
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "test",
+						Type: "type",
 					},
 				},
 			},
@@ -222,7 +222,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				Practitioners: []models.PractitionerResourceDao{},
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "statement-of-concurrence",
+						Type: "type",
 					},
 				},
 			},
@@ -245,9 +245,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
-		// Set attachment type to "statement-of-concurrence"
-		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
