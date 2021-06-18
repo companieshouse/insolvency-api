@@ -71,7 +71,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	if hasStatementOfConcurrence {
 		_, hasSatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
 		if !hasSatementOfAffairsDirector {
-			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
 			return false, &validationErrors

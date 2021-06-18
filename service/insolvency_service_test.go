@@ -349,7 +349,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of concurrence attachment type")
 	})
 
