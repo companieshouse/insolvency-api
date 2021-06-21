@@ -84,7 +84,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		hasAttachments = false
 	}
 	if !hasAttachments && !hasAppointedPractitioner {
-		validationError := fmt.Sprintf("error - at least one practitioner must be appointed if there are no attachments associated with insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		validationError := fmt.Sprintf("error - at least one practitioner must be appointed if there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no attachments")
 		return false, &validationErrors
