@@ -55,7 +55,25 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		if len(insolvencyResource.Data.Practitioners) == 0 || insolvencyResource.Data.Practitioners == nil {
 			validationError := fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
-			validationErrors = addValidationError(validationErrors, validationError, "attachment type")
+			validationErrors = addValidationError(validationErrors, validationError, "resolution attachment type")
+			return false, &validationErrors
+		}
+	}
+
+	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
+	attachmentTypes := map[string]struct{}{}
+	for _, attachment := range insolvencyResource.Data.Attachments {
+		attachmentTypes[attachment.Type] = struct{}{}
+	}
+
+	_, hasStatementOfConcurrence := attachmentTypes["statement-of-concurrence"]
+
+	if hasStatementOfConcurrence {
+		_, hasStatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
+		if !hasStatementOfAffairsDirector {
+			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			log.Error(fmt.Errorf(validationError))
+			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
 			return false, &validationErrors
 		}
 	}

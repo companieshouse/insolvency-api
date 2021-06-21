@@ -62,7 +62,16 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			Attachments: []models.AttachmentResourceDao{
 				{
 					ID:     "id",
-					Type:   "type",
+					Type:   "type1",
+					Status: "status",
+					Links: models.AttachmentResourceLinksDao{
+						Self:     "self",
+						Download: "download",
+					},
+				},
+				{
+					ID:     "id",
+					Type:   "type2",
 					Status: "status",
 					Links: models.AttachmentResourceLinksDao{
 						Self:     "self",
@@ -152,6 +161,40 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "appointment")
 	})
 
+	Convey("successful validation of practitioner appointments - all practitioners appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("successful validation of practitioner appointments - no practitioners are appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Remove appointment details for all practitioners
+		insolvencyCase.Data.Practitioners[0].Appointment = nil
+		insolvencyCase.Data.Practitioners[1].Appointment = nil
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
 	Convey("error - attachment type is not resolution and practitioners key is absent", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -162,7 +205,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			Data: models.InsolvencyResourceDaoData{
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "test",
+						Type: "type",
 					},
 				},
 			},
@@ -174,7 +217,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "resolution attachment type")
 	})
 
 	Convey("error - attachment type is not resolution and practitioners object is empty", t, func() {
@@ -188,7 +231,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				Practitioners: []models.PractitionerResourceDao{},
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "statement-of-concurrence",
+						Type: "type",
 					},
 				},
 			},
@@ -200,7 +243,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment type")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "resolution attachment type")
 	})
 
 	Convey("successful validation of attachment type - attachment type is not resolution and practitioner present", t, func() {
@@ -211,9 +254,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
-		// Set attachment type to "statement-of-concurrence"
-		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
@@ -293,7 +333,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
-	Convey("successful validation of practitioner appointments - all practitioners appointed", t, func() {
+	Convey("error - attachment type is statement-of-concurrence and attachment type statement-of-affairs-director is not present", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
@@ -301,14 +341,19 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
-		So(isValid, ShouldBeTrue)
-		So(validationErrors, ShouldHaveLength, 0)
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of concurrence attachment type")
 	})
 
-	Convey("successful validation of practitioner appointments - no practitioners are appointed", t, func() {
+	Convey("successful validation of statement-of-concurrence attachment - attachment type is statement-of-concurrence and statement-of-affairs-director are present", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
@@ -317,9 +362,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
-		// Remove appointment details for all practitioners
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
-		insolvencyCase.Data.Practitioners[1].Appointment = nil
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-director"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
