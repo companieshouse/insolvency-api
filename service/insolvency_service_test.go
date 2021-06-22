@@ -371,4 +371,49 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeTrue)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
+
+	Convey("error - no attachments present and no appointed practitioners on insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{},
+		}
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "no attachments")
+	})
+
+	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				Practitioners: []models.PractitionerResourceDao{
+					{
+						Appointment: &models.AppointmentResourceDao{
+							AppointedOn: "2020-01-01",
+							MadeBy:      "creditors",
+						},
+					},
+				},
+			},
+		}
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
 }

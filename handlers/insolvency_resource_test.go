@@ -414,6 +414,14 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			CompanyNumber: companyNumber,
 			CompanyName:   companyName,
 			CaseType:      "insolvency",
+			Practitioners: []models.PractitionerResourceDao{
+				{
+					Appointment: &models.AppointmentResourceDao{
+						AppointedOn: "2020-01-01",
+						MadeBy:      "creditors",
+					},
+				},
+			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             "/transactions/123456789/insolvency",
