@@ -372,6 +372,50 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
+	Convey("error - attachment type is statement-of-affairs-liquidator and a practitioner is appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-affairs-liquidator"
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of affairs liquidator attachment type")
+	})
+
+	Convey("successful validation of statement-of-affairs-liquidator - attachment type is statement-of-affairs-liquidator and at least one practitioner is present but not appointed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+
+		// Set attachment type to "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[0].Type = "statement-of-affairs-liquidator"
+
+		// Remove appointment details for all practitioners
+		insolvencyCase.Data.Practitioners[0].Appointment = nil
+		insolvencyCase.Data.Practitioners[1].Appointment = nil
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
 	Convey("error - no attachments present and no appointed practitioners on insolvency case", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()

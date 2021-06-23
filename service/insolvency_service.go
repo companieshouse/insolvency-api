@@ -60,12 +60,13 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		}
 	}
 
-	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
+	// Map attachment types
 	attachmentTypes := map[string]struct{}{}
 	for _, attachment := range insolvencyResource.Data.Attachments {
 		attachmentTypes[attachment.Type] = struct{}{}
 	}
 
+	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
 	_, hasStatementOfConcurrence := attachmentTypes["statement-of-concurrence"]
 
 	if hasStatementOfConcurrence {
@@ -76,6 +77,16 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
 			return false, &validationErrors
 		}
+	}
+
+	// Check if attachment type is statement-of-affairs-liquidator, if true then no practitioners must be appointed, but at least one should be present
+	_, hasStateOfAffairsLiquidator := attachmentTypes["statement-of-affairs-liquidator"]
+
+	if hasStateOfAffairsLiquidator && hasAppointedPractitioner {
+		validationError := fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "statement of affairs liquidator attachment type")
+		return false, &validationErrors
 	}
 
 	// Check if attachments are present, if false then at least one appointed practitioner must be present
