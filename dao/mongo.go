@@ -483,3 +483,48 @@ func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID stri
 
 	return http.StatusNoContent, nil
 }
+
+func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, AVStatus string) (int, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific transaction for insolvency case with attachment status to be updated
+	filter := bson.M{
+		"transaction_id":      transactionID,
+		"data.attachments.id": attachmentID,
+	}
+
+	// Retrieve attachment from Mongo
+	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments": 1})
+	storedAttachment := collection.FindOne(context.Background(), filter, opts)
+	err := storedAttachment.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"data.attachments.$.status": AVStatus,
+		},
+	}
+
+	// Choose specific attachment status to update
+	result, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not update status of attachment with id [%s]", transactionID, attachmentID)
+	}
+
+	// Return error if Mongo could not update the document
+	if result.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - attachment with id [%s] not found", transactionID, attachmentID)
+		log.Error(err)
+		return http.StatusNotFound, err
+	}
+
+	return http.StatusNoContent, nil
+}
