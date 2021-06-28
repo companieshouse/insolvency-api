@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -107,4 +108,61 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 // addValidationError adds any validation errors to an array of existing errors
 func addValidationError(validationErrors []models.ValidationErrorResponseResource, validationError, errorLocation string) []models.ValidationErrorResponseResource {
 	return append(validationErrors, *models.NewValidationErrorResponse(validationError, errorLocation))
+}
+
+// ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission which is returned as a boolean
+// Any validation errors found are added to an array to be returned
+func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request) (bool, *[]models.ValidationErrorResponseResource) {
+
+	validationErrors := make([]models.ValidationErrorResponseResource, 0)
+
+	// Retrieve details for the insolvency resource from DB
+	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
+	if err != nil {
+		log.Error(fmt.Errorf("error getting insolvency resource from DB [%s]", err))
+		validationErrors = addValidationError(validationErrors, fmt.Sprintf("error getting insolvency resource from DB: [%s]", err), "insolvency case")
+
+		// If there is an error retrieving the insolvency resource return without running any other validation as they will all fail
+		return false, &validationErrors
+	}
+	// Check the if the insolvency resource has attachments, if not then skip validation
+	if len(insolvencyResource.Data.Attachments) != 0 {
+
+		AvStatuses := map[string]struct{}{}
+		// Check the antivirus status of each attachment type and update with the appropriate status in mongodb
+		for _, attachment := range insolvencyResource.Data.Attachments {
+			// Calls File Transfer API to get attachment details
+			attachmentDetailsResponse, responseType, err := GetAttachmentDetails(attachment.ID, req)
+			if err != nil {
+				log.ErrorR(req, fmt.Errorf("error getting attachment details: [%v]", err), log.Data{"service_response_type": responseType.String()})
+			}
+			// If antivirus check has not passed, update insolvency resource with "integrity_failed" status
+			if attachmentDetailsResponse.AVStatus != "clean" {
+				svc.UpdateAttachmentStatus(insolvencyResource.TransactionID, attachment.ID, "integrity_failed")
+				AvStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
+				continue
+			}
+			// If antivirus has passed, update insolvency resource with "processed" status
+			svc.UpdateAttachmentStatus(insolvencyResource.TransactionID, attachment.ID, "processed")
+			AvStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
+		}
+		// Check AvStatuses map to see if status "not-scanned" exists
+		_, attachmentNotScanned := AvStatuses["not-scanned"]
+		if attachmentNotScanned {
+			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyResource.TransactionID)
+			log.Error(fmt.Errorf(validationError))
+			validationErrors = addValidationError(validationErrors, validationError, "antivirus incomplete")
+			return false, &validationErrors
+		}
+		// Check AvStatuses map to see if status "infected" exists
+		_, attachmentInfected := AvStatuses["infected"]
+		if attachmentInfected {
+			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyResource.TransactionID)
+			log.Error(fmt.Errorf(validationError))
+			validationErrors = addValidationError(validationErrors, validationError, "antivirus failure")
+			return false, &validationErrors
+		}
+	}
+
+	return true, &validationErrors
 }
