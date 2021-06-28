@@ -397,7 +397,7 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 			Links:  models.AttachmentResourceLinksDao{},
 		}
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an error
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(attachment, nil)
 
 		res := serveHandleGetAttachmentDetails(mockService, true, true)
