@@ -484,7 +484,8 @@ func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID stri
 	return http.StatusNoContent, nil
 }
 
-func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, AVStatus string) (int, error) {
+func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, AvStatus string) (int, error) {
+	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific transaction for insolvency case with attachment status to be updated
@@ -506,24 +507,31 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
 	}
 
-	update := bson.M{
-		"$set": bson.M{
-			"data.attachments.$.status": AVStatus,
-		},
-	}
-
-	// Choose specific attachment status to update
-	result, err := collection.UpdateOne(context.Background(), filter, update)
+	err = storedAttachment.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not update status of attachment with id [%s]", transactionID, attachmentID)
+		return http.StatusInternalServerError, err
 	}
 
-	// Return error if Mongo could not update the document
-	if result.ModifiedCount == 0 {
-		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - attachment with id [%s] not found", transactionID, attachmentID)
-		log.Error(err)
-		return http.StatusNotFound, err
+	if insolvencyResource.Data.Attachments[0].Status != "processed" {
+		update := bson.M{"$set": bson.M{
+			"data.attachments.$.status": AvStatus,
+		},
+		}
+
+		// Choose specific attachment status to update
+		result, err := collection.UpdateOne(context.Background(), filter, update)
+		if err != nil {
+			log.Error(err)
+			return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not update status of attachment with id [%s]", transactionID, attachmentID)
+		}
+
+		// Return error if Mongo could not update the document
+		if result.ModifiedCount == 0 {
+			err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - attachment with id [%s] not found", transactionID, attachmentID)
+			log.Error(err)
+			return http.StatusNotFound, err
+		}
 	}
 
 	return http.StatusNoContent, nil
