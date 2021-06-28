@@ -122,7 +122,7 @@ func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request)
 		log.Error(fmt.Errorf("error getting insolvency resource from DB [%s]", err))
 		validationErrors = addValidationError(validationErrors, fmt.Sprintf("error getting insolvency resource from DB: [%s]", err), "insolvency case")
 
-		// If there is an error retrieving the insolvency resource return without running any other validation as they will all fail
+		// If there is an error retrieving the insolvency resource return without running any other validation as it will fail
 		return false, &validationErrors
 	}
 	// Check the if the insolvency resource has attachments, if not then skip validation
