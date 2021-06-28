@@ -125,7 +125,7 @@ func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request)
 		// If there is an error retrieving the insolvency resource return without running any other validation as it will fail
 		return false, &validationErrors
 	}
-	// Check the if the insolvency resource has attachments, if not then skip validation
+	// Check if the insolvency resource has attachments, if not then skip validation
 	if len(insolvencyResource.Data.Attachments) != 0 {
 
 		AvStatuses := map[string]struct{}{}
