@@ -513,7 +513,7 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 		return http.StatusInternalServerError, err
 	}
 
-	if insolvencyResource.Data.Attachments[0].Status != "processed" {
+	if insolvencyResource.Data.Attachments[0].Status != "processed" && insolvencyResource.Data.Attachments[0].Status != AvStatus {
 		update := bson.M{"$set": bson.M{
 			"data.attachments.$.status": AvStatus,
 		},
