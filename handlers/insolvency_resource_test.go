@@ -455,7 +455,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(2)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -472,7 +472,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(2)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
