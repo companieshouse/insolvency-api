@@ -187,3 +187,16 @@ func (m *MockService) DeleteAttachmentResource(transactionID, attachmentID strin
 func (mr *MockServiceMockRecorder) DeleteAttachmentResource(transactionID, attachmentID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachmentResource", reflect.TypeOf((*MockService)(nil).DeleteAttachmentResource), transactionID, attachmentID)
 }
+
+// UpdateAttachmentStatus mocks base method
+func (m *MockService) UpdateAttachmentStatus(transactionID, attachmentID, AvStatus string) (int, error) {
+	ret := m.ctrl.Call(m, "UpdateAttachmentStatus", transactionID, attachmentID, AvStatus)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateAttachmentStatus indicates an expected call of UpdateAttachmentStatus
+func (mr *MockServiceMockRecorder) UpdateAttachmentStatus(transactionID, attachmentID, AvStatus interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockService)(nil).UpdateAttachmentStatus), transactionID, attachmentID, AvStatus)
+}

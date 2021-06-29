@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/mocks"
@@ -16,6 +18,7 @@ import (
 var transactionID = "12345678"
 var companyNumber = "01234567"
 var companyName = "companyName"
+var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 
 func createInsolvencyResource() models.InsolvencyResourceDao {
 	return models.InsolvencyResourceDao{
@@ -456,6 +459,91 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("error - antivirus check has not been completed", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		attachment := `{
+			"name": "file",
+			"size": 1000,
+			"content_type": "test",
+			"av_status": "not-scanned"
+			}`
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
+
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
+
+		isValid, validationErrors := ValidateAntivirus(mockService, transactionID, req)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "antivirus incomplete")
+	})
+
+	Convey("error - antivirus check has failed, attachment is infected", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		attachment := `{
+			"name": "file",
+			"size": 1000,
+			"content_type": "test",
+			"av_status": "infected"
+			}`
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
+
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
+
+		isValid, validationErrors := ValidateAntivirus(mockService, transactionID, req)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "antivirus failure")
+	})
+
+	Convey("successful validation - antivirus check has passed, attachment is clean", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		attachment := `{
+			"name": "file",
+			"size": 1000,
+			"content_type": "test",
+			"av_status": "clean"
+			}`
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
+
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(2)
+
+		isValid, validationErrors := ValidateAntivirus(mockService, transactionID, req)
 
 		So(isValid, ShouldBeTrue)
 		So(validationErrors, ShouldHaveLength, 0)

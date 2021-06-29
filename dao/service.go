@@ -42,6 +42,9 @@ type Service interface {
 
 	// DeleteAttachmentResource deletes an attachment in an Insolvency Case
 	DeleteAttachmentResource(transactionID, attachmentID string) (int, error)
+
+	// UpdateAttachmentStatus updates the status of an attachment for an Insolvency Case
+	UpdateAttachmentStatus(transactionID, attachmentID, AvStatus string) (int, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the
