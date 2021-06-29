@@ -39,3 +39,9 @@ type Attachment struct {
 	AttachmentType string `json:"attachment_type"`
 	File           string `json:"file"`
 }
+
+// Resolution is the model to represent a resolution for an insolvency case
+type Resolution struct {
+	DateOfResolution string   `json:"date_of_resolution" validate:"required,datetime=2006-01-02"`
+	Attachments      []string `json:"attachments" validate:"required"`
+}

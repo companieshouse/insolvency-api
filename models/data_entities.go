@@ -19,6 +19,7 @@ type InsolvencyResourceDaoData struct {
 	CompanyName   string                    `bson:"company_name"`
 	Practitioners []PractitionerResourceDao `bson:"practitioners,omitempty"`
 	Attachments   []AttachmentResourceDao   `bson:"attachments,omitempty"`
+	Resolution    ResolutionResourceDao     `bson:"resolution,omitempty"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
@@ -28,7 +29,7 @@ type InsolvencyResourceLinksDao struct {
 	ValidationStatus string `bson:"validation_status"`
 }
 
-// PractitionerResourceDao contains the data for for the practitioner resource in Mongo
+// PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
 	ID              string                       `bson:"id"`
 	IPCode          string                       `bson:"ip_code"`
@@ -69,7 +70,7 @@ type PractitionerResourceLinksDao struct {
 	Self string `bson:"self"`
 }
 
-// AttachmentResourceDao contains the data for for the practitioner DB resource
+// AttachmentResourceDao contains the data for the attachment DB resource
 type AttachmentResourceDao struct {
 	ID     string                     `bson:"id"`
 	Type   string                     `bson:"type"`
@@ -77,8 +78,14 @@ type AttachmentResourceDao struct {
 	Links  AttachmentResourceLinksDao `bson:"links"`
 }
 
-// AttachmentResourceLinksDao contains the Links data for a practitioner
+// AttachmentResourceLinksDao contains the Links data for an attachment
 type AttachmentResourceLinksDao struct {
 	Self     string `bson:"self"`
 	Download string `bson:"download"`
+}
+
+// ResolutionResourceDao contains the data for the resolution DB resource
+type ResolutionResourceDao struct {
+	DateOfResolution string   `bson:"date_of_resolution"`
+	Attachments      []string `bson:"attachments"`
 }
