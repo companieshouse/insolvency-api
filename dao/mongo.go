@@ -536,3 +536,49 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 
 	return http.StatusNoContent, nil
 }
+
+// CreateResolutionResource stores the resolution for the insolvency case
+// with the specified transactionID
+func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{"transaction_id": transactionID}
+
+	resolutionDao := models.ResolutionResourceDao{
+		DateOfResolution: dao.DateOfResolution,
+		Attachments:      dao.Attachments,
+	}
+
+	// Retrieve insolvency case from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+	}
+
+	err = storedInsolvency.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"data.resolution": resolutionDao,
+		},
+	}
+
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+	}
+
+	return http.StatusCreated, nil
+}

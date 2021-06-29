@@ -45,6 +45,9 @@ type Service interface {
 
 	// UpdateAttachmentStatus updates the status of an attachment for an Insolvency Case
 	UpdateAttachmentStatus(transactionID, attachmentID, AvStatus string) (int, error)
+
+	// CreateResolutionResource creates the resolution resource for an Insolvency Case
+	CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the
