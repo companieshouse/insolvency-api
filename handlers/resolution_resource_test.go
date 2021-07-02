@@ -148,6 +148,100 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "attachments is a required field")
 	})
 
+	Convey("Incoming request has empty attachments array", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{}
+		body, _ := json.Marshal(resolution)
+		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "no attachment has been supplied")
+	})
+
+	Convey("Incoming request has more than one attachment", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{
+			"1234567890",
+			"0987654321",
+		}
+		body, _ := json.Marshal(resolution)
+		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "only one attachment can be supplied: [1234567890 0987654321]")
+	})
+
+	Convey("Attachment is not associated with transaction", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{
+			"111-222-333-444",
+		}
+		body, _ := json.Marshal(resolution)
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
+
+		res := serveHandleCreateResolution(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "attachment not found on transaction")
+	})
+
+	Convey("Attachment is not of type resolution", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{
+			"111-222-333-444",
+		}
+		body, _ := json.Marshal(resolution)
+
+		attachment := generateAttachment()
+		attachment.Type = "not-resolution"
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
+
+		res := serveHandleCreateResolution(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "attachment is not a resolution")
+	})
+
 	Convey("Generic error when adding resolution resource to mongo", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
@@ -158,11 +252,18 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect CreateResolutionResource to be called once and return an error
-		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
+
+		attachment := generateAttachment()
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
+
+		// Expect CreateResolutionResource to be called once and return an error
+		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+
 		res := serveHandleCreateResolution(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
@@ -178,11 +279,18 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect CreateResolutionResource to be called once and return an error
-		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)).Times(1)
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
+
+		attachment := generateAttachment()
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
+
+		// Expect CreateResolutionResource to be called once and return an error
+		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)).Times(1)
+
 		res := serveHandleCreateResolution(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
@@ -196,13 +304,23 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect CreateResolutionResource to be called once and not return an error
-		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
+
+		attachment := models.AttachmentResourceDao{
+			ID:     "1111",
+			Type:   "resolution",
+			Status: "status",
+			Links:  models.AttachmentResourceLinksDao{},
+		}
+
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
+
+		// Expect CreateResolutionResource to be called once and return an error
+		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateResolution(body, mockService, true)
 
@@ -216,5 +334,14 @@ func generateResolution() models.Resolution {
 		Attachments: []string{
 			"123456789",
 		},
+	}
+}
+
+func generateAttachment() models.AttachmentResourceDao {
+	return models.AttachmentResourceDao{
+		ID:     "1111",
+		Type:   "resolution",
+		Status: "status",
+		Links:  models.AttachmentResourceLinksDao{},
 	}
 }
