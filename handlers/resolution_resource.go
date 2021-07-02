@@ -63,13 +63,14 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
-
+		// Validate if an attachment has been supplied
 		if len(resolutionDao.Attachments) == 0 {
 			log.ErrorR(req, fmt.Errorf("invalid attachment"))
 			m := models.NewMessageResponse(fmt.Sprintf("no attachment has been supplied"))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
+		// Validate if more than one attachment has been supplied
 		if len(resolutionDao.Attachments) > 1 {
 			log.ErrorR(req, fmt.Errorf("invalid attachments"))
 			m := models.NewMessageResponse(fmt.Sprintf("only one attachment can be supplied: %s", resolutionDao.Attachments))
@@ -80,6 +81,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 		isAttachmentValid := true
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, resolutionDao.Attachments[0])
 
+		// Validate if supplied attachment matches attachments associated with supplied transactionID
 		if attachment == (models.AttachmentResourceDao{}) {
 			isAttachmentValid = false
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, resolutionDao.Attachments[0], err))
@@ -88,6 +90,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			return
 		}
 
+		// Validate the supplied attachment is a valid type
 		if attachment.Type != "resolution" {
 			isAttachmentValid = false
 			log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], err))
@@ -96,6 +99,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			return
 		}
 
+		// Creates the resolution resource in mongo if all previous checks pass
 		if isAttachmentValid {
 			statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
 			if err != nil {
