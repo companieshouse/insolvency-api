@@ -200,3 +200,16 @@ func (m *MockService) UpdateAttachmentStatus(transactionID, attachmentID, AvStat
 func (mr *MockServiceMockRecorder) UpdateAttachmentStatus(transactionID, attachmentID, AvStatus interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockService)(nil).UpdateAttachmentStatus), transactionID, attachmentID, AvStatus)
 }
+
+// CreateResolutionResource mocks base method
+func (m *MockService) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
+	ret := m.ctrl.Call(m, "CreateResolutionResource", dao, transactionID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateResolutionResource indicates an expected call of CreateResolutionResource
+func (mr *MockServiceMockRecorder) CreateResolutionResource(dao, transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResolutionResource", reflect.TypeOf((*MockService)(nil).CreateResolutionResource), dao, transactionID)
+}

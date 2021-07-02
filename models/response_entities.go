@@ -80,6 +80,10 @@ type AttachmentLinksResource struct {
 	Download string `json:"download"`
 }
 
+type ResolutionResource struct {
+	DateOfResolution string `json:"date_of_resolution"`
+}
+
 // ValidationStatusResponse is the object returned when checking the validation of a case
 type ValidationStatusResponse struct {
 	IsValid bool                              `json:"is_valid"`
