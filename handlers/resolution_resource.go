@@ -64,16 +64,50 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			return
 		}
 
-		statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
-		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+		if len(resolutionDao.Attachments) == 0 {
+			log.ErrorR(req, fmt.Errorf("invalid attachment"))
+			m := models.NewMessageResponse(fmt.Sprintf("no attachment has been supplied"))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+		if len(resolutionDao.Attachments) > 1 {
+			log.ErrorR(req, fmt.Errorf("invalid attachments"))
+			m := models.NewMessageResponse(fmt.Sprintf("only one attachment can be supplied: %s", resolutionDao.Attachments))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
-		log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
+		isAttachmentValid := true
+		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, resolutionDao.Attachments[0])
 
-		utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(resolutionDao), http.StatusOK)
+		if attachment == (models.AttachmentResourceDao{}) {
+			isAttachmentValid = false
+			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, resolutionDao.Attachments[0], err))
+			m := models.NewMessageResponse("attachment not found on transaction")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		if attachment.Type != "resolution" {
+			isAttachmentValid = false
+			log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], err))
+			m := models.NewMessageResponse("attachment is not a resolution")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		if isAttachmentValid {
+			statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
+			if err != nil {
+				log.ErrorR(req, err)
+				m := models.NewMessageResponse(err.Error())
+				utils.WriteJSONWithStatus(w, req, m, statusCode)
+				return
+			}
+
+			log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
+
+			utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(resolutionDao), http.StatusOK)
+		}
 	})
 }
