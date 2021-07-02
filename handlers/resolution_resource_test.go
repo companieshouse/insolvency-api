@@ -233,7 +233,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "not-resolution"
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 
 		res := serveHandleCreateResolution(body, mockService, true)
@@ -258,7 +258,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		attachment := generateAttachment()
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 
 		// Expect CreateResolutionResource to be called once and return an error
@@ -285,7 +285,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		attachment := generateAttachment()
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 
 		// Expect CreateResolutionResource to be called once and return an error
@@ -316,7 +316,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 			Links:  models.AttachmentResourceLinksDao{},
 		}
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 
 		// Expect CreateResolutionResource to be called once and return an error
