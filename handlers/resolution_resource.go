@@ -81,7 +81,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 		isAttachmentValid := true
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, resolutionDao.Attachments[0])
 
-		// Validate if supplied attachment matches attachments associated with supplied transactionID
+		// Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
 		if attachment == (models.AttachmentResourceDao{}) {
 			isAttachmentValid = false
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, resolutionDao.Attachments[0], err))
