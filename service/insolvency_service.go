@@ -128,7 +128,7 @@ func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request)
 	// Check if the insolvency resource has attachments, if not then skip validation
 	if len(insolvencyResource.Data.Attachments) != 0 {
 
-		AvStatuses := map[string]struct{}{}
+		avStatuses := map[string]struct{}{}
 		// Check the antivirus status of each attachment type and update with the appropriate status in mongodb
 		for _, attachment := range insolvencyResource.Data.Attachments {
 			// Calls File Transfer API to get attachment details
@@ -139,23 +139,23 @@ func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request)
 			// If antivirus check has not passed, update insolvency resource with "integrity_failed" status
 			if attachmentDetailsResponse.AVStatus != "clean" {
 				svc.UpdateAttachmentStatus(insolvencyResource.TransactionID, attachment.ID, "integrity_failed")
-				AvStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
+				avStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
 				continue
 			}
 			// If antivirus has passed, update insolvency resource with "processed" status
 			svc.UpdateAttachmentStatus(insolvencyResource.TransactionID, attachment.ID, "processed")
-			AvStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
+			avStatuses[attachmentDetailsResponse.AVStatus] = struct{}{}
 		}
-		// Check AvStatuses map to see if status "not-scanned" exists
-		_, attachmentNotScanned := AvStatuses["not-scanned"]
+		// Check avStatuses map to see if status "not-scanned" exists
+		_, attachmentNotScanned := avStatuses["not-scanned"]
 		if attachmentNotScanned {
 			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "antivirus incomplete")
 			return false, &validationErrors
 		}
-		// Check AvStatuses map to see if status "infected" exists
-		_, attachmentInfected := AvStatuses["infected"]
+		// Check avStatuses map to see if status "infected" exists
+		_, attachmentInfected := avStatuses["infected"]
 		if attachmentInfected {
 			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
