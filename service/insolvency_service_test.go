@@ -436,6 +436,32 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no attachments")
 	})
 
+	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{
+				Practitioners: []models.PractitionerResourceDao{
+					{
+						Appointment: &models.AppointmentResourceDao{
+							AppointedOn: "2020-01-01",
+							MadeBy:      "creditors",
+						},
+					},
+				},
+			},
+		}
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
 	Convey("error - resolution attachment present and no date of resolution filed for insolvency case", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -465,32 +491,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
 		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
-		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
-
-		So(isValid, ShouldBeTrue)
-		So(validationErrors, ShouldHaveLength, 0)
-	})
-
-	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		mockService := mocks.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{
-					{
-						Appointment: &models.AppointmentResourceDao{
-							AppointedOn: "2020-01-01",
-							MadeBy:      "creditors",
-						},
-					},
-				},
-			},
-		}
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
