@@ -152,7 +152,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	Convey("valid appointment", t, func() {
+	Convey("valid date", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
