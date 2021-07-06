@@ -87,12 +87,10 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			return
 		}
 
-		isAttachmentValid := true
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, resolutionDao.Attachments[0])
 
 		// Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
 		if attachment == (models.AttachmentResourceDao{}) {
-			isAttachmentValid = false
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, resolutionDao.Attachments[0], err))
 			m := models.NewMessageResponse("attachment not found on transaction")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
@@ -101,7 +99,6 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 
 		// Validate the supplied attachment is a valid type
 		if attachment.Type != "resolution" {
-			isAttachmentValid = false
 			log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], err))
 			m := models.NewMessageResponse("attachment is not a resolution")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
@@ -109,18 +106,16 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 		}
 
 		// Creates the resolution resource in mongo if all previous checks pass
-		if isAttachmentValid {
-			statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
-			if err != nil {
-				log.ErrorR(req, err)
-				m := models.NewMessageResponse(err.Error())
-				utils.WriteJSONWithStatus(w, req, m, statusCode)
-				return
-			}
-
-			log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
-
-			utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(resolutionDao), http.StatusOK)
+		statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
 		}
+
+		log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
+
+		utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(resolutionDao), http.StatusOK)
 	})
 }
