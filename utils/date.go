@@ -15,7 +15,7 @@ func IsValidDate(date string, incorporatedOn string) (bool, error) {
 	today := time.Now()
 	suppliedDate, err := time.Parse(layout, date)
 	if err != nil {
-		log.Error(fmt.Errorf("error when parsing appointedOn to date: [%s]", err))
+		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
 		return false, err
 	}
 
