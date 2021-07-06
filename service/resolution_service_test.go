@@ -22,7 +22,7 @@ func TestUnitIsValidResolutionRequest(t *testing.T) {
 		err := ValidateResolutionRequest(models.Resolution(resolution))
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "no attachment has been supplied")
+		So(err, ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Practitioner request supplied is invalid - more than one attachment has been supplied", t, func() {
@@ -35,7 +35,7 @@ func TestUnitIsValidResolutionRequest(t *testing.T) {
 		err := ValidateResolutionRequest(models.Resolution(resolution))
 
 		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "only one attachment can be supplied: [1234567890 0987654321]")
+		So(err, ShouldContainSubstring, "please supply only one attachment")
 	})
 }
 

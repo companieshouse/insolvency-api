@@ -11,20 +11,14 @@ import (
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidatePractitionerDetails checks that the incoming practitioner details are valid
+// ValidateResolutionRequest checks that the incoming resolution request is valid
 func ValidateResolutionRequest(resolution models.Resolution) string {
 	var errs []string
 
-	// Check that either the telephone number or email field are populated
-	if len(resolution.Attachments) == 0 {
-		errs = append(errs, "no attachment has been supplied")
+	// Check that the attachment has been submitted correctly
+	if len(resolution.Attachments) == 0 || len(resolution.Attachments) > 1 {
+		errs = append(errs, "please supply only one attachment")
 	}
-
-	// Check that either the telephone number or email field are populated
-	if len(resolution.Attachments) > 1 {
-		errs = append(errs, fmt.Sprintf("only one attachment can be supplied: %s", resolution.Attachments))
-	}
-
 	return strings.Join(errs, ", ")
 }
 
