@@ -189,16 +189,16 @@ func (mr *MockServiceMockRecorder) DeleteAttachmentResource(transactionID, attac
 }
 
 // UpdateAttachmentStatus mocks base method
-func (m *MockService) UpdateAttachmentStatus(transactionID, attachmentID, AvStatus string) (int, error) {
-	ret := m.ctrl.Call(m, "UpdateAttachmentStatus", transactionID, attachmentID, AvStatus)
+func (m *MockService) UpdateAttachmentStatus(transactionID, attachmentID, avStatus string) (int, error) {
+	ret := m.ctrl.Call(m, "UpdateAttachmentStatus", transactionID, attachmentID, avStatus)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateAttachmentStatus indicates an expected call of UpdateAttachmentStatus
-func (mr *MockServiceMockRecorder) UpdateAttachmentStatus(transactionID, attachmentID, AvStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockService)(nil).UpdateAttachmentStatus), transactionID, attachmentID, AvStatus)
+func (mr *MockServiceMockRecorder) UpdateAttachmentStatus(transactionID, attachmentID, avStatus interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockService)(nil).UpdateAttachmentStatus), transactionID, attachmentID, avStatus)
 }
 
 // CreateResolutionResource mocks base method

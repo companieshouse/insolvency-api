@@ -480,7 +480,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			"av_status": "not-scanned"
 			}`
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
@@ -509,7 +509,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			"av_status": "infected"
 			}`
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
@@ -538,7 +538,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			"av_status": "clean"
 			}`
 
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
+		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(2)

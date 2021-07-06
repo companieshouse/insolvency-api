@@ -44,7 +44,7 @@ type Service interface {
 	DeleteAttachmentResource(transactionID, attachmentID string) (int, error)
 
 	// UpdateAttachmentStatus updates the status of an attachment for an Insolvency Case
-	UpdateAttachmentStatus(transactionID, attachmentID, AvStatus string) (int, error)
+	UpdateAttachmentStatus(transactionID, attachmentID, avStatus string) (int, error)
 
 	// CreateResolutionResource creates the resolution resource for an Insolvency Case
 	CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error)

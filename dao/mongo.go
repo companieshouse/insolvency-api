@@ -425,7 +425,7 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	}
 
 	// Retrieve attachment from Mongo
-	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments": 1})
+	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments.$": 1})
 	storedAttachment := collection.FindOne(context.Background(), filter, opts)
 	err := storedAttachment.Err()
 	if err != nil {
@@ -447,6 +447,7 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	return insolvencyResource.Data.Attachments[0], nil
 }
 
+// DeleteAttachmentResource deletes an attachment filed for an Insolvency Case
 func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
@@ -484,7 +485,8 @@ func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID stri
 	return http.StatusNoContent, nil
 }
 
-func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, AvStatus string) (int, error) {
+// UpdateAttachmentStatus updates the status of an attachment filed for an Insolvency Case
+func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, avStatus string) (int, error) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
@@ -513,9 +515,9 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 		return http.StatusInternalServerError, err
 	}
 
-	if insolvencyResource.Data.Attachments[0].Status != "processed" && insolvencyResource.Data.Attachments[0].Status != AvStatus {
+	if insolvencyResource.Data.Attachments[0].Status != "processed" && insolvencyResource.Data.Attachments[0].Status != avStatus {
 		update := bson.M{"$set": bson.M{
-			"data.attachments.$.status": AvStatus,
+			"data.attachments.$.status": avStatus,
 		},
 		}
 
