@@ -271,10 +271,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
 		// Set attachment type to "resolution"
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
@@ -292,15 +292,15 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			Data: models.InsolvencyResourceDaoData{
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "test",
+						Type: "resolution",
 					},
+				},
+				Resolution: models.ResolutionResourceDao{
+					DateOfResolution: "2021-06-06",
 				},
 			},
 		}
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
-		// Set attachment type to "resolution"
-		insolvencyCase.Data.Attachments[0].Type = "resolution"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
@@ -315,20 +315,18 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := models.InsolvencyResourceDao{
-
 			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{},
 				Attachments: []models.AttachmentResourceDao{
 					{
-						Type: "test",
+						Type: "resolution",
 					},
+				},
+				Resolution: models.ResolutionResourceDao{
+					DateOfResolution: "2021-06-06",
 				},
 			},
 		}
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
-
-		// Set attachment type to "resolution"
-		insolvencyCase.Data.Attachments[0].Type = "resolution"
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
@@ -436,6 +434,43 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no attachments")
+	})
+
+	Convey("error - resolution attachment present and no date of resolution filed for insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "no date of resolution")
+	})
+
+	Convey("successful validation - resolution attachment present and date of resolution filed for insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
