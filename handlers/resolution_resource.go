@@ -63,10 +63,26 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
-		// Validate if the correct attachment format has been supplied
-		if len(resolutionDao.Attachments) == 0 || len(resolutionDao.Attachments) > 1 {
-			log.ErrorR(req, fmt.Errorf("invalid attachment"))
-			m := models.NewMessageResponse(fmt.Sprintf("please supply only one attachment"))
+
+		// Validate that the provided resolution request is in the correct format
+		if errs := service.ValidateResolutionRequest(request); errs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+			m := models.NewMessageResponse("invalid request body: " + errs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Validate the provided resolution date is in the correct format
+		validationErrs, err := service.ValidateResolutionDate(svc, resolutionDao, transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to validate resolution: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request body: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

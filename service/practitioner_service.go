@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // ValidatePractitionerDetails checks that the incoming practitioner details are valid
@@ -92,7 +92,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		return "", err
 	}
 
-	ok, err := isValidAppointmentDate(appointment.AppointedOn, incorporatedOn)
+	ok, err := utils.IsValidDate(appointment.AppointedOn, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
 		log.ErrorR(req, err)
@@ -117,39 +117,4 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	return strings.Join(errs, ", "), nil
-}
-
-// isValidAppointmentDate is a helper function to check if the appointment date
-// supplied is after today or before the company was incorporated
-func isValidAppointmentDate(appointedOn string, incorporatedOn string) (bool, error) {
-	layout := "2006-01-02"
-	today := time.Now()
-	appointedDate, err := time.Parse(layout, appointedOn)
-	if err != nil {
-		log.Error(fmt.Errorf("error when parsing appointedOn to date: [%s]", err))
-		return false, err
-	}
-
-	// Retrieve only the date portion of the incorporatedOn datetime string
-	if idx := strings.Index(incorporatedOn, " "); idx != -1 {
-		incorporatedOn = incorporatedOn[:idx]
-	}
-
-	incorporatedDate, err := time.Parse(layout, incorporatedOn)
-	if err != nil {
-		log.Error(fmt.Errorf("error when parsing incorporatedOn to date: [%s]", err))
-		return false, err
-	}
-
-	// Check if appointedOn is in the future
-	if today.Before(appointedDate) {
-		return false, nil
-	}
-
-	// Check if appointedOn is before company was incorporated
-	if appointedDate.Before(incorporatedDate) {
-		return false, nil
-	}
-
-	return true, nil
 }
