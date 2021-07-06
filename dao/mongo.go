@@ -447,6 +447,7 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	return insolvencyResource.Data.Attachments[0], nil
 }
 
+// DeleteAttachmentResource deletes an attachment filed for an Insolvency Case
 func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
@@ -484,6 +485,7 @@ func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID stri
 	return http.StatusNoContent, nil
 }
 
+// UpdateAttachmentStatus updates the status of an attachment filed for an Insolvency Case
 func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string, avStatus string) (int, error) {
 	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
