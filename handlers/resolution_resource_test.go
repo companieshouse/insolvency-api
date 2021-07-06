@@ -163,7 +163,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "no attachment has been supplied")
+		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Incoming request has more than one attachment", t, func() {
@@ -184,7 +184,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "only one attachment can be supplied: [1234567890 0987654321]")
+		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Attachment is not associated with transaction", t, func() {
