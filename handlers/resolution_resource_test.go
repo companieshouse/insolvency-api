@@ -223,6 +223,51 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("date_of_resolution [%s] should not be in the future or before the company was incorporated", resolution.DateOfResolution))
 	})
 
+	Convey("Validation errors are present", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{
+			"1234567890",
+			"0987654321",
+		}
+
+		body, _ := json.Marshal(resolution)
+		res := serveHandleCreateResolution(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
+	})
+
+	Convey("Validation errors are present", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+		resolution.Attachments = []string{}
+
+		body, _ := json.Marshal(resolution)
+		res := serveHandleCreateResolution(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
+	})
+
 	Convey("Attachment is not of type resolution", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
