@@ -8,7 +8,7 @@ import (
 	"github.com/companieshouse/chs.go/log"
 )
 
-// isValidDate is a helper function to check if the date supplied
+// IsValidDate is a helper function to check if the date supplied
 // is after today or before the company was incorporated
 func IsValidDate(date string, incorporatedOn string) (bool, error) {
 	layout := "2006-01-02"
