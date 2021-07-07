@@ -39,6 +39,7 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("deleteAttachment"), ShouldNotBeNil)
 
 		So(router.GetRoute("createResolution"), ShouldNotBeNil)
+		So(router.GetRoute("getResolution"), ShouldNotBeNil)
 	})
 }
 
