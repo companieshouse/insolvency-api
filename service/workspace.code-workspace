@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../api-sdk-go"
+		},
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../go-sdk-manager"
+		}
+	],
+	"settings": {}
+}
