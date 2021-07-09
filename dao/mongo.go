@@ -616,3 +616,42 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 
 	return insolvencyResource.Data.Resolution, nil
 }
+
+// DeleteResolutionResource deletes an resource filed for an Insolvency Case
+func (m *MongoService) DeleteResolutionResource(transactionID string) (int, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific transaction for insolvency case with attachment to be removed
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+	}
+
+	// Choose specific attachment to delete
+
+	query := bson.M{"data.resolution": ""}
+
+	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete resolution", transactionID)
+	}
+
+	// Return error if Mongo could not update the document
+	if update.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - resolution not found", transactionID)
+		log.Error(err)
+		return http.StatusNotFound, err
+	}
+
+	return http.StatusNoContent, nil
+}
