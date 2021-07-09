@@ -583,7 +583,7 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		// Expect CreateResolutionResource to be called once and return an error
+		// Expect DeleteResolutionResource to be called once and return an error
 		mockService.EXPECT().DeleteResolutionResource(transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete resolution", transactionID))
 
 		res := serveHandleDeleteResolution(mockService, true)
@@ -601,7 +601,7 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		// Expect CreateResolutionResource to be called once and return nil
+		// Expect DeleteResolutionResource to be called once and return an error
 		mockService.EXPECT().DeleteResolutionResource(transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - resolution not found", transactionID))
 
 		res := serveHandleDeleteResolution(mockService, true)
@@ -609,7 +609,7 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
-	Convey("Success - Resolution was retrieved from insolvency resource", t, func() {
+	Convey("Success - Resolution was deleted from insolvency resource", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
