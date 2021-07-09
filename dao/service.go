@@ -19,7 +19,7 @@ type Service interface {
 	// GetPractitionerResources will retrieve a list of persisted practitioners
 	GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error)
 
-	// GetPractitionerResource will retrieve a practitioner from the Insolvency resource
+	// GetPractitionerResource will retrieve a practitioner from the insolvency resource
 	GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource

@@ -621,6 +621,112 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	})
 }
 
+func serveGetPractitionerResourceRequest(service dao.Service, tranIDSet bool, practIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	vars := make(map[string]string)
+	if tranIDSet {
+		vars["transaction_id"] = transactionID
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	if practIDSet {
+		vars["practitioner_id"] = practitionerID
+		req = mux.SetURLVars(req, vars)
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetPractitionerResource(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleGetPractitionerResource(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transactionID in the URL", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), false, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must need a practitionerID in the URL", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), true, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Must need a transactionID and practitionerID in the URL", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), false, false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error when retrieving a practitioner resource from the DB", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionerResource to return an error
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, fmt.Errorf("error retrieving practitioner"))
+
+		res := serveGetPractitionerResourceRequest(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Practitioner resource not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionerResource to return an empty practitioner resource
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, nil)
+
+		res := serveGetPractitionerResourceRequest(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Successfully retrieve practitioner resource", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		practitionerResource := models.PractitionerResourceDao{
+			ID:              "1234",
+			IPCode:          "1111",
+			FirstName:       "First",
+			LastName:        "Last",
+			TelephoneNumber: "1234",
+			Email:           "firstlast@email.com",
+			Address:         models.AddressResourceDao{},
+			Role:            "final-liquidator",
+			Links:           models.PractitionerResourceLinksDao{},
+			Appointment:     nil,
+		}
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetPractitionerResource to successfully return a practitioner resource
+		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(practitionerResource, nil)
+
+		res := serveGetPractitionerResourceRequest(mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+}
+
 func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practIdSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
