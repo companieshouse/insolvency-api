@@ -113,6 +113,26 @@ func NewValidationErrorResponse(validationError, location string) *ValidationErr
 	}
 }
 
+// Filing represents filing details to be returned to the filing resource handler
+type Filing struct {
+	Data                  map[string]interface{} `json:"data"`
+	Description           string                 `json:"description"`
+	DescriptionIdentifier string                 `json:"description_identifier"`
+	DescriptionValues     map[string]string      `json:"description_values"`
+	Kind                  string                 `json:"kind"`
+}
+
+// NewFiling - convenience function for creating a filing resource
+func NewFiling(data map[string]interface{}, description, descriptionIdentifier, kind string) *Filing {
+	return &Filing{
+		Data:                  data,
+		Description:           description,
+		DescriptionIdentifier: descriptionIdentifier,
+		DescriptionValues:     nil,
+		Kind:                  kind,
+	}
+}
+
 // ResponseResource is the object returned in an error case
 type ResponseResource struct {
 	Message string `json:"message"`

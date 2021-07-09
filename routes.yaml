@@ -7,4 +7,5 @@ weight: 900
 routes:
   1: ^/transactions/(.*)/insolvency
   2: ^/transactions/(.*)/insolvency.*
-  3: ^/insolvency.*
+  3: ^/private/transactions/(.*)/insolvency/filings
+  4: ^/insolvency.*
