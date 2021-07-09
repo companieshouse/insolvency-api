@@ -120,7 +120,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 	})
 }
 
-// HandleGetResolution retrieves a resolution stored against the Insolvency case
+// HandleGetResolution retrieves a resolution stored against the Insolvency Case
 func HandleGetResolution(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
@@ -165,5 +165,50 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("successfully retrieved resolution resource with transaction ID: %s, from mongo", transactionID))
 
 		utils.WriteJSONWithStatus(w, req, resolution, http.StatusOK)
+	})
+}
+
+// HandleDelteResolution deletes a resolution stored against the Insolvency Case
+func HandleDeleteResolution(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start DELETE request for get resolution with transaction id: %s", transactionID))
+
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+
+		// Delete resolution from Mongo
+		statusCode, err := svc.DeleteResolutionResource(transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully deleted resolution with transaction ID: %s from mongo", transactionID))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
 	})
 }

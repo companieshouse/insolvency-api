@@ -398,9 +398,9 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 }
 
-func serveHandleGetResolution(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleGetResolution(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/resolution"
-	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, path, nil)
 	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
@@ -422,8 +422,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleGetResolution(body, mock_dao.NewMockService(mockCtrl), false)
+		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -437,8 +436,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleGetResolution(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -452,8 +450,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleGetResolution(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
@@ -471,8 +468,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		// Expect CreateResolutionResource to be called once and return an error
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, fmt.Errorf("failed to get resolution from insolvency resource in db for transaction [%s]: %v", transactionID, err))
 
-		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleGetResolution(body, mockService, true)
+		res := serveHandleGetResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -490,8 +486,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		// Expect CreateResolutionResource to be called once and return nil
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, nil)
 
-		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleGetResolution(body, mockService, true)
+		res := serveHandleGetResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
@@ -515,10 +510,121 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		// Expect CreateResolutionResource to be called once and return a resolution
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(resolution, nil)
 
-		body, _ := json.Marshal(resolution)
-		res := serveHandleGetResolution(body, mockService, true)
+		res := serveHandleGetResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+}
+
+func serveHandleDeleteResolution(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/resolution"
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleDeleteResolution(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleDeleteResolution(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an error
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is already closed and cannot be updated", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		// Expect the transaction api to be called and return an already closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
+	Convey("Failed to delete resolution from Insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		// Expect CreateResolutionResource to be called once and return an error
+		mockService.EXPECT().DeleteResolutionResource(transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete resolution", transactionID))
+
+		res := serveHandleDeleteResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Resolution was not found on supplied transaction", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		// Expect CreateResolutionResource to be called once and return nil
+		mockService.EXPECT().DeleteResolutionResource(transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - resolution not found", transactionID))
+
+		res := serveHandleDeleteResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Success - Resolution was retrieved from insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		// Expect DeleteResolutionResource to be called once and delete resolution
+		mockService.EXPECT().DeleteResolutionResource(transactionID).Return(http.StatusNoContent, nil)
+
+		res := serveHandleDeleteResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNoContent)
 	})
 }
 
