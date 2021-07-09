@@ -272,7 +272,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.Role = constants.Receiver.String()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetInsolvencyResource to return a valid insolvency case
+		// Expect GetInsolvencyResource to return an error
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
 
 		_, err := ValidatePractitionerDetails(mockService, transactionID, practitioner)

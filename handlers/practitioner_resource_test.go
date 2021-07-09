@@ -317,7 +317,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetInsolvencyResource to return a valid insolvency case
+		// Expect GetInsolvencyResource to return an error
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
 
 		practitioner := generatePractitioner()
