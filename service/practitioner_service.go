@@ -14,7 +14,7 @@ import (
 )
 
 // ValidatePractitionerDetails checks that the incoming practitioner details are valid
-func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string {
+func ValidatePractitionerDetails(svc dao.Service, transactionID string, practitioner models.PractitionerRequest) (string, error) {
 	var errs []string
 
 	// Check that either the telephone number or email field are populated
@@ -55,7 +55,19 @@ func ValidatePractitionerDetails(practitioner models.PractitionerRequest) string
 		errs = append(errs, "the last name contains a character which is not allowed")
 	}
 
-	return strings.Join(errs, ", ")
+	// Get insolvency case from DB
+	insolvencyCase, err := svc.GetInsolvencyResource(transactionID)
+	if err != nil {
+		log.Error(fmt.Errorf("error getting insolvency case from DB: [%s]", err))
+		return "", err
+	}
+
+	// Check if insolvency case is of type CVL and practitioner role is of type final liquidator
+	if insolvencyCase.Data.CaseType == constants.CVL.String() && practitioner.Role != constants.FinalLiquidator.String() {
+		errs = append(errs, fmt.Sprintf("the practitioner role must be "+constants.FinalLiquidator.String()+" because the insolvency case for transaction ID [%s] is of type "+constants.CVL.String(), transactionID))
+	}
+
+	return strings.Join(errs, ", "), nil
 }
 
 // ValidateAppointment checks that the incoming appointment details are valid
