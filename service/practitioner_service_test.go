@@ -7,7 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/companieshouse/insolvency-api/constants"
+
 	"github.com/companieshouse/insolvency-api/mocks"
+	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
 	"github.com/jarcoal/httpmock"
@@ -17,69 +20,118 @@ import (
 func TestUnitIsValidPractitionerDetails(t *testing.T) {
 
 	Convey("Practitioner request supplied is invalid - neither email or telephone number are supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = ""
 		practitioner.Email = ""
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "either telephone_number or email are required")
 	})
 
 	Convey("Practitioner request supplied is valid - email is supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = ""
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
 
 	Convey("Practitioner request supplied is valid - telephone number is supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.Email = ""
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number is less than 10 digits", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "07777777"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number is more than 11 digits", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "077777777777"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number does not consist solely of digits", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "077777777OO"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number does not consist solely of digits", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "07777OO"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
@@ -87,51 +139,86 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number contains spaces", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "0777777 7777"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must not contain spaces")
 	})
 
 	Convey("Practitioner request supplied is invalid - telephone number does not begin with 0", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "77777777777"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
 	})
 
 	Convey("Practitioner request supplied is invalid - first name does not match regex", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "wr0ng"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the first name contains a character which is not allowed")
 	})
 
 	Convey("Practitioner request supplied is invalid - last name does not match regex", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.LastName = "wr0ng"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the last name contains a character which is not allowed")
 	})
 
 	Convey("Practitioner request supplied is invalid - first and last name does not match regex", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "name?"
 		practitioner.LastName = "wr0ng"
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the first name contains a character which is not allowed")
@@ -139,13 +226,20 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 	})
 
 	Convey("Practitioner request supplied is invalid - first and last name does not match regex and contact details missing", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "name?"
 		practitioner.LastName = "wr0ng"
 		practitioner.Email = ""
 		practitioner.TelephoneNumber = ""
 
-		err := ValidatePractitionerDetails(practitioner)
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "either telephone_number or email are required")
@@ -153,9 +247,50 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		So(err, ShouldContainSubstring, "the last name contains a character which is not allowed")
 	})
 
-	Convey("Practitioner request supplied is valid - both telephone number and email are supplied", t, func() {
+	Convey("Practitioner request supplied is invalid - role supplied is incorrect for CVL case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
 		practitioner := generatePractitioner()
-		err := ValidatePractitionerDetails(practitioner)
+		practitioner.Role = constants.Receiver.String()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+
+		So(err, ShouldNotBeBlank)
+		So(err, ShouldContainSubstring, fmt.Sprintf("the practitioner role must be "+constants.FinalLiquidator.String()+" because the insolvency case for transaction ID [%s] is of type "+constants.CVL.String(), transactionID))
+	})
+
+	Convey("Error retrieving insolvency case when validating practitioner", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+		practitioner.Role = constants.Receiver.String()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
+
+		_, err := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+
+		So(err, ShouldNotBeNil)
+	})
+
+	Convey("Practitioner request supplied is valid - both telephone number and email are supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		practitioner := generatePractitioner()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
+		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
@@ -460,7 +595,7 @@ func generatePractitioner() models.PractitionerRequest {
 			AddressLine1: "addressline1",
 			Locality:     "locality",
 		},
-		Role: "role",
+		Role: constants.FinalLiquidator.String(),
 	}
 }
 

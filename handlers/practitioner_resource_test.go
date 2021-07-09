@@ -272,12 +272,60 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
 		practitioner := generatePractitioner()
 		practitioner.Role = "error-role"
 		body, _ := json.Marshal(practitioner)
-		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Incoming request has an invalid role - not final-liquidator for a CVL case", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		insolvencyCase := generateInsolvencyResource()
+		insolvencyCase.Data.CaseType = constants.CVL.String()
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
+
+		practitioner := generatePractitioner()
+		practitioner.Role = constants.Receiver.String()
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error retrieving insolvency case when validating practitioner", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
+
+		practitioner := generatePractitioner()
+		practitioner.Role = constants.Receiver.String()
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Incoming request has telephone number and email missing", t, func() {
@@ -289,11 +337,15 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = ""
 		practitioner.Email = ""
 		body, _ := json.Marshal(practitioner)
-		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -307,10 +359,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "J4ck"
 		body, _ := json.Marshal(practitioner)
-		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "the first name contains a character which is not allowed")
@@ -325,12 +381,16 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
+		mockService := mock_dao.NewMockService(mockCtrl)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
+
 		practitioner := generatePractitioner()
 		practitioner.LastName = "wr0ng"
 		practitioner.TelephoneNumber = ""
 		practitioner.Email = ""
 		body, _ := json.Marshal(practitioner)
-		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleCreatePractitionersResource(body, mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "invalid request body: either telephone_number or email are required")
@@ -349,6 +409,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusInternalServerError).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
@@ -369,6 +431,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID), http.StatusNotFound).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
@@ -389,6 +453,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID), http.StatusBadRequest).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
@@ -409,6 +475,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitioners to be called once and return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID), http.StatusBadRequest).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
@@ -429,6 +497,10 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreatePractitionersResource to be called once and not return an error
 		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(nil, http.StatusCreated).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		insolvencyCase := generateInsolvencyResource()
+		insolvencyCase.Data.CaseType = constants.CVL.String()
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
 
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
