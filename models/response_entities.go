@@ -80,8 +80,15 @@ type AttachmentLinksResource struct {
 	Download string `json:"download"`
 }
 
+// ResolutionResource contains the details of the resolution resource
 type ResolutionResource struct {
 	DateOfResolution string `json:"date_of_resolution"`
+}
+
+// StatementOfAffairsResource contains the details of the statement of affairs resource
+
+type StatementOfAffairsResource struct {
+	StatementDate string `json:"statement_date"`
 }
 
 // ValidationStatusResponse is the object returned when checking the validation of a case

@@ -89,3 +89,9 @@ type ResolutionResourceDao struct {
 	DateOfResolution string   `bson:"date_of_resolution"`
 	Attachments      []string `bson:"attachments"`
 }
+
+// StatementOfAffairsResourceDao contains the data for the statement of affairs DB resource
+type StatementOfAffairsResourceDao struct {
+	StatementDate string   `bson:"statement_date"`
+	Attachments   []string `bson:"attachments"`
+}

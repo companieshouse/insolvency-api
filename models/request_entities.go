@@ -45,3 +45,9 @@ type Resolution struct {
 	DateOfResolution string   `json:"date_of_resolution" validate:"required,datetime=2006-01-02"`
 	Attachments      []string `json:"attachments" validate:"required"`
 }
+
+// StatementOfAffairs is the model to represent a resolution for an insolvency case
+type StatementOfAffairs struct {
+	StatementDate string   `json:"statement_date" validate:"required,datetime=2006-01-02"`
+	Attachments   []string `json:"attachments" validate:"required"`
+}
