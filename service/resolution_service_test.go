@@ -25,7 +25,7 @@ func TestUnitIsValidResolutionRequest(t *testing.T) {
 		So(err, ShouldContainSubstring, "please supply only one attachment")
 	})
 
-	Convey("Practitioner request supplied is invalid - more than one attachment has been supplied", t, func() {
+	Convey("Resolution request supplied is invalid - more than one attachment has been supplied", t, func() {
 		resolution := generateResolution()
 		resolution.Attachments = []string{
 			"1234567890",

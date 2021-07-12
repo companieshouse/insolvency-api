@@ -14,7 +14,7 @@ func ResolutionResourceRequestToDB(req *models.Resolution) *models.ResolutionRes
 	return dao
 }
 
-// ResolutionDaoToResponse transforms a response dao model to a response
+// ResolutionDaoToResponse transforms a resolution dao model to a response
 func ResolutionDaoToResponse(resolution *models.ResolutionResourceDao) *models.ResolutionResource {
 	return &models.ResolutionResource{
 		DateOfResolution: resolution.DateOfResolution,
