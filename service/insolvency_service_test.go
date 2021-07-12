@@ -568,10 +568,10 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings, ShouldBeNil)
-		So(error.Error(), ShouldContainSubstring, "insolvency case does not exist")
+		So(err.Error(), ShouldContainSubstring, "insolvency case does not exist")
 	})
 
 	Convey("Generate filing for 600 case with two practitioners", t, func() {
@@ -588,11 +588,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for LRESEX case with resolution attachment and no practitioners", t, func() {
@@ -620,11 +620,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#LRESEX")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LRESEX")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for LIQ02 case with statement-of-affairs-director attachment and two practitioners", t, func() {
@@ -653,11 +653,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for LIQ02 case with statement-of-affairs-liquidator attachment and two practitioners", t, func() {
@@ -686,11 +686,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for LIQ02 case with statement-of-affairs-liquidator and statement-of-affairs-director attachments and two practitioners", t, func() {
@@ -728,11 +728,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for 600 and LIQ02 case with statement-of-affairs-director attachment and two practitioners", t, func() {
@@ -759,13 +759,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
 		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ02")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Generate filing for 600, LRESEX, and LIQ02 case with statement-of-affairs-director and statement-of-affairs-liquidator attachments and two practitioners", t, func() {
@@ -810,7 +810,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
 
-		filings, error := GenerateFilings(mockService, transactionID)
+		filings, err := GenerateFilings(mockService, transactionID)
 
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
@@ -818,6 +818,6 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LRESEX")
 		So(filings[2].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[2].DescriptionIdentifier, ShouldEqual, "LIQ02")
-		So(error, ShouldBeNil)
+		So(err, ShouldBeNil)
 	})
 }

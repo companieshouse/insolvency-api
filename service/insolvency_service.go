@@ -173,9 +173,9 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	// Retrieve details for the insolvency resource from DB
 	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
-		error := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
-		log.Error(error)
-		return nil, error
+		message := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
+		log.Error(message)
+		return nil, message
 	}
 
 	var filings []models.Filing
@@ -230,7 +230,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 // generateDataBlockForFiling generates the block of data to be included with a filing
 func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
 
-	// If the form is a 600 do not include attachment details
+	// If the form is a 600 do not include attachment details, otherwise do include them
 	if form == "600" {
 		return map[string]interface{}{
 			"company_number": &insolvencyResource.Data.CompanyNumber,
@@ -238,10 +238,7 @@ func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao
 			"company_name":   &insolvencyResource.Data.CompanyName,
 			"practitioners":  &insolvencyResource.Data.Practitioners,
 		}
-	}
-
-	// If the form is an LRESEX or LIQ02 include both attachment details and practitioner details
-	if form == "LRESEX" || form == "LIQ02" {
+	} else if form == "LRESEX" || form == "LIQ02" {
 		return map[string]interface{}{
 			"company_number": &insolvencyResource.Data.CompanyNumber,
 			"case_type":      &insolvencyResource.Data.CaseType,
