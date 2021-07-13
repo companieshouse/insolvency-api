@@ -67,9 +67,16 @@ func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
 		}
 
 		// Validates that the provided practitioner details are in the correct format
-		if errs := service.ValidatePractitionerDetails(request); errs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-			m := models.NewMessageResponse("invalid request body: " + errs)
+		validationErrs, err := service.ValidatePractitionerDetails(svc, transactionID, request)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse("failed to validate the practitioner request supplied")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request body: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

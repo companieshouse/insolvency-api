@@ -102,6 +102,14 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
+	// Check if attachment_type is resolution, if true then date_of_resolution must be present
+	if hasResolutionAttachment && (len(insolvencyResource.Data.Resolution.DateOfResolution) == 0) {
+		validationError := fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "no date of resolution")
+		return false, &validationErrors
+	}
+
 	return true, &validationErrors
 }
 
@@ -165,4 +173,88 @@ func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request)
 	}
 
 	return true, &validationErrors
+}
+
+// GenerateFilings generates an array of filings for this insolvency resource to be used by the filing resource handler
+func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, error) {
+
+	// Retrieve details for the insolvency resource from DB
+	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
+	if err != nil {
+		message := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
+		log.Error(message)
+		return nil, message
+	}
+
+	var filings []models.Filing
+
+	// Check for an appointed practitioner to determine if there's a 600 insolvency form
+	for _, practitioner := range insolvencyResource.Data.Practitioners {
+		if practitioner.Appointment != nil {
+			// If a filing is a 600 add a generated filing to the array of filings
+			filing600 := models.NewFiling(
+				generateDataBlockForFiling(&insolvencyResource, "600"),
+				fmt.Sprintf("600 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
+				"600",
+				"insolvency#600")
+			filings = append(filings, *filing600)
+			break
+		}
+	}
+
+	// Map attachment types
+	attachmentTypes := map[string]struct{}{}
+	for _, attachment := range insolvencyResource.Data.Attachments {
+		attachmentTypes[attachment.Type] = struct{}{}
+	}
+
+	// Check if a "resolution" attachment type is present to determine if there's a LRESEX form
+	if _, hasResolution := attachmentTypes["resolution"]; hasResolution {
+		// If a filing is an LRESEX add a generated filing to the array of filings
+		filingLRESEX := models.NewFiling(
+			generateDataBlockForFiling(&insolvencyResource, "LRESEX"),
+			fmt.Sprintf("LRESEX insolvency case for %v", insolvencyResource.Data.CompanyNumber),
+			"LRESEX",
+			"insolvency#LRESEX")
+		filings = append(filings, *filingLRESEX)
+	}
+
+	// Check if a "statement-of-affairs-director" or "statement-of-affairs-liquidator" is present to determine if there's a LIQ02 form
+	_, hasStatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
+	_, hasStatementOfAffairsLiquidator := attachmentTypes["statement-of-affairs-liquidator"]
+	if hasStatementOfAffairsDirector || hasStatementOfAffairsLiquidator {
+		// If a filing is a LIQ02 add a generated filing to the array of filings
+		filingLIQ02 := models.NewFiling(
+			generateDataBlockForFiling(&insolvencyResource, "LIQ02"),
+			fmt.Sprintf("LIQ02 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
+			"LIQ02",
+			"insolvency#LIQ02")
+		filings = append(filings, *filingLIQ02)
+	}
+
+	return filings, nil
+}
+
+// generateDataBlockForFiling generates the block of data to be included with a filing
+func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
+
+	// If the form is a 600 do not include attachment details, otherwise do include them
+	if form == "600" {
+		return map[string]interface{}{
+			"company_number": &insolvencyResource.Data.CompanyNumber,
+			"case_type":      &insolvencyResource.Data.CaseType,
+			"company_name":   &insolvencyResource.Data.CompanyName,
+			"practitioners":  &insolvencyResource.Data.Practitioners,
+		}
+	} else if form == "LRESEX" || form == "LIQ02" {
+		return map[string]interface{}{
+			"company_number": &insolvencyResource.Data.CompanyNumber,
+			"case_type":      &insolvencyResource.Data.CaseType,
+			"company_name":   &insolvencyResource.Data.CompanyName,
+			"practitioners":  &insolvencyResource.Data.Practitioners,
+			"attachments":    &insolvencyResource.Data.Attachments,
+		}
+	}
+
+	return nil
 }
