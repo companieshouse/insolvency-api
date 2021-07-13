@@ -226,3 +226,16 @@ func (m *MockService) GetResolutionResource(transactionID string) (models.Resolu
 func (mr *MockServiceMockRecorder) GetResolutionResource(transactionID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolutionResource", reflect.TypeOf((*MockService)(nil).GetResolutionResource), transactionID)
 }
+
+// DeleteResolutionResource mocks base method
+func (m *MockService) DeleteResolutionResource(transactionID string) (int, error) {
+	ret := m.ctrl.Call(m, "DeleteResolutionResource", transactionID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteResolutionResource indicates an expected call of DeleteResolutionResource
+func (mr *MockServiceMockRecorder) DeleteResolutionResource(transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteResolutionResource", reflect.TypeOf((*MockService)(nil).DeleteResolutionResource), transactionID)
+}
