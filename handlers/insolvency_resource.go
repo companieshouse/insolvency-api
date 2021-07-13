@@ -139,3 +139,47 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
 	})
 }
+
+// HandleGetFilings returns the resource in filings format for the filing-resource-handler to send to CHIPS
+func HandleGetFilings(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
+			m := models.NewMessageResponse("transaction id is not in the url path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for filings resource for transaction id: %s", transactionID))
+
+		// Check if transaction is closed before generating filings
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		}
+		if !isTransactionClosed {
+			log.ErrorR(req, fmt.Errorf("transaction [%v] is not closed so the filings cannot be generated", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is not closed so the filings cannot be generated", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusForbidden)
+			return
+		}
+
+		filings, err := service.GenerateFilings(svc, transactionID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("error generating filings for [%v]: [%s]", transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error generating filings for [%v]: [%s]", transactionID, err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully finished GET request for filings resource for transaction id: %s", transactionID))
+
+		utils.WriteJSONWithStatus(w, req, filings, http.StatusOK)
+	})
+}
