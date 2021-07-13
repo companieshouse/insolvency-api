@@ -51,6 +51,12 @@ type Service interface {
 
 	// CreateResolutionResource creates the resolution resource for an Insolvency Case
 	CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error)
+
+	// GetResolutionResource retrieves the resolution resource from an Insolvency Case
+	GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error)
+
+	// DeleteResolutionResource deletes a resolution for an Insolvency Case
+	DeleteResolutionResource(transactionID string) (int, error)
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

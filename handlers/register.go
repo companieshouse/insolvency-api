@@ -45,6 +45,8 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc)).Methods(http.MethodPost).Name("createStatementOfAffairs")
 
 	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc)).Methods(http.MethodPost).Name("createResolution")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 
 	// Create a private router that requires all users to be authenticated when making requests
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
