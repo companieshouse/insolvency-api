@@ -434,9 +434,6 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		// Expect the transaction api to be called and return an open transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		// Expect GetResolutionResource to be called once and return an error
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, fmt.Errorf("failed to get resolution from insolvency resource in db for transaction [%s]: %v", transactionID, err))
 
@@ -452,9 +449,6 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		// Expect the transaction api to be called and return an open transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		// Expect GetResolutionResource to be called once and return nil
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, nil)
 
@@ -469,9 +463,6 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect the transaction api to be called and return an open transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
