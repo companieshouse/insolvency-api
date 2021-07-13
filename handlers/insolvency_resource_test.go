@@ -404,6 +404,20 @@ func serveHandleGetValidationStatus(service dao.Service, tranIDSet bool) *httpte
 	return res
 }
 
+func serveHandleGetFilings(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/private/transactions/" + transactionID + "/insolvency/filings"
+	req := httptest.NewRequest(http.MethodGet, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetFilings(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
 func createInsolvencyResource() models.InsolvencyResourceDao {
 	return models.InsolvencyResourceDao{
 		ID:            primitive.ObjectID{},
@@ -479,5 +493,152 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusOK)
 		So(res.Body.String(), ShouldContainSubstring, `"is_valid":true`)
 		So(res.Body.String(), ShouldContainSubstring, `"errors":[]`)
+	})
+}
+
+func TestUnitHandleGetFilings(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetFilings(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Error checking transaction status against transaction api", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Transaction is still open", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusForbidden)
+	})
+
+	Convey("Error generating filings", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error")).Times(1)
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Generate filing for 600 case with one practitioner", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, `"case_type":"insolvency"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
+		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#600"`)
+	})
+
+	Convey("Generate filing for LRESEX case with no practitioners", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Practitioners = []models.PractitionerResourceDao{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{{
+			Type: "resolution",
+		}}
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, `"case_type":"insolvency"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
+		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LRESEX"`)
+		So(res.Body.String(), ShouldContainSubstring, `"Type":"resolution"`)
+		So(res.Body.String(), ShouldContainSubstring, `"practitioners":[]`)
+	})
+
+	Convey(`Generate filing for LIQ02 case with one practitioner and "statement-of-affairs-director"`, t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Practitioners[0].Appointment = nil
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{{
+			Type: "statement-of-affairs-director",
+		}}
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		res := serveHandleGetFilings(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, `"case_type":"insolvency"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
+		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
+		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LIQ02"`)
+		So(res.Body.String(), ShouldContainSubstring, `"Type":"statement-of-affairs-director"`)
 	})
 }
