@@ -584,3 +584,35 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 
 	return http.StatusCreated, nil
 }
+
+// GetResolutionResource retrieves the resolution filed for an Insolvency Case
+func (m *MongoService) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id": transactionID,
+	}
+
+	// Retrieve resolution from Mongo
+	storedResolution := collection.FindOne(context.Background(), filter)
+	err := storedResolution.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return models.ResolutionResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return models.ResolutionResourceDao{}, err
+	}
+
+	err = storedResolution.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return models.ResolutionResourceDao{}, err
+	}
+
+	return insolvencyResource.Data.Resolution, nil
+}

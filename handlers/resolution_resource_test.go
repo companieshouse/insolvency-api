@@ -398,6 +398,87 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 }
 
+func serveHandleGetResolution(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/resolution"
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetResolution(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleGetResolution(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Failed to get resolution from Insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetResolutionResource to be called once and return an error
+		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, fmt.Errorf("failed to get resolution from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+
+		res := serveHandleGetResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Resolution was not found on supplied transaction", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetResolutionResource to be called once and return nil
+		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, nil)
+
+		res := serveHandleGetResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Success - Resolution was retrieved from insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		resolution := models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1223-3445-5667",
+			},
+		}
+		// Expect GetResolutionResource to be called once and return a resolution
+		mockService.EXPECT().GetResolutionResource(transactionID).Return(resolution, nil)
+
+		res := serveHandleGetResolution(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+}
+
 func generateResolution() models.Resolution {
 	return models.Resolution{
 		DateOfResolution: "2021-06-06",
