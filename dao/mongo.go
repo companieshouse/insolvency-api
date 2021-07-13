@@ -629,6 +629,8 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	}
 
 	return http.StatusCreated, nil
+}
+
 // GetResolutionResource retrieves the resolution filed for an Insolvency Case
 func (m *MongoService) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
 
