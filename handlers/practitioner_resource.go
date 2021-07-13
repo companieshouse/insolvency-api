@@ -165,8 +165,8 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		// Get practitioner from DB
 		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error when retrieving practitioner from DB: [%s]", err))
-			m := models.NewMessageResponse("error when retrieving practitioner from DB")
+			log.ErrorR(req, fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
