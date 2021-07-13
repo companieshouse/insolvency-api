@@ -427,34 +427,6 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		// Expect the transaction api to be called and return an error
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
-
-		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), true)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-	})
-
-	Convey("Transaction is already closed and cannot be updated", t, func() {
-		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-
-		// Expect the transaction api to be called and return an already closed transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
-
-		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), true)
-
-		So(res.Code, ShouldEqual, http.StatusForbidden)
-	})
-
 	Convey("Failed to get resolution from Insolvency resource", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)

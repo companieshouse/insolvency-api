@@ -134,21 +134,6 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for get resolution with transaction id: %s", transactionID))
 
-		// Check if transaction is closed
-		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
-			return
-		}
-		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
-			return
-		}
-
 		resolution, err := svc.GetResolutionResource(transactionID)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to get resolution from insolvency resource in db for transaction [%s]: %v", transactionID, err))
