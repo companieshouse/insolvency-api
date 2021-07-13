@@ -146,6 +146,45 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleGetPractitionerResource retrieves a practitioner with the specified practitionerID
+// on the insolvency case with the specified transactionID
+func HandleGetPractitionerResource(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// Check for a transaction id in request
+		vars := mux.Vars(req)
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
+
+		// Get practitioner from DB
+		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
+		// Check if practitioner returned is empty
+		if practitioner == (models.PractitionerResourceDao{}) {
+			message := fmt.Sprintf("practitioner with ID [%s] not found", practitionerID)
+			log.Debug(message)
+			m := models.NewMessageResponse(message)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+			return
+		}
+
+		// Successfully retrieved practitioner
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitioner), http.StatusOK)
+	})
+}
+
 // HandleDeletePractitioner deletes a practitioner from the insolvency case with
 // the specified transactionID and IPCode
 func HandleDeletePractitioner(svc dao.Service) http.Handler {
