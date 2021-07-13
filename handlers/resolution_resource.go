@@ -153,7 +153,7 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 	})
 }
 
-// HandleDelteResolution deletes a resolution stored against the Insolvency Case
+// HandleDeleteResolution deletes a resolution stored against the Insolvency Case
 func HandleDeleteResolution(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
