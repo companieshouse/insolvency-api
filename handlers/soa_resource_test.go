@@ -231,6 +231,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 		insolvencyDao := generateInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
@@ -258,6 +259,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 		insolvencyDao := generateInsolvencyResource()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
