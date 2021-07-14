@@ -50,7 +50,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service) http.Handler {
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("invalid request"))
 			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 

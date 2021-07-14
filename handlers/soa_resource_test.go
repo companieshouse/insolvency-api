@@ -91,7 +91,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		body := []byte(`{"first_name":error`)
 		res := serveHandleCreateStatementOfAffairs(body, mock_dao.NewMockService(mockCtrl), true)
 
-		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Incoming request has statement date missing", t, func() {
