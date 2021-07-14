@@ -11,20 +11,14 @@ import (
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidateStatementOfAffairsRequest checks that the incoming statement of affairs request is valid
-func ValidateStatementOfAffairsRequest(statement models.StatementOfAffairs) string {
+// ValidateStatementDate checks that the incoming statement date is valid
+func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfAffairsResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
 	// Check that the attachment has been submitted correctly
-	if len(statement.Attachments) == 0 || len(statement.Attachments) > 1 {
+	if len(statementDao.Attachments) == 0 || len(statementDao.Attachments) > 1 {
 		errs = append(errs, "please supply only one attachment")
 	}
-	return strings.Join(errs, ", ")
-}
-
-// ValidateStatementDate checks that the incoming statement date is valid
-func ValidateStatementDate(svc dao.Service, statementDao *models.StatementOfAffairsResourceDao, transactionID string, req *http.Request) (string, error) {
-	var errs []string
 
 	// Check if statement date supplied is in the future or before company was incorporated
 	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)

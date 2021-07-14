@@ -231,6 +231,9 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
+		insolvencyDao := generateInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
+
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
@@ -254,6 +257,9 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
+		insolvencyDao := generateInsolvencyResource()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))

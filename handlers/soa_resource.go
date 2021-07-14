@@ -64,16 +64,8 @@ func HandleCreateStatementOfAffairs(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Validate that the provided statement of affairs request is in the correct format
-		if errs := service.ValidateStatementOfAffairsRequest(request); errs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-			m := models.NewMessageResponse("invalid request body: " + errs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-			return
-		}
-
 		// Validate the provided statement date is in the correct format
-		validationErrs, err := service.ValidateStatementDate(svc, statementDao, transactionID, req)
+		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
