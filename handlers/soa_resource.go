@@ -64,7 +64,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Validate the provided statement date is in the correct format
+		// Validate the provided statement details are in the correct format
 		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))

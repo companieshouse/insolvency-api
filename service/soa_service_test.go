@@ -21,7 +21,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	Convey("Statement of Affairs request supplied is invalid - no attachment has been supplied", t, func() {
+	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
@@ -40,7 +40,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
-	Convey("Statement of Affairs request supplied is invalid - more than one attachment has been supplied", t, func() {
+	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 

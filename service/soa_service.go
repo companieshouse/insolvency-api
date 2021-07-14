@@ -11,7 +11,7 @@ import (
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidateStatementDate checks that the incoming statement date is valid
+// ValidateStatementDetails checks that the incoming statement details are valid
 func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfAffairsResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
