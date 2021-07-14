@@ -14,12 +14,13 @@ type InsolvencyResourceDao struct {
 
 // InsolvencyResourceDaoData contains the data for the insolvency resource in Mongo
 type InsolvencyResourceDaoData struct {
-	CompanyNumber string                    `bson:"company_number"`
-	CaseType      string                    `bson:"case_type"`
-	CompanyName   string                    `bson:"company_name"`
-	Practitioners []PractitionerResourceDao `bson:"practitioners,omitempty"`
-	Attachments   []AttachmentResourceDao   `bson:"attachments,omitempty"`
-	Resolution    ResolutionResourceDao     `bson:"resolution,omitempty"`
+	CompanyNumber      string                        `bson:"company_number"`
+	CaseType           string                        `bson:"case_type"`
+	CompanyName        string                        `bson:"company_name"`
+	Practitioners      []PractitionerResourceDao     `bson:"practitioners,omitempty"`
+	Attachments        []AttachmentResourceDao       `bson:"attachments,omitempty"`
+	Resolution         ResolutionResourceDao         `bson:"resolution,omitempty"`
+	StatementOfAffairs StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
