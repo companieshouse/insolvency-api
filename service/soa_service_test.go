@@ -14,37 +14,53 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestUnitIsValidResolutionRequest(t *testing.T) {
-	Convey("Resolution request supplied is invalid - no attachment has been supplied", t, func() {
-		resolution := generateResolution()
-		resolution.Attachments = []string{}
-
-		err := ValidateResolutionRequest(models.Resolution(resolution))
-
-		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "please supply only one attachment")
-	})
-
-	Convey("Resolution request supplied is invalid - more than one attachment has been supplied", t, func() {
-		resolution := generateResolution()
-		resolution.Attachments = []string{
-			"1234567890",
-			"0987654321",
-		}
-
-		err := ValidateResolutionRequest(models.Resolution(resolution))
-
-		So(err, ShouldNotBeBlank)
-		So(err, ShouldContainSubstring, "please supply only one attachment")
-	})
-}
-
-func TestUnitIsValidResolutionDate(t *testing.T) {
+func TestUnitIsValidStatementDate(t *testing.T) {
 	transactionID := "123"
 	apiURL := "https://api.companieshouse.gov.uk"
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
+
+	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		statement := generateStatement()
+		statement.Attachments = []string{}
+
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
+
+		So(validationErr, ShouldContainSubstring, "please supply only one attachment")
+		So(err, ShouldBeNil)
+	})
+
+	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		statement := generateStatement()
+		statement.Attachments = []string{
+			"1234567890",
+			"0987654321",
+		}
+
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
+
+		So(validationErr, ShouldContainSubstring, "please supply only one attachment")
+		So(err, ShouldBeNil)
+	})
 
 	Convey("error retrieving insolvency resource", t, func() {
 		mockCtrl := gomock.NewController(t)
@@ -53,10 +69,10 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("err"))
 
-		resolution := generateResolution()
+		statement := generateStatement()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(err.Error(), ShouldContainSubstring, "err")
 		So(validationErr, ShouldBeEmpty)
 	})
@@ -71,9 +87,9 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		statement := generateStatement()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error getting company details from DB")
 	})
@@ -88,11 +104,11 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
-		resolution.DateOfResolution = "2001/1/2"
+		statement := generateStatement()
+		statement.StatementDate = "2001/1/2"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error parsing date")
 	})
@@ -104,12 +120,12 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("error")))
 
-		resolution := generateResolution()
+		statement := generateStatement()
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error parsing date")
 	})
@@ -124,11 +140,11 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
-		resolution.DateOfResolution = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
+		statement := generateStatement()
+		statement.StatementDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldContainSubstring, "should not be in the future")
 		So(err, ShouldBeNil)
 	})
@@ -143,11 +159,11 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
-		resolution.DateOfResolution = "1999-01-01"
+		statement := generateStatement()
+		statement.StatementDate = "1999-01-01"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldContainSubstring, "before the company was incorporated")
 		So(err, ShouldBeNil)
 	})
@@ -162,19 +178,19 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		statement := generateStatement()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(validationErr, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})
 
 }
 
-func generateResolution() models.ResolutionResourceDao {
-	return models.ResolutionResourceDao{
-		DateOfResolution: "2012-01-23",
+func generateStatement() models.StatementOfAffairsResourceDao {
+	return models.StatementOfAffairsResourceDao{
+		StatementDate: "2012-01-23",
 		Attachments: []string{
 			"123456789",
 		},

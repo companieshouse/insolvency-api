@@ -46,6 +46,9 @@ type Service interface {
 	// UpdateAttachmentStatus updates the status of an attachment for an Insolvency Case
 	UpdateAttachmentStatus(transactionID, attachmentID, avStatus string) (int, error)
 
+	// CreateStatementOfAffairsResource creates the statement of affairs resource for an Insolvency Case
+	CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error)
+
 	// CreateResolutionResource creates the resolution resource for an Insolvency Case
 	CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error)
 
