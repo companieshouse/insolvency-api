@@ -273,7 +273,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 		// Set attachment type to "resolution"
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
-		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+		}
+
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
@@ -295,7 +299,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 						Type: "resolution",
 					},
 				},
-				Resolution: models.ResolutionResourceDao{
+				Resolution: &models.ResolutionResourceDao{
 					DateOfResolution: "2021-06-06",
 				},
 			},
@@ -321,7 +325,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 						Type: "resolution",
 					},
 				},
-				Resolution: models.ResolutionResourceDao{
+				Resolution: &models.ResolutionResourceDao{
 					DateOfResolution: "2021-06-06",
 				},
 			},
@@ -471,6 +475,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
 
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "",
+		}
+
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
@@ -489,8 +497,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
-		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
-
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+		}
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
