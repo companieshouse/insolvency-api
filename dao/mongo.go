@@ -660,7 +660,7 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 		return models.ResolutionResourceDao{}, err
 	}
 
-	return insolvencyResource.Data.Resolution, nil
+	return *insolvencyResource.Data.Resolution, nil
 }
 
 // DeleteResolutionResource deletes an resource filed for an Insolvency Case
