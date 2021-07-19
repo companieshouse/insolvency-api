@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -110,7 +111,51 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
+	// Check if case has appointed practitioner and resolution attached
+	// If there is, the practitioner appointed date must be the same
+	// or after resolution date
+	if hasAppointedPractitioner && hasResolutionAttachment {
+		for _, practitioner := range insolvencyResource.Data.Practitioners {
+			ok, err := checkValidAppointmentDate(practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
+			if err != nil {
+				validationErrors = addValidationError(validationErrors, fmt.Sprint(err), "practitioner")
+				return false, &validationErrors
+			}
+			if !ok {
+				validationError := fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", practitioner.ID, practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
+				validationErrors = addValidationError(validationErrors, validationError, "practitioner")
+				return false, &validationErrors
+			}
+		}
+	}
+
 	return true, &validationErrors
+}
+
+// checkValidAppointmentData parses and checks if the appointment date is on or after the dateOfResolution
+func checkValidAppointmentDate(appointedOn string, dateOfResolution string) (bool, error) {
+	layout := "2006-01-02"
+
+	// Parse appointedOn to time
+	appointmentDate, err := time.Parse(layout, appointedOn)
+	if err != nil {
+		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
+		return false, err
+	}
+
+	// Parse dateOfResolution to time
+	resolutionDate, err := time.Parse(layout, dateOfResolution)
+	if err != nil {
+		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
+		return false, err
+	}
+
+	// If appointmentOn is before dateOfResolution then return false
+	if appointmentDate.Before(resolutionDate) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // addValidationError adds any validation errors to an array of existing errors

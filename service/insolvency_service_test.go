@@ -42,7 +42,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					Role:            "final-liquidator",
 					Links:           models.PractitionerResourceLinksDao{},
 					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2020-01-01",
+						AppointedOn: "2021-07-07",
 						MadeBy:      "creditors",
 					},
 				},
@@ -57,7 +57,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					Role:            "final-liquidator",
 					Links:           models.PractitionerResourceLinksDao{},
 					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2020-01-01",
+						AppointedOn: "2021-07-07",
 						MadeBy:      "creditors",
 					},
 				},
@@ -504,6 +504,90 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 
+		So(isValid, ShouldBeTrue)
+		So(validationErrors, ShouldHaveLength, 0)
+	})
+
+	Convey("error - practitioner appointment is before date of resolution", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Add resolution to insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+
+		// Appoint practitioner before resolution
+		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+		So(isValid, ShouldBeFalse)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", insolvencyCase.Data.Practitioners[0].ID, insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
+	})
+
+	Convey("error parsing appointment date", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Add resolution to insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+
+		// Appoint practitioner before resolution
+		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "date"
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+		So(isValid, ShouldBeFalse)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
+	})
+
+	Convey("error parsing resolution date", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Add resolution to insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "date"
+
+		// Appoint practitioner before resolution
+		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+		So(isValid, ShouldBeFalse)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
+	})
+
+	Convey("valid insolvency case - appointment date is after resolution date", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Add resolution to insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution.DateOfResolution = "2021-06-06"
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
 		So(isValid, ShouldBeTrue)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
