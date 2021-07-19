@@ -104,6 +104,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
+	// Check if a resolution has been filed against the insolvency case
 	ResolutionFiled := false
 	if !(insolvencyResource.Data.Resolution == nil) {
 		ResolutionFiled = true
