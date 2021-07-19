@@ -126,8 +126,8 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
-	// Check attachment id of resolution attachment matches attachment id supplied in resolution
-	if hasResolutionAttachment && ResolutionFiled && !(insolvencyResource.Data.Resolution.Attachments[0] == insolvencyResource.Data.Attachments[resolutionArrayPosition].ID) {
+	// Check that id of uploaded resolution attachment matches attachment id supplied in resolution
+	if hasResolutionAttachment && ResolutionFiled && !(insolvencyResource.Data.Attachments[resolutionArrayPosition].ID == insolvencyResource.Data.Resolution.Attachments[0]) {
 		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
