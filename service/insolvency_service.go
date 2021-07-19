@@ -118,7 +118,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
-	// Check if date_of_resolution is present, if true then resolution must be present
+	// Check if date_of_resolution is present, then resolution must be present
 	if ResolutionFiled && !hasResolutionAttachment {
 		validationError := fmt.Sprintf("error - a resolution must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
@@ -126,14 +126,13 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
-	// Check attachment id of resolution attachment matches attachment id filed in resolution
+	// Check attachment id of resolution attachment matches attachment id supplied in resolution
 	if hasResolutionAttachment && ResolutionFiled && !(insolvencyResource.Data.Resolution.Attachments[0] == insolvencyResource.Data.Attachments[resolutionArrayPosition].ID) {
 		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 		return false, &validationErrors
 	}
-	fmt.Println(resolutionArrayPosition)
 
 	return true, &validationErrors
 }
