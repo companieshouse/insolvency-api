@@ -272,10 +272,16 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		// Set attachment type to "resolution"
-		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Attachments[0] = models.AttachmentResourceDao{
+			Type: "resolution",
+			ID:   "1234",
+		}
 
 		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
+			},
 		}
 
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
@@ -297,10 +303,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				Attachments: []models.AttachmentResourceDao{
 					{
 						Type: "resolution",
+						ID:   "1234",
 					},
 				},
 				Resolution: &models.ResolutionResourceDao{
 					DateOfResolution: "2021-06-06",
+					Attachments: []string{
+						"1234",
+					},
 				},
 			},
 		}
@@ -323,10 +333,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				Attachments: []models.AttachmentResourceDao{
 					{
 						Type: "resolution",
+						ID:   "1234",
 					},
 				},
 				Resolution: &models.ResolutionResourceDao{
 					DateOfResolution: "2021-06-06",
+					Attachments: []string{
+						"1234",
+					},
 				},
 			},
 		}
@@ -489,6 +503,59 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no date of resolution")
 	})
 
+	Convey("error - date_of_resolution present and no resolution filed for insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "test"
+
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+		}
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a resolution must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "no resolution")
+	})
+
+	Convey("error - id for uploaded resolution attachment does not match id supplied with resolution filed for insolvency case", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0] = models.AttachmentResourceDao{
+			Type: "resolution",
+			ID:   "1234",
+		}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"0234",
+			},
+		}
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+
+		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "attachment ids do not match")
+	})
+
 	Convey("successful validation - resolution attachment present and date of resolution filed for insolvency case", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -496,9 +563,15 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Attachments[0] = models.AttachmentResourceDao{
+			Type: "resolution",
+			ID:   "1234",
+		}
 		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
+			},
 		}
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
