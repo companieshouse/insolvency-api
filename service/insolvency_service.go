@@ -45,8 +45,8 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	}
 
 	// Check if attachment type is "resolution", if not then at least one practitioner must be present
-	resolutionArrayPosition := 0
 	hasResolutionAttachment := false
+	resolutionArrayPosition := 0
 	for i, attachment := range insolvencyResource.Data.Attachments {
 		if attachment.Type == "resolution" {
 			hasResolutionAttachment = true
