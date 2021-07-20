@@ -489,10 +489,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
 
-		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
-			DateOfResolution: "",
-		}
-
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		isValid, validationErrors := ValidateInsolvencyDetails(mockService, transactionID)
