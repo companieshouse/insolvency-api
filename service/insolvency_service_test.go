@@ -82,6 +82,9 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					},
 				},
 			},
+			Resolution: &models.ResolutionResourceDao{
+				DateOfResolution: "2021-06-06",
+			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             "/transactions/123456789/insolvency",
