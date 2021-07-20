@@ -112,7 +112,7 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	}
 
 	// Check if attachment_type is resolution, if true then date_of_resolution must be present
-	if hasResolutionAttachment && (len(insolvencyResource.Data.Resolution.DateOfResolution) == 0) {
+	if hasResolutionAttachment && !ResolutionFiled {
 		validationError := fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no date of resolution")
