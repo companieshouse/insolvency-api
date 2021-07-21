@@ -65,7 +65,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			Attachments: []models.AttachmentResourceDao{
 				{
 					ID:     "id",
-					Type:   "type1",
+					Type:   "resolution",
 					Status: "status",
 					Links: models.AttachmentResourceLinksDao{
 						Self:     "self",
@@ -84,6 +84,9 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			},
 			Resolution: &models.ResolutionResourceDao{
 				DateOfResolution: "2021-06-06",
+				Attachments: []string{
+					"id",
+				},
 			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
@@ -382,6 +385,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Resolution = nil
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
 		// Set attachment type to "statement-of-concurrence"
@@ -425,6 +429,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Set attachment type to "statement-of-concurrence"
 		insolvencyCase.Data.Attachments[0].Type = "statement-of-affairs-liquidator"
+
+		// Remove resolution from insolvency case
+		insolvencyCase.Data.Resolution = nil
 
 		// Remove appointment details for all practitioners
 		insolvencyCase.Data.Practitioners[0].Appointment = nil
