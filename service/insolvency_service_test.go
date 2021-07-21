@@ -488,6 +488,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "",
+		}
 
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
 
@@ -518,7 +521,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a resolution must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a resolution attachment must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no resolution")
 	})
