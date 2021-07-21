@@ -47,9 +47,11 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 
 	// Check if attachment type is "resolution", if not then at least one practitioner must be present
 	hasResolutionAttachment := false
-	for _, attachment := range insolvencyResource.Data.Attachments {
+	resolutionArrayPosition := 0
+	for i, attachment := range insolvencyResource.Data.Attachments {
 		if attachment.Type == "resolution" {
 			hasResolutionAttachment = true
+			resolutionArrayPosition = i
 			break
 		}
 	}
@@ -103,11 +105,33 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		return false, &validationErrors
 	}
 
+	// Check if a resolution has been filed against the insolvency case
+	resolutionFiled := false
+	if !(insolvencyResource.Data.Resolution == nil) {
+		resolutionFiled = true
+	}
+
 	// Check if attachment_type is resolution, if true then date_of_resolution must be present
-	if hasResolutionAttachment && (len(insolvencyResource.Data.Resolution.DateOfResolution) == 0) {
+	if hasResolutionAttachment && resolutionFiled && insolvencyResource.Data.Resolution.DateOfResolution == "" {
 		validationError := fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no date of resolution")
+		return false, &validationErrors
+	}
+
+	// Check if date_of_resolution is present, then resolution attachment must be present
+	if resolutionFiled && insolvencyResource.Data.Resolution.DateOfResolution != "" && !hasResolutionAttachment {
+		validationError := fmt.Sprintf("error - a resolution attachment must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "no resolution")
+		return false, &validationErrors
+	}
+
+	// Check that id of uploaded resolution attachment matches attachment id supplied in resolution
+	if hasResolutionAttachment && resolutionFiled && !(insolvencyResource.Data.Attachments[resolutionArrayPosition].ID == insolvencyResource.Data.Resolution.Attachments[0]) {
+		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 		return false, &validationErrors
 	}
 
