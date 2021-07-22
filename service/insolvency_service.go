@@ -98,12 +98,6 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 	if len(insolvencyResource.Data.Attachments) == 0 {
 		hasAttachments = false
 	}
-	if !hasAttachments && !hasAppointedPractitioner {
-		validationError := fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
-		log.Error(fmt.Errorf(validationError))
-		validationErrors = addValidationError(validationErrors, validationError, "no attachments")
-		return false, &validationErrors
-	}
 
 	// Check if a resolution has been filed against the insolvency case
 	resolutionFiled := false
@@ -132,6 +126,13 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
+		return false, &validationErrors
+	}
+
+	if !hasAttachments && !hasAppointedPractitioner {
+		validationError := fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "no attachments")
 		return false, &validationErrors
 	}
 
