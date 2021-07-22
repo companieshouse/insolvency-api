@@ -474,7 +474,12 @@ func TestUnitHandleGetStatementOfAffairs(t *testing.T) {
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		statementOfAffairs := generateStatement
+		statementOfAffairs := models.StatementOfAffairsResourceDao{
+			StatementDate: "2021-06-06",
+			Attachments: []string{
+				"1223-3445-5667",
+			},
+		}
 		// Expect GetStatementOfAffairsResource to be called once and return statement of affairs
 		mockService.EXPECT().GetStatementOfAffairsResource(transactionID).Return(statementOfAffairs, nil)
 
