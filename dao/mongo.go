@@ -663,6 +663,38 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 	return *insolvencyResource.Data.Resolution, nil
 }
 
+// GetStatementOfAffairsResource retrieves the statement of affairs filed for an Insolvency Case
+func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (models.StatementOfAffairsResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id": transactionID,
+	}
+
+	// Retrieve statement of affairs from Mongo
+	storedStatementOfAffairs := collection.FindOne(context.Background(), filter)
+	err := storedStatementOfAffairs.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return models.StatementOfAffairsResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return models.StatementOfAffairsResourceDao{}, err
+	}
+
+	err = storedStatementOfAffairs.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return models.StatementOfAffairsResourceDao{}, err
+	}
+
+	return *insolvencyResource.Data.StatementOfAffairs, nil
+}
+
 // DeleteResolutionResource deletes an resource filed for an Insolvency Case
 func (m *MongoService) DeleteResolutionResource(transactionID string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)

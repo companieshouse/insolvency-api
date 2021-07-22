@@ -52,6 +52,9 @@ type Service interface {
 	// CreateResolutionResource creates the resolution resource for an Insolvency Case
 	CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error)
 
+	// GetStatementOfAffairsResource retrieves the statement of affairs resource from an Insolvency Case
+	GetStatementOfAffairsResource(transactionID string) (models.StatementOfAffairsResourceDao, error)
+
 	// GetResolutionResource retrieves the resolution resource from an Insolvency Case
 	GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error)
 
