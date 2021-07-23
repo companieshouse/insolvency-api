@@ -42,6 +42,7 @@ func TestUnitRegisterRoutes(t *testing.T) {
 
 		So(router.GetRoute("createStatementOfAffairs"), ShouldNotBeNil)
 		So(router.GetRoute("getStatementOfAffairs"), ShouldNotBeNil)
+		So(router.GetRoute("deleteStatementOfAffairs"), ShouldNotBeNil)
 
 		So(router.GetRoute("createResolution"), ShouldNotBeNil)
 		So(router.GetRoute("getResolution"), ShouldNotBeNil)

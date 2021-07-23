@@ -631,38 +631,6 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	return http.StatusCreated, nil
 }
 
-// GetResolutionResource retrieves the resolution filed for an Insolvency Case
-func (m *MongoService) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
-
-	var insolvencyResource models.InsolvencyResourceDao
-	collection := m.db.Collection(m.CollectionName)
-
-	filter := bson.M{
-		"transaction_id": transactionID,
-	}
-
-	// Retrieve resolution from Mongo
-	storedResolution := collection.FindOne(context.Background(), filter)
-	err := storedResolution.Err()
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
-			return models.ResolutionResourceDao{}, nil
-		}
-
-		log.Error(err)
-		return models.ResolutionResourceDao{}, err
-	}
-
-	err = storedResolution.Decode(&insolvencyResource)
-	if err != nil {
-		log.Error(err)
-		return models.ResolutionResourceDao{}, err
-	}
-
-	return *insolvencyResource.Data.Resolution, nil
-}
-
 // GetStatementOfAffairsResource retrieves the statement of affairs filed for an Insolvency Case
 func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (models.StatementOfAffairsResourceDao, error) {
 
@@ -693,6 +661,75 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 	}
 
 	return *insolvencyResource.Data.StatementOfAffairs, nil
+}
+
+// DeleteStatementOfAffairsResource deletes the statement of affairs filed for an insolvency case
+func (m *MongoService) DeleteStatementOfAffairsResource(transactionID string) (int, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific transaction for insolvency case with attachment to be removed
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+	}
+
+	query := bson.M{"data.statement-of-affairs": ""}
+
+	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete statement of affairs", transactionID)
+	}
+
+	// Return error if Mongo could not update the document
+	if update.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - statement of affairs not found", transactionID)
+		log.Error(err)
+		return http.StatusNotFound, err
+	}
+
+	return http.StatusNoContent, nil
+}
+
+// GetResolutionResource retrieves the resolution filed for an Insolvency Case
+func (m *MongoService) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id": transactionID,
+	}
+
+	// Retrieve resolution from Mongo
+	storedResolution := collection.FindOne(context.Background(), filter)
+	err := storedResolution.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			return models.ResolutionResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return models.ResolutionResourceDao{}, err
+	}
+
+	err = storedResolution.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return models.ResolutionResourceDao{}, err
+	}
+
+	return *insolvencyResource.Data.Resolution, nil
 }
 
 // DeleteResolutionResource deletes an resource filed for an Insolvency Case
