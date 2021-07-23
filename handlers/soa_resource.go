@@ -134,7 +134,7 @@ func HandleGetStatementOfAffairs(svc dao.Service) http.Handler {
 			return
 		}
 		if statementOfAffairs.StatementDate == "" {
-			m := models.NewMessageResponse("statement of affairs not found on transaction")
+			m := models.NewMessageResponse(fmt.Sprintf("statement of affairs not found on transaction with ID: [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
