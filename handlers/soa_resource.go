@@ -112,6 +112,39 @@ func HandleCreateStatementOfAffairs(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleGetStatementOfAffairs retrieves a statement of affairs stored against the Insolvency Case
+func HandleGetStatementOfAffairs(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for get statement of affairs with transaction id: %s", transactionID))
+
+		statementOfAffairs, err := svc.GetStatementOfAffairsResource(transactionID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get statement of affairs from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if statementOfAffairs.StatementDate == "" {
+			m := models.NewMessageResponse(fmt.Sprintf("statement of affairs not found on transaction with ID: [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully retrieved statement of affairs resource with transaction ID: %s, from mongo", transactionID))
+
+		utils.WriteJSONWithStatus(w, req, statementOfAffairs, http.StatusOK)
+	})
+}
+
 // HandleDeleteStatementOfAffairs deletes a statement of affairs resource from an insolvency case
 func HandleDeleteStatementOfAffairs(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {

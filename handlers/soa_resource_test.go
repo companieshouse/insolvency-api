@@ -408,6 +408,87 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	})
 }
 
+func serveHandleGetStatementOfAffairs(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/statement-of-affairs"
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	res := httptest.NewRecorder()
+
+	handler := HandleGetStatementOfAffairs(service)
+	handler.ServeHTTP(res, req)
+
+	return res
+}
+
+func TestUnitHandleGetStatementOfAffairs(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetStatementOfAffairs(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Failed to get statement of affairs from Insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetStatementOfAffairsResource to be called once and return an error
+		mockService.EXPECT().GetStatementOfAffairsResource(transactionID).Return(models.StatementOfAffairsResourceDao{}, fmt.Errorf("failed to get statement of affairs from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+
+		res := serveHandleGetStatementOfAffairs(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Statment of affairs was not found on supplied transaction", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetStatementOfAffairsResource to be called once and return nil
+		mockService.EXPECT().GetStatementOfAffairsResource(transactionID).Return(models.StatementOfAffairsResourceDao{}, nil)
+
+		res := serveHandleGetStatementOfAffairs(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Success - Statement of affairs was retrieved from insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		statementOfAffairs := models.StatementOfAffairsResourceDao{
+			StatementDate: "2021-06-06",
+			Attachments: []string{
+				"1223-3445-5667",
+			},
+		}
+		// Expect GetStatementOfAffairsResource to be called once and return statement of affairs
+		mockService.EXPECT().GetStatementOfAffairsResource(transactionID).Return(statementOfAffairs, nil)
+
+		res := serveHandleGetStatementOfAffairs(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+	})
+}
+
 func serveHandleDeleteStatementOfAffairs(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/statement-of-affairs"
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
