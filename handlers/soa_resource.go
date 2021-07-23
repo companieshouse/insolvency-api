@@ -112,6 +112,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service) http.Handler {
 	})
 }
 
+// HandleDeleteStatementOfAffairs deletes a statement of affairs resource from an insolvency case
 func HandleDeleteStatementOfAffairs(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
