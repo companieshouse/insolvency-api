@@ -60,14 +60,14 @@ var transactionProfileResponseClosed = `
 }
 `
 
-func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranIdSet bool) *httptest.ResponseRecorder {
+func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 
 	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
 	handler := HandleCreateInsolvencyResource(service)
 
 	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
 
-	if tranIdSet {
+	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
 
@@ -469,13 +469,12 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
-		So(res.Body.String(), ShouldContainSubstring, `"is_valid":false`)
-		So(res.Body.String(), ShouldContainSubstring, `"error":"error getting insolvency resource from DB: [insolvency case does not exist]"`)
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, `there was a problem handling your request`)
 	})
 
 	Convey("Case is found valid for submission", t, func() {
@@ -486,7 +485,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 

@@ -13,19 +13,9 @@ import (
 
 // ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission which is returned as a boolean
 // Any validation errors found are added to an array to be returned
-func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]models.ValidationErrorResponseResource) {
+func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) (bool, *[]models.ValidationErrorResponseResource) {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
-
-	// Retrieve details for the insolvency resource from DB
-	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
-	if err != nil {
-		log.Error(fmt.Errorf("error getting insolvency resource from DB [%s]", err))
-		validationErrors = addValidationError(validationErrors, fmt.Sprintf("error getting insolvency resource from DB: [%s]", err), "insolvency case")
-
-		// If there is an error retrieving the insolvency resource return without running any other validations as they will all fail
-		return false, &validationErrors
-	}
 
 	// Check if there is one practitioner appointed and if there is, ensure that all practitioners are appointed
 	hasAppointedPractitioner := false
@@ -202,19 +192,10 @@ func addValidationError(validationErrors []models.ValidationErrorResponseResourc
 
 // ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission which is returned as a boolean
 // Any validation errors found are added to an array to be returned
-func ValidateAntivirus(svc dao.Service, transactionID string, req *http.Request) (bool, *[]models.ValidationErrorResponseResource) {
+func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, req *http.Request) (bool, *[]models.ValidationErrorResponseResource) {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
-	// Retrieve details for the insolvency resource from DB
-	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
-	if err != nil {
-		log.Error(fmt.Errorf("error getting insolvency resource from DB [%s]", err))
-		validationErrors = addValidationError(validationErrors, fmt.Sprintf("error getting insolvency resource from DB: [%s]", err), "insolvency case")
-
-		// If there is an error retrieving the insolvency resource return without running any other validation as it will fail
-		return false, &validationErrors
-	}
 	// Check if the insolvency resource has attachments, if not then skip validation
 	if len(insolvencyResource.Data.Attachments) != 0 {
 
