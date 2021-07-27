@@ -339,7 +339,13 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 	Convey("error - no attachments present and no appointed practitioners on insolvency case", t, func() {
 		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{},
+			Data: models.InsolvencyResourceDaoData{
+				Practitioners: []models.PractitionerResourceDao{
+					{
+						FirstName: "Bob",
+					},
+				},
+			},
 		}
 
 		isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
@@ -348,6 +354,19 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no attachments")
+	})
+
+	Convey("error - no resolution and no submitted practitioners on insolvency case", t, func() {
+		insolvencyCase := models.InsolvencyResourceDao{
+			Data: models.InsolvencyResourceDaoData{},
+		}
+
+		isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioners with no resolution")
 	})
 
 	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
