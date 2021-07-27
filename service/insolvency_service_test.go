@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/constants"
-
 	"github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
