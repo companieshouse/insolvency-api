@@ -123,7 +123,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	// Check if "statement-of-affairs-director" has been filed, if so, then a statement date must be present
 	_, hasStatementOfAffairsDirector := attachmentTypes[constants.StatementOfAffairsDirector.String()]
 	if hasStatementOfAffairsDirector {
-		if insolvencyResource.Data.StatementOfAffairs.StatementDate == "" {
+		if insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate == "" {
 			validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
