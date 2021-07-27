@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 )
@@ -127,6 +128,17 @@ func ValidateInsolvencyDetails(svc dao.Service, transactionID string) (bool, *[]
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 		return false, &validationErrors
+	}
+
+	// Check if "statement-of-affairs-director" has been filed, if so, then a statement date must be present
+	_, hasStatementOfAffairsDirector := attachmentTypes[constants.StatementOfAffairsDirector.String()]
+	if hasStatementOfAffairsDirector {
+		if insolvencyResource.Data.StatementOfAffairs.StatementDate == "" {
+			validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), insolvencyResource.TransactionID)
+			log.Error(fmt.Errorf(validationError))
+			validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
+			return false, &validationErrors
+		}
 	}
 
 	if !hasAttachments && !hasAppointedPractitioner {
