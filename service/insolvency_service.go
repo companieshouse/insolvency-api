@@ -143,7 +143,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	if !hasSubmittedPractitioner && !hasResolutionAttachment {
 		validationError := fmt.Sprintf("error - if no practitioners are present then an attachment of the type resolution must be present")
 		log.Error(fmt.Errorf(validationError))
-		validationErrors = addValidationError(validationErrors, validationError, "practitioners with no resolution")
+		validationErrors = addValidationError(validationErrors, validationError, "no practitioners and no resolution")
 		return false, &validationErrors
 	}
 

@@ -366,7 +366,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioners with no resolution")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "no practitioners and no resolution")
 	})
 
 	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
