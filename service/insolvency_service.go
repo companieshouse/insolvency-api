@@ -36,6 +36,8 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		}
 	}
 
+	hasSubmittedPractitioner := insolvencyResource.Data.Practitioners != nil && len(insolvencyResource.Data.Practitioners) > 0
+
 	// Check if attachment type is "resolution", if not then at least one practitioner must be present
 	hasResolutionAttachment := false
 	resolutionArrayPosition := 0
@@ -129,10 +131,17 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		return false, &validationErrors
 	}
 
-	if !hasAttachments && !hasAppointedPractitioner {
+	if !hasAttachments && hasSubmittedPractitioner && !hasAppointedPractitioner {
 		validationError := fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no attachments")
+		return false, &validationErrors
+	}
+
+	if !hasSubmittedPractitioner && !hasResolutionAttachment {
+		validationError := fmt.Sprintf("error - if no practitioners are present then an attachment of the type resolution must be present")
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "no practitioners and no resolution")
 		return false, &validationErrors
 	}
 
