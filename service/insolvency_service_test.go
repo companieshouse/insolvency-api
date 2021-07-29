@@ -491,7 +491,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
 	})
 
-	Convey("error - statement-of-affairs-director filed but no statement resource exists in DB", t, func() {
+	Convey("error - statement resource exists in DB but no statement-of-affairs attachment filed", t, func() {
 
 		// Create insolvency case and remove SOA date
 		insolvencyCase := createInsolvencyResource()
