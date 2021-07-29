@@ -131,6 +131,13 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		return false, &validationErrors
 	}
 
+	if insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != "" && !hasStatementOfAffairsDirector {
+		validationError := fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyResource.TransactionID)
+		log.Error(fmt.Errorf(validationError))
+		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
+		return false, &validationErrors
+	}
+
 	if !hasAttachments && hasSubmittedPractitioner && !hasAppointedPractitioner {
 		validationError := fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))

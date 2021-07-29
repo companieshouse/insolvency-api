@@ -491,6 +491,20 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
 	})
 
+	Convey("error - statement resource exists in DB but no statement-of-affairs attachment filed", t, func() {
+
+		// Create insolvency case and remove SOA date
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[1].Type = "random"
+
+		isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
+	})
+
 	Convey("error - practitioner appointment is before date of resolution", t, func() {
 		// Add resolution to insolvency case
 		insolvencyCase := createInsolvencyResource()
