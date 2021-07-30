@@ -314,7 +314,7 @@ paths:
         200:
           description: The appointment was deleted from this transaction
 
-  /transactions/{transaction_id}/insolvency/statements-of-affairs:
+  /transactions/{transaction_id}/insolvency/statement-of-affairs:
     post:
       tags:
         - "Statement of Affairs"
