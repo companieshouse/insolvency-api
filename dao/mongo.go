@@ -497,7 +497,7 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 	}
 
 	// Retrieve attachment from Mongo
-	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments": 1})
+	opts := options.FindOne().SetProjection(bson.M{"_id": 0, "data.attachments.$": 1})
 	storedAttachment := collection.FindOne(context.Background(), filter, opts)
 	err := storedAttachment.Err()
 	if err != nil {
