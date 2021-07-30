@@ -573,6 +573,50 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
+	Convey("Validate statement date and resolution date", t, func() {
+		Convey("Invalid statement date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "invalid"
+
+			isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(isValid, ShouldBeFalse)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid statementOfAffairs date")
+		})
+
+		Convey("Invalid resolution date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.Resolution.DateOfResolution = "invalid"
+			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
+
+			isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(isValid, ShouldBeFalse)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid resolution date")
+		})
+
+		Convey("Statement date before resolution date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-20"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
+
+			isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(isValid, ShouldBeFalse)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must not be before resolution date")
+		})
+
+		Convey("Statement date > 7 days after resolution date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-29"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
+
+			isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(isValid, ShouldBeFalse)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must be within 7 days of resolution date")
+		})
+
+	})
+
 	Convey("valid insolvency case - appointment date is after resolution date", t, func() {
 		// Add resolution to insolvency case
 		insolvencyCase := createInsolvencyResource()
@@ -591,6 +635,12 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(isValid, ShouldBeTrue)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
+}
+
+func TestUnitValidateAntivirus(t *testing.T) {
+
+	httpmock.Activate()
+	defer httpmock.DeactivateAndReset()
 
 	Convey("error - antivirus check has not been completed", t, func() {
 		mockCtrl := gomock.NewController(t)

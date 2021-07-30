@@ -11,6 +11,9 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 )
 
+// layout for parsing dates
+const dateLayout = "2006-01-02"
+
 // ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission which is returned as a boolean
 // Any validation errors found are added to an array to be returned
 func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) (bool, *[]models.ValidationErrorResponseResource) {
@@ -170,22 +173,36 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		}
 	}
 
+	// If both Statement Of Affairs Date and Resolution Date provided, validate against each other
+	hasStatementOfAffairsDate := insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != ""
+	hasResolutionDate := insolvencyResource.Data.Resolution != nil && insolvencyResource.Data.Resolution.DateOfResolution != ""
+	if hasStatementOfAffairsDate && hasResolutionDate {
+		ok, reason, err, errLocation := checkValidStatementOfAffairsDate(insolvencyResource.Data.StatementOfAffairs.StatementDate, insolvencyResource.Data.Resolution.DateOfResolution)
+		if err != nil {
+			validationErrors = addValidationError(validationErrors, fmt.Sprint(err), errLocation)
+			return false, &validationErrors
+		}
+		if !ok {
+			validationErrors = addValidationError(validationErrors, reason, errLocation)
+			return false, &validationErrors
+		}
+	}
+
 	return true, &validationErrors
 }
 
 // checkValidAppointmentData parses and checks if the appointment date is on or after the dateOfResolution
 func checkValidAppointmentDate(appointedOn string, dateOfResolution string) (bool, error) {
-	layout := "2006-01-02"
 
 	// Parse appointedOn to time
-	appointmentDate, err := time.Parse(layout, appointedOn)
+	appointmentDate, err := time.Parse(dateLayout, appointedOn)
 	if err != nil {
 		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
 		return false, err
 	}
 
 	// Parse dateOfResolution to time
-	resolutionDate, err := time.Parse(layout, dateOfResolution)
+	resolutionDate, err := time.Parse(dateLayout, dateOfResolution)
 	if err != nil {
 		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
 		return false, err
@@ -197,6 +214,32 @@ func checkValidAppointmentDate(appointedOn string, dateOfResolution string) (boo
 	}
 
 	return true, nil
+}
+
+func checkValidStatementOfAffairsDate(statementOfAffairsDate string, resolutionDate string) (bool, string, error, string) {
+	soaDate, err := time.Parse(dateLayout, statementOfAffairsDate)
+	if err != nil {
+		log.Error(fmt.Errorf("error parsing statementOfAffairs date [%s]: [%s]", statementOfAffairsDate, err))
+		return false, "", fmt.Errorf("invalid statementOfAffairs date"), "statement of affairs date"
+	}
+
+	resDate, err := time.Parse(dateLayout, resolutionDate)
+	if err != nil {
+		log.Error(fmt.Errorf("error parsing resolution date [%s]: [%s]", resolutionDate, err))
+		return false, "", fmt.Errorf("invalid resolution date"), "resolution date"
+	}
+
+	// Statement Of Affairs Date must not be before Resolution Date
+	if soaDate.Before(resDate) {
+		return false, "error - statement of affairs date must not be before resolution date", nil, ""
+	}
+
+	// Statement Of Affairs Date must not be more than 7 days after resolution date
+	if soaDate.Sub(resDate).Hours()/24 > 7 {
+		return false, "error - statement of affairs date must be within 7 days of resolution date", nil, ""
+	}
+
+	return true, "", nil, ""
 }
 
 // addValidationError adds any validation errors to an array of existing errors
