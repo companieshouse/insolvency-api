@@ -473,7 +473,32 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
+	})
+
+	Convey("error - statement-of-affairs-liquidator filed but no statement resource exists in DB", t, func() {
+
+		// Create insolvency case
+		insolvencyCase := createInsolvencyResource()
+
+		// Remove practitioner to prevent triggering another error
+		insolvencyCase.Data.Practitioners = make([]models.PractitionerResourceDao, 0)
+
+		// Change attachment type to SOA-L
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-liquidator"
+
+		// Make statement date an empty string
+		insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
+			StatementDate: "",
+		}
+
+		isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		fmt.Println("validation errors:", validationErrors)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
 	})
 
@@ -487,7 +512,30 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		So(isValid, ShouldBeFalse)
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
+	})
+
+	Convey("error - statement-of-affairs-liquidator filed but no statement resource exists in DB", t, func() {
+
+		// Create insolvency case
+		insolvencyCase := createInsolvencyResource()
+
+		// Remove practitioner to prevent triggering another error
+		insolvencyCase.Data.Practitioners = make([]models.PractitionerResourceDao, 0)
+
+		// Change attachment type to SOA-L
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-liquidator"
+
+		// Remove statement resource
+		insolvencyCase.Data.StatementOfAffairs = nil
+
+		isValid, validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		fmt.Println("validation errors:", validationErrors)
+
+		So(isValid, ShouldBeFalse)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
 	})
 
