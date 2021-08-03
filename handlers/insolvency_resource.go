@@ -138,7 +138,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 
 		isCaseValid := true
 		if len(*validationErrors) > 0 {
-			log.ErrorR(req, fmt.Errorf("case for transaction id [%s] was not found valid for submission for reason(s): [%v]", transactionID, validationErrors))
+			log.InfoR(req, fmt.Sprintf("case for transaction id [%s] was not found valid for submission for reason(s): [%v]", transactionID, *validationErrors))
 			isCaseValid = false
 		}
 
