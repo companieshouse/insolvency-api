@@ -98,7 +98,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	}
 
 	// Check if attachment_type is resolution, if true then date_of_resolution must be present
-	if hasResolutionAttachment && resolutionFiled && insolvencyResource.Data.Resolution.DateOfResolution == "" {
+	if hasResolutionAttachment && (!resolutionFiled || (resolutionFiled && insolvencyResource.Data.Resolution.DateOfResolution == "")) {
 		validationError := fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no date of resolution")

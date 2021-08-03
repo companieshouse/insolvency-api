@@ -377,6 +377,19 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "no date of resolution")
 	})
 
+	Convey("error - resolution attachment present and no resolution details filed for insolvency case", t, func() {
+		insolvencyCase := createInsolvencyResource()
+		insolvencyCase.Data.Attachments[0].Type = "resolution"
+		insolvencyCase.Data.Practitioners = nil
+		insolvencyCase.Data.Resolution = nil
+
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "no date of resolution")
+	})
+
 	Convey("error - date_of_resolution present and no resolution filed for insolvency case", t, func() {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "test"
