@@ -128,17 +128,18 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 			return
 		}
 
-		isCaseValid, validationErrors := service.ValidateInsolvencyDetails(insolvencyResource)
-		isAntivirusValid, antivirusValidationError := service.ValidateAntivirus(svc, insolvencyResource, req)
+		validationErrors := service.ValidateInsolvencyDetails(insolvencyResource)
+		antivirusValidationErrors := service.ValidateAntivirus(svc, insolvencyResource, req)
 
 		// If antivirus check has failed, set case false and append antivirus validation error to existing validation errors
-		if !isAntivirusValid {
-			isCaseValid = false
-			*validationErrors = append(*validationErrors, *antivirusValidationError...)
+		if len(*antivirusValidationErrors) > 0 {
+			*validationErrors = append(*validationErrors, *antivirusValidationErrors...)
 		}
 
-		if !isCaseValid {
+		isCaseValid := true
+		if len(*validationErrors) > 0 {
 			log.ErrorR(req, fmt.Errorf("case for transaction id [%s] was not found valid for submission for reason(s): [%v]", transactionID, validationErrors))
+			isCaseValid = false
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully finished GET request for validating insolvency resource with transaction id: %s", transactionID))

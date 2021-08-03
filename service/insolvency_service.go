@@ -14,9 +14,9 @@ import (
 // layout for parsing dates
 const dateLayout = "2006-01-02"
 
-// ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission which is returned as a boolean
+// ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission
 // Any validation errors found are added to an array to be returned
-func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) (bool, *[]models.ValidationErrorResponseResource) {
+func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) *[]models.ValidationErrorResponseResource {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
@@ -34,7 +34,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 				validationError := fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyResource.TransactionID)
 				log.Error(fmt.Errorf(validationError))
 				validationErrors = addValidationError(validationErrors, validationError, "appointment")
-				return false, &validationErrors
 			}
 		}
 	}
@@ -56,7 +55,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 			validationError := fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "resolution attachment type")
-			return false, &validationErrors
 		}
 	}
 
@@ -75,7 +73,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
-			return false, &validationErrors
 		}
 	}
 
@@ -86,7 +83,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "statement of affairs liquidator attachment type")
-		return false, &validationErrors
 	}
 
 	// Check if attachments are present, if false then at least one appointed practitioner must be present
@@ -106,7 +102,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no date of resolution")
-		return false, &validationErrors
 	}
 
 	// Check if date_of_resolution is present, then resolution attachment must be present
@@ -114,7 +109,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - a resolution attachment must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no resolution")
-		return false, &validationErrors
 	}
 
 	// Check that id of uploaded resolution attachment matches attachment id supplied in resolution
@@ -122,7 +116,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
-		return false, &validationErrors
 	}
 
 	// Check if "statement-of-affairs-director" or "statement-of-affairs-liquidator" has been filed, if so, then a statement date must be present
@@ -131,7 +124,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
-		return false, &validationErrors
 	}
 
 	// Check if SOA resource exists or statement date is not empty in DB, if not, then an SOA-D or SOA-L attachment must be filed
@@ -139,21 +131,18 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationError := fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
-		return false, &validationErrors
 	}
 
 	if !hasAttachments && hasSubmittedPractitioner && !hasAppointedPractitioner {
 		validationError := fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no attachments")
-		return false, &validationErrors
 	}
 
 	if !hasSubmittedPractitioner && !hasResolutionAttachment {
 		validationError := fmt.Sprintf("error - if no practitioners are present then an attachment of the type resolution must be present")
 		log.Error(fmt.Errorf(validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no practitioners and no resolution")
-		return false, &validationErrors
 	}
 
 	// Check if case has appointed practitioner and resolution attached
@@ -164,12 +153,10 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 			ok, err := checkValidAppointmentDate(practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
 			if err != nil {
 				validationErrors = addValidationError(validationErrors, fmt.Sprint(err), "practitioner")
-				return false, &validationErrors
 			}
 			if !ok {
 				validationError := fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", practitioner.ID, practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
 				validationErrors = addValidationError(validationErrors, validationError, "practitioner")
-				return false, &validationErrors
 			}
 		}
 	}
@@ -181,15 +168,13 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		ok, reason, err, errLocation := checkValidStatementOfAffairsDate(insolvencyResource.Data.StatementOfAffairs.StatementDate, insolvencyResource.Data.Resolution.DateOfResolution)
 		if err != nil {
 			validationErrors = addValidationError(validationErrors, fmt.Sprint(err), errLocation)
-			return false, &validationErrors
 		}
 		if !ok {
 			validationErrors = addValidationError(validationErrors, reason, errLocation)
-			return false, &validationErrors
 		}
 	}
 
-	return true, &validationErrors
+	return &validationErrors
 }
 
 // checkValidAppointmentData parses and checks if the appointment date is on or after the dateOfResolution
@@ -248,9 +233,9 @@ func addValidationError(validationErrors []models.ValidationErrorResponseResourc
 	return append(validationErrors, *models.NewValidationErrorResponse(validationError, errorLocation))
 }
 
-// ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission which is returned as a boolean
+// ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission
 // Any validation errors found are added to an array to be returned
-func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, req *http.Request) (bool, *[]models.ValidationErrorResponseResource) {
+func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, req *http.Request) *[]models.ValidationErrorResponseResource {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
@@ -281,7 +266,6 @@ func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyReso
 			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "antivirus incomplete")
-			return false, &validationErrors
 		}
 		// Check avStatuses map to see if status "infected" exists
 		_, attachmentInfected := avStatuses["infected"]
@@ -289,11 +273,10 @@ func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyReso
 			validationError := fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyResource.TransactionID)
 			log.Error(fmt.Errorf(validationError))
 			validationErrors = addValidationError(validationErrors, validationError, "antivirus failure")
-			return false, &validationErrors
 		}
 	}
 
-	return true, &validationErrors
+	return &validationErrors
 }
 
 // GenerateFilings generates an array of filings for this insolvency resource to be used by the filing resource handler
