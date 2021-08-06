@@ -21,4 +21,5 @@ var ForbiddenCompanyTypes = []string{
 	"charitable-incorporated-organisation",
 	"scottish-charitable-incorporated-organisation",
 	"further-education-or-sixth-form-college-corporation",
+	"llp",
 }
