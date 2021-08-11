@@ -657,6 +657,19 @@ func TestUnitValidateAntivirus(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
+	Convey("insolvency resource not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		insolvencyCase := models.InsolvencyResourceDao{}
+
+		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		So(validationErrors, ShouldHaveLength, 1)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, "insolvency case not found")
+		So((*validationErrors)[0].Location, ShouldContainSubstring, "insolvency case")
+	})
+
 	Convey("error - antivirus check has not been completed", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
