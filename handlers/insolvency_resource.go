@@ -129,7 +129,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 		}
 
 		validationErrors := service.ValidateInsolvencyDetails(insolvencyResource)
-		antivirusValidationErrors := service.ValidateAntivirus(svc, insolvencyResource, req)
+		antivirusValidationErrors := service.ValidateAntivirus(svc, insolvencyResource, transactionID, req)
 
 		// If antivirus check has failed, set case false and append antivirus validation error to existing validation errors
 		if len(*antivirusValidationErrors) > 0 {
