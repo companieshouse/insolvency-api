@@ -238,13 +238,13 @@ func addValidationError(validationErrors []models.ValidationErrorResponseResourc
 
 // ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission
 // Any validation errors found are added to an array to be returned
-func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, req *http.Request) *[]models.ValidationErrorResponseResource {
+func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, transactionID string, req *http.Request) *[]models.ValidationErrorResponseResource {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
 	// Check if transactionID is empty to check if insolvency resource was found in DB
 	if insolvencyResource.TransactionID == "" {
-		log.Info("insolvency case not found")
+		log.Info(fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID))
 		validationErrors = addValidationError(validationErrors, "insolvency case not found", "insolvency case")
 
 		// If there is an error retrieving the insolvency resource return without running any other validation as it will fail
