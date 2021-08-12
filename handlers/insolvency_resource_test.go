@@ -473,8 +473,8 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-		So(res.Body.String(), ShouldContainSubstring, `there was a problem handling your request`)
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID))
 	})
 
 	Convey("Error returning insolvency case from DB", t, func() {

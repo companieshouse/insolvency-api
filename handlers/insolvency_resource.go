@@ -123,7 +123,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 		insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 		if err != nil {
 			// Check if insolvency case was not found
-			if err == fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {
+			if err.Error() == fmt.Sprintf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {
 				message := fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID)
 				log.Info(message)
 				m := models.NewMessageResponse(message)
