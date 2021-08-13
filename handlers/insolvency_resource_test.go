@@ -461,7 +461,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Case is not found valid for submission - error returning insolvency case from mongoDB", t, func() {
+	Convey("Insolvency case not found in DB", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
@@ -469,7 +469,23 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)).Times(1)
+
+		res := serveHandleGetValidationStatus(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID))
+	})
+
+	Convey("Error returning insolvency case from DB", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, errors.New("error getting insolvency case from DB")).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 

@@ -657,19 +657,6 @@ func TestUnitValidateAntivirus(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	Convey("insolvency resource not found", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		mockService := mocks.NewMockService(mockCtrl)
-
-		insolvencyCase := models.InsolvencyResourceDao{}
-
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, transactionID, req)
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, "insolvency case not found")
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "insolvency case")
-	})
-
 	Convey("error - antivirus check has not been completed", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -689,7 +676,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, transactionID, req)
+		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyCase.TransactionID))
@@ -715,7 +702,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, transactionID, req)
+		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyCase.TransactionID))
@@ -741,7 +728,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(2)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, transactionID, req)
+		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 }
