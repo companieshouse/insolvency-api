@@ -26,7 +26,7 @@ Variable                        | Default   | Description
 
 ## Swagger UI
 
-Insolvency API specifications schema: [https://github.com/companieshouse/insolvency-api/blob/master/apispec/schema.yml]()
+Insolvency API specifications schema: [https://github.com/companieshouse/insolvency-api/blob/master/apispec/schema.yml]().
 
 Run the following to view the spec in the browser:
 
