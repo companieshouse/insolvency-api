@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../docker-chs-development"
+    },
+    {
+      "path": "../ci-pipelines"
+    }
+  ]
+}

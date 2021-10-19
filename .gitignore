@@ -2,6 +2,7 @@
 insolvency-api
 insolvency-api-*.zip
 build.log
+vendor/
 
 #VS Code files
 /.vscode/*
