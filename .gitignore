@@ -6,6 +6,7 @@ vendor/
 
 #VS Code files
 /.vscode/*
+*.code-workspace
 !/.vscode/settings.json
 
 # Test output
