@@ -10,6 +10,7 @@ import (
 var cfg *Config
 var mtx sync.Mutex
 
+// Dummy comment remove later
 // Config defines the configuration options for this service.
 type Config struct {
 	BindAddr        string `env:"BIND_ADDR"                             flag:"bind-addr"                       flagDesc:"Bind address"`
