@@ -3,6 +3,7 @@
  !config/
  !dao/
  !handlers/
+ !interceptors/
  !constants/
  !models/
  !service/
@@ -11,3 +12,4 @@
  !go.mod
  !go.sum
  !main.go
+ !vendor/
