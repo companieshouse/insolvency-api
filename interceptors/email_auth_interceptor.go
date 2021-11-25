@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/service"
 )
 
@@ -17,17 +18,19 @@ func EmailAuthIntercept(next http.Handler) http.Handler {
 		ericAuthorisedUserHeader := r.Header.Get("ERIC-Authorised-User")
 		oauth2UserEmail := strings.Fields(ericAuthorisedUserHeader)[0]
 
-		// TODO: remove this logging comment - just here to check email is extracted
-		fmt.Println(oauth2UserEmail, "<= oauth2UserEmail") 
-
 		isUserOnEfsAllowList, err := service.IsUserOnEfsAllowList(oauth2UserEmail, r)
 
-		// TODO: error handling
-		
-		fmt.Println(isUserOnEfsAllowList, "<= isUserOnEfsAllowList") 
-		fmt.Println(err, "<= error") 
+		if err != nil {
+			log.ErrorR(r, fmt.Errorf("error checking EFS allow list: [%s]", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		if !isUserOnEfsAllowList {
+			log.ErrorR(r, fmt.Errorf("user not on EFS allow list"))
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 
-		// if all fine
 		next.ServeHTTP(w, r)
 	})
 }

@@ -19,9 +19,12 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 	isUserAllowed, err := api.Efs.IsUserOnAllowList(emailAddress).Do()
 	if err != nil {
 		// Return that there has been an error contacting the transaction api
-		return isUserAllowed.IsUserOnEfsAllowList, fmt.Errorf("error communicating with the EFS submission api")
+		return false, fmt.Errorf("error communicating with the EFS submission api: [%s]", err)
 	}
 
-	return isUserAllowed.IsUserOnEfsAllowList, nil
+	if isUserAllowed == nil {
+		return false, fmt.Errorf("error communicating with the EFS submission API: no response received")
+	}
 
+	return isUserAllowed.UserAllowed, nil
 }
