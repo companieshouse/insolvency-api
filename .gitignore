@@ -11,7 +11,7 @@ vendor/
 
 # Test output
 test.xml
-coverage.out
+coverage.*
 
 # Lint output
 lint.txt
