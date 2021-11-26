@@ -23,7 +23,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 
 	// Create a public router that requires all users to be authenticated when making requests
 	publicAppRouter := mainRouter.PathPrefix("/transactions").Subrouter()
-	publicAppRouter.Use(userAuthInterceptor.UserAuthenticationIntercept, interceptors.EmailAuthIntercept)
+	publicAppRouter.Use(userAuthInterceptor.UserAuthenticationIntercept, interceptors.EmailAuthIntercept, interceptors.InsolvencyPermissionsIntercept)
 
 	// Declare endpoint URIs
 	publicAppRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
