@@ -23,7 +23,7 @@ func TestUnitInsolvencyPermissionsIntercept(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			test := InsolvencyPermissionsIntercept(GetTestHandler())
+			test := InsolvencyPermissionsIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 
 			So(w.Code, ShouldEqual, http.StatusInternalServerError)
@@ -35,7 +35,7 @@ func TestUnitInsolvencyPermissionsIntercept(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			test := InsolvencyPermissionsIntercept(GetTestHandler())
+			test := InsolvencyPermissionsIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 
 			So(w.Code, ShouldEqual, http.StatusOK)
@@ -47,7 +47,7 @@ func TestUnitInsolvencyPermissionsIntercept(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			test := InsolvencyPermissionsIntercept(GetTestHandler())
+			test := InsolvencyPermissionsIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 
 			So(w.Code, ShouldEqual, http.StatusOK)
@@ -59,7 +59,7 @@ func TestUnitInsolvencyPermissionsIntercept(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			test := InsolvencyPermissionsIntercept(GetTestHandler())
+			test := InsolvencyPermissionsIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 
 			So(w.Code, ShouldEqual, http.StatusUnauthorized)

@@ -1,19 +1,41 @@
 package interceptors
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/companieshouse/chs.go/authentication"
 	"github.com/jarcoal/httpmock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func GetTestHandler() http.HandlerFunc {
+func getTestHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}
+}
+
+func testContext() context.Context {
+	ctx := context.Background()
+	ctx = context.WithValue(
+		ctx,
+		authentication.ContextKeyUserDetails,
+		authentication.AuthUserDetails{Email: "demo@companieshouse.gov.uk"},
+	)
+	return ctx
+}
+
+func invalidTestContext() context.Context {
+	ctx := context.Background()
+	ctx = context.WithValue(
+		ctx,
+		authentication.ContextKeyUserDetails,
+		"invalid",
+	)
+	return ctx
 }
 
 func TestUnitEmailAuthIntercept(t *testing.T) {
@@ -21,9 +43,17 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
+		Convey("Invalid user details in context", func() {
+			req, _ := http.NewRequestWithContext(invalidTestContext(), "GET", "", nil)
+
+			w := httptest.NewRecorder()
+			test := EmailAuthIntercept(getTestHandler())
+			test.ServeHTTP(w, req)
+			So(w.Code, ShouldEqual, http.StatusInternalServerError)
+		})
+
 		Convey("Error checking EFS allow list", func() {
-			req, _ := http.NewRequest("GET", "", nil)
-			req.Header.Set("ERIC-Authorised-User", "demo@companieshouse.gov.uk test")
+			req, _ := http.NewRequestWithContext(testContext(), "GET", "", nil)
 
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(
@@ -33,14 +63,13 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			test := EmailAuthIntercept(GetTestHandler())
+			test := EmailAuthIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 			So(w.Code, ShouldEqual, http.StatusInternalServerError)
 		})
 
 		Convey("User not allowed", func() {
-			req, _ := http.NewRequest("GET", "", nil)
-			req.Header.Set("ERIC-Authorised-User", "demo@companieshouse.gov.uk test")
+			req, _ := http.NewRequestWithContext(testContext(), "GET", "", nil)
 
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(
@@ -50,14 +79,13 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			test := EmailAuthIntercept(GetTestHandler())
+			test := EmailAuthIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 			So(w.Code, ShouldEqual, http.StatusUnauthorized)
 		})
 
 		Convey("User allowed", func() {
-			req, _ := http.NewRequest("GET", "", nil)
-			req.Header.Set("ERIC-Authorised-User", "demo@companieshouse.gov.uk test")
+			req, _ := http.NewRequestWithContext(testContext(), "GET", "", nil)
 
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(
@@ -67,10 +95,9 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			)
 
 			w := httptest.NewRecorder()
-			test := EmailAuthIntercept(GetTestHandler())
+			test := EmailAuthIntercept(getTestHandler())
 			test.ServeHTTP(w, req)
 			So(w.Code, ShouldEqual, http.StatusOK)
 		})
-
 	})
 }
