@@ -100,4 +100,5 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			So(w.Code, ShouldEqual, http.StatusOK)
 		})
 	})
-}
+} 
+ 
