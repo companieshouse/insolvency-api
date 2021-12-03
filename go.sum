@@ -11,8 +11,6 @@ github.com/companieshouse/chs.go v1.2.6 h1:q5W8JPUDIDBrwiRYl5UefnWK14x4aTC+ZysYy
 github.com/companieshouse/chs.go v1.2.6/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6ppcTDBmQ=
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
-github.com/companieshouse/go-sdk-manager v0.1.10 h1:If/z3fbgXR/+rpSSfbUYdQ2i1cbYWjF6PvEhIUuel3k=
-github.com/companieshouse/go-sdk-manager v0.1.10/go.mod h1:+oN76sQ5uwQh/moEDK4r0wR3kHoH+WHuODAxScdbN/U=
 github.com/companieshouse/go-sdk-manager v0.1.11 h1:D0mkpOxp2VcJrz+Oadzg4rLz7sHaQmbOCzBxH4D0mSc=
 github.com/companieshouse/go-sdk-manager v0.1.11/go.mod h1:+oN76sQ5uwQh/moEDK4r0wR3kHoH+WHuODAxScdbN/U=
 github.com/companieshouse/go-session-handler v0.1.1/go.mod h1:SxvarOscnlb8qivxJsjVmROri/7iuCm+Kcs6fglhKEE=
@@ -33,7 +31,6 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/eknkc/amber v0.0.0-20171010120322-cdade1c07385/go.mod h1:0vRUJqYpeSZifjYj7uP3BG/gKcuzL9xWVV/Y+cK33KM=
 github.com/elodina/go-avro v0.0.0-20160406082632-0c8185d9a3ba/go.mod h1:3A7SOsr8WBIpkWUsqzMpR3tIQbanKqxZcis2GSl12Nk=
-github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/go-playground/assert/v2 v2.0.1 h1:MsBgLAaY856+nPRTKrp3/OZK38U/wa0CcBYNjji3q3A=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
