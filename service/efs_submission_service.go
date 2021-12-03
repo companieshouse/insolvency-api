@@ -9,7 +9,7 @@ import (
 
 // IsUserOnEfsAllowList uses the sdk to call the EFS api and return a boolean depending on whether or not the email address is on the allow list
 func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) {
-	api, err := manager.GetPrivateSDK(req)
+	api, err := manager.GetInternalSDK(req)
 	if err != nil {
 		return false, fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error())
 	}

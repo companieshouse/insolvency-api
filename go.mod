@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/companieshouse/api-sdk-go v0.1.17
 	github.com/companieshouse/chs.go v1.2.6
-	github.com/companieshouse/go-sdk-manager v0.1.10
+	github.com/companieshouse/go-sdk-manager v0.1.11
 	github.com/companieshouse/go-session-handler v0.1.5
 	github.com/companieshouse/gofigure v0.1.4
 	github.com/companieshouse/private-api-sdk-go v0.1.9
