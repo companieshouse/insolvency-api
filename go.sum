@@ -13,6 +13,8 @@ github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6p
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
 github.com/companieshouse/go-sdk-manager v0.1.10 h1:If/z3fbgXR/+rpSSfbUYdQ2i1cbYWjF6PvEhIUuel3k=
 github.com/companieshouse/go-sdk-manager v0.1.10/go.mod h1:+oN76sQ5uwQh/moEDK4r0wR3kHoH+WHuODAxScdbN/U=
+github.com/companieshouse/go-sdk-manager v0.1.11 h1:D0mkpOxp2VcJrz+Oadzg4rLz7sHaQmbOCzBxH4D0mSc=
+github.com/companieshouse/go-sdk-manager v0.1.11/go.mod h1:+oN76sQ5uwQh/moEDK4r0wR3kHoH+WHuODAxScdbN/U=
 github.com/companieshouse/go-session-handler v0.1.1/go.mod h1:SxvarOscnlb8qivxJsjVmROri/7iuCm+Kcs6fglhKEE=
 github.com/companieshouse/go-session-handler v0.1.5 h1:lkiWJLE0hXNrkUawBQ9ul9VnK2qUNGeh9kzuvZXGJs8=
 github.com/companieshouse/go-session-handler v0.1.5/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
