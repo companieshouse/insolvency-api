@@ -37,7 +37,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 
 		// Request body failed to get decoded
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("invalid request"))
+			log.ErrorR(req, fmt.Errorf("invalid request"), err)
 			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
