@@ -31,12 +31,14 @@ type CreatedPractitionerResource struct {
 
 // CreatedAddressResource contains the address fields for the created practitioner resource
 type CreatedAddressResource struct {
+	Premises     string `json:"premises"`
 	AddressLine1 string `json:"address_line_1"`
 	AddressLine2 string `json:"address_line_2"`
 	Country      string `json:"country"`
 	Locality     string `json:"locality"`
 	Region       string `json:"region"`
 	PostalCode   string `json:"postal_code"`
+	POBox        string `json:"po_box"`
 }
 
 // CreatedPractitionerLinksResource contains the links details for a practitioner
