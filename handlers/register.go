@@ -15,8 +15,14 @@ import (
 func Register(mainRouter *mux.Router, svc dao.Service) {
 
 	userAuthInterceptor := &authentication.UserAuthenticationInterceptor{
-		AllowAPIKeyUser:                true,
+		AllowAPIKeyUser:                false,
 		RequireElevatedAPIKeyPrivilege: false,
+	}
+	
+	
+	privateUserAuthInterceptor := &authentication.UserAuthenticationInterceptor{
+		AllowAPIKeyUser:                true,
+		RequireElevatedAPIKeyPrivilege: true,
 	}
 
 	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
@@ -54,7 +60,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 
 	// Create a private router that requires all users to be authenticated when making requests
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
-	privateAppRouter.Use(userAuthInterceptor.UserAuthenticationIntercept)
+	privateAppRouter.Use(privateUserAuthInterceptor.UserAuthenticationIntercept)
 
 	privateAppRouter.Handle("/transactions/{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
