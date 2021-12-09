@@ -24,12 +24,14 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 		TelephoneNumber: req.TelephoneNumber,
 		Email:           req.Email,
 		Address: models.AddressResourceDao{
+			Premises:     req.Address.Premises,
 			AddressLine1: req.Address.AddressLine1,
 			AddressLine2: req.Address.AddressLine2,
 			Country:      req.Address.Country,
 			Locality:     req.Address.Locality,
 			Region:       req.Address.Region,
 			PostalCode:   req.Address.PostalCode,
+			POBox:        req.Address.POBox,
 		},
 		Role: req.Role,
 		Links: models.PractitionerResourceLinksDao{
@@ -49,12 +51,14 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 		TelephoneNumber: model.TelephoneNumber,
 		Email:           model.Email,
 		Address: models.CreatedAddressResource{
+			Premises:     model.Address.Premises,
 			AddressLine1: model.Address.AddressLine1,
 			AddressLine2: model.Address.AddressLine2,
 			Country:      model.Address.Country,
 			Locality:     model.Address.Locality,
 			Region:       model.Address.Region,
 			PostalCode:   model.Address.PostalCode,
+			POBox:        model.Address.POBox,
 		},
 		Role: model.Role,
 		Links: models.CreatedPractitionerLinksResource{

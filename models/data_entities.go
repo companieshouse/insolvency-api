@@ -58,12 +58,14 @@ type AppointmentResourceLinksDao struct {
 
 // AddressResourceDao contains the data for any addresses in Mongo
 type AddressResourceDao struct {
+	Premises     string `bson:"premises"`
 	AddressLine1 string `bson:"address_line_1"`
 	AddressLine2 string `bson:"address_line_2"`
 	Country      string `bson:"country"`
 	Locality     string `bson:"locality"`
 	Region       string `bson:"region"`
 	PostalCode   string `bson:"postal_code"`
+	POBox        string `bson:"po_box"`
 }
 
 // PractitionerResourceLinksDao contains the Links data for a practitioner
