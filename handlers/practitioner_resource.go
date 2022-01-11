@@ -336,7 +336,7 @@ func HandleAppointPractitioner(svc dao.Service) http.Handler {
 
 		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(*practitioner.Appointment)
 
-		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusCreated)
 	})
 }
 
