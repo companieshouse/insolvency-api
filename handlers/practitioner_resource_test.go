@@ -1267,7 +1267,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		})
 		res := serveHandleAppointPractitioner(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
 }
 
