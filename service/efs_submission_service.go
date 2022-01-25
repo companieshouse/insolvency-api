@@ -24,7 +24,7 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 	}
 
 	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled, in which case the API call is bypassed
-	if cfg.EfsAllowListAuthDisabled {
+	if cfg.IsEfsAllowListAuthDisabled {
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
 		isMatch, err := regexp.MatchString("ip-test", emailAddress)
 		if err != nil {
