@@ -10,7 +10,8 @@ import (
 	"github.com/companieshouse/insolvency-api/config"
 )
 
-// IsUserOnEfsAllowList uses the sdk to call the EFS api and return a boolean depending on whether or not the email address is on the allow list
+// IsUserOnEfsAllowList uses the sdk to call the EFS api and return a boolean depending on whether or not the email
+// address is on the allow list
 func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) {
 	api, err := manager.GetInternalSDK(req)
 	if err != nil {
@@ -23,7 +24,8 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 		return false, fmt.Errorf("error configuring service: %s. Exiting", err.Error())
 	}
 
-	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled, in which case the API call is bypassed
+	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled AND email address contains 
+	// 'magic string' in which case the API call is bypassed and a 'true' value is returned to parent
 	if cfg.IsEfsAllowListAuthDisabled {
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
 		isMatch, err := regexp.MatchString("ip-test", emailAddress)
