@@ -30,9 +30,9 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
 		isMatch, err := regexp.MatchString("ip-test", emailAddress)
 		if err != nil {
-			return false, fmt.Errorf("EFS Allow List Lookup disabled by environment variable, but unable to check email address for regex match")
+			return false, fmt.Errorf("EFS Allow List API call disabled by environment variable, but unable to check email address for regex match")
 		}
-		log.InfoR(req, fmt.Sprintf("EFS Allow List Lookup disabled by environment variable for email address: %s. No API call made", emailAddress))
+		log.InfoR(req, fmt.Sprintf("EFS Allow List API call disabled by environment variable for email address: %s. Mocked API response: %t", emailAddress, isMatch))
 		return isMatch, nil
 	}
 
