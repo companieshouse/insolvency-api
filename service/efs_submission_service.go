@@ -21,10 +21,10 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 	// Get environment config - only required whilst feature flag to disable EFS lookup exists
 	cfg, err := config.Get()
 	if err != nil {
-		return false, fmt.Errorf("error configuring service: %s. Exiting", err.Error())
+		return false, fmt.Errorf("error configuring service: %w. Exiting", err)
 	}
 
-	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled AND email address contains 
+	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled AND email address contains
 	// 'magic string' in which case the API call is bypassed and a 'true' value is returned to parent
 	if cfg.IsEfsAllowListAuthDisabled {
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
@@ -32,12 +32,12 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 		if err != nil {
 			return false, fmt.Errorf("EFS Allow List Lookup disabled by environment variable, but unable to check email address for regex match")
 		}
-		log.Info("EFS Allow List Lookup disabled by environment variable. No API call made")
+		log.InfoR(req, fmt.Sprintf("EFS Allow List Lookup disabled by environment variable for email address: %s. No API call made", emailAddress))
 		return isMatch, nil
 	}
 
 	isUserAllowed, err := api.Efs.IsUserOnAllowList(emailAddress).Do()
-	
+
 	if err != nil {
 		return false, fmt.Errorf("error communicating with the EFS submission api: [%s]", err)
 	}
