@@ -26,7 +26,7 @@ type Address struct {
 	Country      string `json:"country"`
 	Locality     string `json:"locality" validate:"required"`
 	Region       string `json:"region"`
-	PostalCode   string `json:"postal_code"`
+	PostalCode   string `json:"postal_code" validate:"required"`
 	POBox        string `json:"po_box"`
 }
 

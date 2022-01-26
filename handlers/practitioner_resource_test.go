@@ -265,6 +265,26 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "locality is a required field")
 	})
 
+	Convey("Incoming request has address postcode missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{
+			Locality: "locality",
+		}
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "postal_code is a required field")
+	})
+
 	Convey("Incoming request has role missing", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
@@ -542,6 +562,7 @@ func generatePractitioner() models.PractitionerRequest {
 			Premises:     "premises",
 			AddressLine1: "addressline1",
 			Locality:     "locality",
+			PostalCode:   "postcode",
 		},
 		Role: constants.FinalLiquidator.String(),
 	}
