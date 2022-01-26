@@ -20,7 +20,7 @@ type PractitionerRequest struct {
 
 // Address is the model to represent any addresses within the insolvency service
 type Address struct {
-	Premises     string `json:"premises"`
+	Premises     string `json:"premises" validate:"required"`
 	AddressLine1 string `json:"address_line_1" validate:"required"`
 	AddressLine2 string `json:"address_line_2"`
 	Country      string `json:"country"`
