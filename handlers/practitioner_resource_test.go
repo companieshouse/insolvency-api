@@ -205,6 +205,26 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "address_line_1 is a required field, locality is a required field")
 	})
 
+	Convey("Incoming request has address premises missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{
+			Locality: "locality",
+		}
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "premises is a required field")
+	})
+
 	Convey("Incoming request has address line 1 missing", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
@@ -243,6 +263,26 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "locality is a required field")
+	})
+
+	Convey("Incoming request has address postcode missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		practitioner := generatePractitioner()
+		practitioner.Address = models.Address{
+			Locality: "locality",
+		}
+		body, _ := json.Marshal(practitioner)
+		res := serveHandleCreatePractitionersResource(body, mock_dao.NewMockService(mockCtrl), true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "postal_code is a required field")
 	})
 
 	Convey("Incoming request has role missing", t, func() {
@@ -519,8 +559,10 @@ func generatePractitioner() models.PractitionerRequest {
 		TelephoneNumber: "07777777777",
 		Email:           "a@b.com",
 		Address: models.Address{
+			Premises:     "premises",
 			AddressLine1: "addressline1",
 			Locality:     "locality",
+			PostalCode:   "postcode",
 		},
 		Role: constants.FinalLiquidator.String(),
 	}
