@@ -29,6 +29,7 @@ All API Filing software will need to sign their users in to Companies House with
 Depending on the filing functionality the list of scopes may change:
 
 | Service/API | Required scope(s) | Additional information |
+|---|---|---|
 | Transactions (pre-requisite for all other APIs) | `https://identity.company-information.service.gov.uk/user/profile.read` | |
 | Registered Office Address (ROA) | `https://api.company-information.service.gov.uk/company/{company_number}/registered-office-address.update` | Note that the `{company_number}` placeholder must be filled in with an actual company number e/g/ for company `00000001` this scope would be
 `https://api.company-information.service.gov.uk/company/00000001/registered-office-address.update`. |
