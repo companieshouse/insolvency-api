@@ -18,7 +18,7 @@ For a detailed guide on this integration see [Authenticating Web Server Apps wit
 
 Certain APIs may have additional security. At present this is limited to:
 
-- Insolvency API: In addition to obtaining the appropriate insolvency scope (see below), Insolvency API endpoints check that the end user granting that scope is registered with Companies House as an Insolvency Practitioner. Please ask any registered Insolvency Practitioners wishing to file via your software to provide their detail for inclusion in the allow list via the Companies House contact centre. This requirement does not apply in live sandbox, where for testing ease, the authorisation interceptor instead treats and email address including the string 'ip-test' as representing a registered practitioner.
+- Insolvency API: In addition to obtaining the appropriate insolvency scope (see below), Insolvency API endpoints check that the end user granting that scope is registered with Companies House as an Insolvency Practitioner. Please ask any registered Insolvency Practitioners wishing to file via your software to provide their detail for inclusion in the allow list via the Companies House contact centre. This requirement does not apply in live sandbox, where for testing ease, the authorisation interceptor instead treats any email address including the string 'ip-test' as representing a registered practitioner.
 
 ## Scopes
 
