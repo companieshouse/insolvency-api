@@ -1,6 +1,3 @@
-Navigation: API Filing Overview
-SortOrder: 100
-
 # Overview
 
 Companies House API Filing service allows 3rd party software to file certain forms and change certain company data with Companies House.
