@@ -12,7 +12,7 @@ API Filing initially exposes three API services:
 
 API Filing requires software to integrate with Companies House OAuth 2.0 Service and cannot be done with a simple API key using `Basic` authentication.
 
-For a detailed guide on this integration see [Authenticating Web Server Apps with OAuth 2.0](/companies-house-identity-service/guides/ServerWeb)
+For a detailed guide on this integration see [Authenticating Web Server Apps with OAuth 2.0](https://developer-specs.company-information.service.gov.uk/companies-house-identity-service/guides/ServerWeb)
 
 Certain APIs may have additional security. At present this is limited to:
 
