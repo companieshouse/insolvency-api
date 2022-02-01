@@ -24,7 +24,7 @@ Certain APIs may have additional security. At present this is limited to:
 
 All API Filing software will need to sign their users in to Companies House with one or more `scopes`.
 
-- `https://identity.company-information.service.gov.uk/user/profile.read` is required for API Filing and grants permission to read the users profile data.
+- `https://identity.company-information.service.gov.uk/user/profile.read` is required for all API Filing and grants permission to read the users profile data.
 
 Depending on the filing functionality the list of scopes may change:
 
