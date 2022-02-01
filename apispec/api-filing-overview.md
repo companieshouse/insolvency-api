@@ -32,7 +32,7 @@ Depending on the filing functionality the list of scopes may change:
 |---|---|---|
 | Transactions (pre-requisite for all other APIs) | `https://identity.company-information.service.gov.uk/user/profile.read` | |
 | Registered Office Address (ROA) | `https://api.company-information.service.gov.uk/company/{company_number}/registered-office-address.update` | Note that the `{company_number}` placeholder must be filled in with an actual company number e/g/ for company `00000001` this scope would be `https://api.company-information.service.gov.uk/company/00000001/registered-office-address.update`. |
-| Insolvency | https://api.company-information.service.gov.uk/company/*/insolvency.write-full | Due to the sensitivity of insolvency endpoints, this scope can only be granted to a client (i.e. your software) if your client_id is registered with Companies House as a recognised insolvency software - regardless of whether or not the user granting the scope is a registered insolvency practitioner. |
+| Insolvency | `https://api.company-information.service.gov.uk/company/*/insolvency.write-full` | Due to the sensitivity of insolvency endpoints, this scope can only be granted to a client (i.e. your software) if your client_id is registered with Companies House as a recognised insolvency software - regardless of whether or not the user granting the scope is a registered insolvency practitioner. |
 
 Combining multiple scopes is done by space separating them as one string so the requested scope for API Filing an ROA data change for company `00000001` should request the scope:
 
