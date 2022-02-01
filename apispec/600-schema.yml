@@ -1,0 +1,558 @@
+openapi: 3.0.0
+info:
+  title: Insolvency API
+  description: "API specification for submiting insolvency data. <br><br> **IMPORTANT NOTE:** This API can only be used in conjunction with Transactions API (more information about the filing model [here](https://developer-specs.company-information.service.gov.uk/manipulate-company-data-api-filing/guides/overview))"
+  version: 1.1.0-dev
+paths:
+  /transactions/{transaction_id}/insolvency:
+    post:
+      tags:
+        - "Insolvency Resources"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: createInsolvencyResource
+      summary: Create an insolvency data change resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsolvencyResourceWritable'
+      responses:
+        201:
+          description: The insolvency data change resource was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsolvencyResource'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: Not found.
+        409:
+          description: Conflict.
+          
+  /transactions/{transaction_id}/insolvency/validation-status:
+    get:
+      tags:
+        - "Insolvency Resources"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getInsolvencyValidationStatus
+      summary: Get validation status of an insolvency data change resource
+      responses:
+        200:
+          description: A validation status response was provided.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationStatusResource'
+        401:
+          description: Unauthorised.
+
+  /transactions/{transaction_id}/insolvency/practitioners:
+    post:
+      tags:
+        - "Practitioner (Resource)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: createPractitioner
+      summary: Create a practitioner for this insolvency resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PractitionerWritable'
+      responses:
+        201:
+          description: Practitioner created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PractitionerResource'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+    get:
+      tags:
+        - "Practitioner (Resource)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getAllPractitioners
+      summary: Get the practitioner resources (all)
+      responses:
+        200:
+          description: The practitioner resources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllPractitionerResources'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: Not found.
+
+
+  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}:
+    get:
+      tags:
+        - "Practitioner (Resource)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique practitioner id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getSinglePractitioner
+      summary: Get the practitioner resource (one)
+      responses:
+        200:
+          description: The practitioner resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PractitionerResource'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: Not found.
+
+    delete:
+      tags:
+        - "Practitioner (Resource)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique practitioner id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deletePractitioner
+      summary: Delete the practitioner from this insolvency resource
+      responses:
+        204:
+          description: The practitioner was deleted
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden.
+        404:
+          description: Not found.
+
+  /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment:
+    post:
+      tags:
+        - "Practitioner (Appointment)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique practitioner id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: createPractitionerAppointment
+      summary: Appoint the practitioner
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - appointed_on
+                - made_by
+              properties:
+                appointed_on:
+                  type: string
+                  format: date
+                made_by:
+                  type: string
+                  enum:
+                    - company
+                    - creditors
+      responses:
+        201:
+          description: Practitioner appointment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PractitionerAppointment'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden.
+        404:
+          description: Not found.
+          
+    get:
+      tags:
+        - "Practitioner (Appointment)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getAppointment
+      summary: Get the appointment details
+      responses:
+        200:
+          description: The appointment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PractitionerAppointment'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: Not found.
+    delete:
+      tags:
+        - "Practitioner (Appointment)"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+        - in: path
+          name: practitioner_id
+          required: true
+          description: The unique liquidator id
+          schema:
+            type: string
+            format: uuid
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: deleteAppointment
+      summary: Delete the appointment resource
+      responses:
+        200:
+          description: The appointment was deleted from this transaction
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden.
+        404:
+          description: Not found.
+
+
+components:
+  schemas:
+    InsolvencyResourceWritable:
+      type: object
+      required:
+        - company_number
+        - company_name
+        - case_type
+      properties:
+        company_number:
+          type: string
+          example: "40111665"
+        company_name:
+          type: string
+          example: "Example Company Ltd"
+        case_type:
+          type: string
+          example: "creditors-voluntary-liquidation"
+          enum:
+            - creditors-voluntary-liquidation
+
+    InsolvencyResource:
+      type: object
+      properties:
+        company_number:
+          type: string
+        case_type:
+          type: string
+          enum:
+            - creditors-voluntary-liquidation
+        etag:
+          type: string
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#insolvency-resource
+        company_name:
+          type: string
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency
+            transaction:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}
+            validation_status:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/validation-status
+              
+    ValidationStatusResource:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "error - if no practitioners are present then an attachment of the type resolution must be present"
+              location:
+                type: string
+                example: "no practitioners and no resolution"
+              location_type:
+                type: string
+                example: "json-path"
+              "type":
+                type: string
+                example: "ch:validation"
+              is_valid:
+                type: boolean
+                example: false
+  
+
+    Address:
+      type: object
+      required:
+        - premises
+        - address_line_1
+        - locality
+        - postal_code
+      properties:
+        premises:
+          type: string
+          example: "11"
+        address_line_1:
+          type: string
+          example: "Testing Road"
+        address_line_2:
+          type: string
+          example: "Testing District"
+        country:
+          type: string
+          example: "United Kingdom"
+        locality:
+          type: string
+          example: "Testtown"
+        region:
+          type: string
+          example: "Testshire"
+        postal_code:
+          type: string
+          example: "TD1 TDD"
+
+    
+    PractitionerWritable:
+      type: object
+      required:
+        - first_name
+        - last_name
+        - ip_code
+        - address
+        - role
+        - email
+        - telephone_number
+      properties:
+        first_name:
+          type: string
+          example: "John Robert"
+        last_name:
+          type: string
+          example: "Jones"
+        ip_code:
+          type: string
+          example: "00009699"
+        address:
+          type: object
+          $ref: '#/components/schemas/Address'
+        role:
+          type: string
+          enum:
+            - final-liquidator
+            - receiver
+            - receiver-manager
+            - proposed-liquidator
+            - provisional-liquidator
+            - administrative-receiver
+            - practitioner
+            - interim-liquidator
+        email:
+          type: string
+          format: email
+        telephone_number:
+          type: string
+          example: "07567192375"
+
+          
+    PractitionerResource:
+      type: object
+      properties:
+        appointed_on:
+          type: string
+          format: date
+        first_name:
+          type: string
+          example: "John Robert"
+        last_name:
+          type: string
+          example: "Jones"
+        ip_code:
+          type: string
+          example: "00009699"
+        address:
+          type: object
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+          format: email
+        telephone_number:
+          type: string
+        role:
+          type: string
+          enum:
+            - final-liquidator
+            - receiver
+            - receiver-manager
+            - proposed-liquidator
+            - provisional-liquidator
+            - administrative-receiver
+            - practitioner
+            - interim-liquidator
+        etag:
+          type: string
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#liquidator
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
+
+    AllPractitionerResources:
+      type: array
+      items:
+        $ref: '#/components/schemas/PractitionerResource'
+        
+    
+    PractitionerAppointment:
+      type: object
+      properties:
+        appointed_on:
+          type: string
+          format: date
+        made_by:
+          type: string
+          enum:
+            - company
+            - creditors
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
+
+    
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: This API uses OAuth2 with the correct grants to allow insolvency data submission
+      flows:
+        authorizationCode:
+          tokenUrl: "https://api.companieshouse.gov.uk/oauth2/token"
+          authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
+          scopes:
+            https://identity.company-information.service.gov.uk/user/profile.read: User profile read permission required for Transaction API (not directly required for Insolvency API)
+            https://api.company-information.service.gov.uk/company/*/insolvency.write-full: Full Insolvency Practitioner permissions (all insolvency-related operations)
