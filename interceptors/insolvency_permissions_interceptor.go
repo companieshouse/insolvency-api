@@ -36,7 +36,5 @@ func InsolvencyPermissionsIntercept(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-
-		next.ServeHTTP(w, r)
 	})
 }
