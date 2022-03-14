@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/companieshouse/insolvency-api/config"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
@@ -13,7 +14,48 @@ import (
 )
 
 func TestUnitRegisterRoutes(t *testing.T) {
-	Convey("Register routes", t, func() {
+	// Certain routes are now disabled when ENABLE_NON600_ROUTE_HANDLERS is unset or flase
+	cfg, _ := config.Get()
+
+	Convey("Register routes: ENABLE_NON600_ROUTE_HANDLERS unset or false", t, func() {
+		router := mux.NewRouter()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+		Register(router, mockService)
+
+		So(router.GetRoute("healthcheck"), ShouldNotBeNil)
+
+		So(router.GetRoute("createInsolvencyResource"), ShouldNotBeNil)
+		So(router.GetRoute("getValidationStatus"), ShouldNotBeNil)
+		So(router.GetRoute("getFilings"), ShouldNotBeNil)
+
+		So(router.GetRoute("createPractitionersResource"), ShouldNotBeNil)
+		So(router.GetRoute("getPractitionerResources"), ShouldNotBeNil)
+		So(router.GetRoute("getPractitionerResource"), ShouldNotBeNil)
+		So(router.GetRoute("deletePractitioner"), ShouldNotBeNil)
+
+		So(router.GetRoute("appointPractitioner"), ShouldNotBeNil)
+		So(router.GetRoute("getPractitionerAppointment"), ShouldNotBeNil)
+		So(router.GetRoute("deletePractitionerAppointment"), ShouldNotBeNil)
+
+		So(router.GetRoute("submitAttachment"), ShouldBeNil)
+		So(router.GetRoute("getAttachmentDetails"), ShouldBeNil)
+		So(router.GetRoute("downloadAttachment"), ShouldBeNil)
+		So(router.GetRoute("deleteAttachment"), ShouldBeNil)
+
+		So(router.GetRoute("createStatementOfAffairs"), ShouldBeNil)
+		So(router.GetRoute("getStatementOfAffairs"), ShouldBeNil)
+		So(router.GetRoute("deleteStatementOfAffairs"), ShouldBeNil)
+
+		So(router.GetRoute("createResolution"), ShouldBeNil)
+		So(router.GetRoute("getResolution"), ShouldBeNil)
+		So(router.GetRoute("deleteResolution"), ShouldBeNil)
+	})
+
+	// Simulate ENABLE_NON600_ROUTE_HANDLERS feature toggle being enabled
+	cfg.EnableNon600RouteHandlers = true
+	Convey("Register routes: ENABLE_NON600_ROUTE_HANDLERS is set as true", t, func() {
 		router := mux.NewRouter()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
