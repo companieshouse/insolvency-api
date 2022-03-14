@@ -46,14 +46,13 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
 	// Get environment config - only required whilst feature flag in use to disable
-	// non 600 form handling routes (before go-live) unless set to true
+	// non 600 form handling routes unless set to true
 	cfg, err := config.Get()
 	// Check environment variable to enable non 600 form endpoints if set to true
 	// and if so, block enable those handlers
 	if err != nil {
 		log.Info("Failed to get config for EnableNon600RouteHandlers")
 	} else if cfg.EnableNon600RouteHandlers {
-		log.Info("EnableNon600RouteHandlers has been set to true and is enabled")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc)).Methods(http.MethodPost).Name("submitAttachment")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc)).Methods(http.MethodGet).Name("getAttachmentDetails")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")
@@ -67,7 +66,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 		publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 	} else {
-		log.Info("EnableNon600RouteHandlers has not been set and is disabled")
+		log.Info("LRESEX and LIQ02 endpoints blocked")
 	}
 
 	// Create a private router that requires all users to be authenticated when making requests
