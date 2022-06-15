@@ -13,9 +13,9 @@ import (
 // IsUserOnEfsAllowList uses the sdk to call the EFS api and return a boolean depending on whether or not the email
 // address is on the allow list
 func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) {
-	api, err := manager.GetInternalSDK(req)
+	api, err := manager.GetPrivateSDK(req)
 	if err != nil {
-		return false, fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error())
+		return false, fmt.Errorf("error creating private SDK to call transaction api: [%v]", err.Error())
 	}
 
 	// Get environment config - only required whilst feature flag to disable EFS lookup exists
