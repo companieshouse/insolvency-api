@@ -11,8 +11,8 @@ github.com/companieshouse/chs.go v1.2.6 h1:q5W8JPUDIDBrwiRYl5UefnWK14x4aTC+ZysYy
 github.com/companieshouse/chs.go v1.2.6/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/envconf v0.1.0 h1:6EAyUYqBJsduWZQuz1AR8hxG5OwhPK0r3Y6ppcTDBmQ=
 github.com/companieshouse/envconf v0.1.0/go.mod h1:/gP4p46vTAENnqc2vXW441VOjL91ReJv/uqnYBzlaFo=
-github.com/companieshouse/go-sdk-manager v0.1.11 h1:D0mkpOxp2VcJrz+Oadzg4rLz7sHaQmbOCzBxH4D0mSc=
-github.com/companieshouse/go-sdk-manager v0.1.11/go.mod h1:+oN76sQ5uwQh/moEDK4r0wR3kHoH+WHuODAxScdbN/U=
+github.com/companieshouse/go-sdk-manager v0.1.12 h1:8iFbpKVGoMlCxArXJnxXGKerEGPXWzwDWPy2PHMCUX0=
+github.com/companieshouse/go-sdk-manager v0.1.12/go.mod h1:0KEuReq67rNAuYJjxwLAmVstlbQevzIhjUaG2jHqTpw=
 github.com/companieshouse/go-session-handler v0.1.1/go.mod h1:SxvarOscnlb8qivxJsjVmROri/7iuCm+Kcs6fglhKEE=
 github.com/companieshouse/go-session-handler v0.1.5 h1:lkiWJLE0hXNrkUawBQ9ul9VnK2qUNGeh9kzuvZXGJs8=
 github.com/companieshouse/go-session-handler v0.1.5/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
@@ -20,9 +20,8 @@ github.com/companieshouse/gofigure v0.1.0/go.mod h1:W7NZ4kQdDXqvqK1f7EKTc+pnnqpF
 github.com/companieshouse/gofigure v0.1.4 h1:BN7Dqn0xvNHwC+KHOUHigwP7ajkfHORos3hKRtEACUU=
 github.com/companieshouse/gofigure v0.1.4/go.mod h1:lBAsI13q21rMce+pO7x4xUYAXzO0MchuDsZUbCs0Yng=
 github.com/companieshouse/htmlform v0.1.0/go.mod h1:fWScPVYjGyeBhYwppGaGRDtCQ5hMd3t3Q+0I6HaUZT4=
-github.com/companieshouse/private-api-sdk-go v0.1.1/go.mod h1:e2gCeSswJosqHMbfNmx6tJ7GpyFy8iDjOYeFWVSNQDE=
-github.com/companieshouse/private-api-sdk-go v0.1.9 h1:jRyH4HBSGBj1259euLprHjsS33NttpNSsdmcrelsPFw=
-github.com/companieshouse/private-api-sdk-go v0.1.9/go.mod h1:EaRgxVpcHv6IZ1LKp2xqE4rdEsQwgYqVz3g/BIHQVD4=
+github.com/companieshouse/private-api-sdk-go v0.1.11 h1:MrD1syupeBmtJlKmwe+qWlXapLMjZBYSFQau1YHVPFk=
+github.com/companieshouse/private-api-sdk-go v0.1.11/go.mod h1:EaRgxVpcHv6IZ1LKp2xqE4rdEsQwgYqVz3g/BIHQVD4=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
