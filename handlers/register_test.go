@@ -44,13 +44,14 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("downloadAttachment"), ShouldNotBeNil)
 		So(router.GetRoute("deleteAttachment"), ShouldNotBeNil)
 
+		So(router.GetRoute("createResolution"), ShouldNotBeNil)
+		So(router.GetRoute("getResolution"), ShouldNotBeNil)
+		So(router.GetRoute("deleteResolution"), ShouldNotBeNil)
+
 		So(router.GetRoute("createStatementOfAffairs"), ShouldBeNil)
 		So(router.GetRoute("getStatementOfAffairs"), ShouldBeNil)
 		So(router.GetRoute("deleteStatementOfAffairs"), ShouldBeNil)
 
-		So(router.GetRoute("createResolution"), ShouldBeNil)
-		So(router.GetRoute("getResolution"), ShouldBeNil)
-		So(router.GetRoute("deleteResolution"), ShouldBeNil)
 	})
 
 	// Simulate ENABLE_NON600_ROUTE_HANDLERS feature toggle being enabled
