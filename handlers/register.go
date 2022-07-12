@@ -50,6 +50,10 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleDeleteAttachment(svc)).Methods(http.MethodDelete).Name("deleteAttachment")
 
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc)).Methods(http.MethodPost).Name("createResolution")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
+
 	// Get environment config - only required whilst feature flag in use to disable
 	// non 600 form handling routes unless set to true
 	cfg, err := config.Get()
@@ -61,10 +65,6 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc)).Methods(http.MethodPost).Name("createStatementOfAffairs")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
-
-		publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc)).Methods(http.MethodPost).Name("createResolution")
-		publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
-		publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 	} else {
 		log.Info("LIQ02 endpoints blocked")
 	}
