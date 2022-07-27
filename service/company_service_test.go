@@ -21,7 +21,7 @@ func incomingInsolvencyRequest(companyNumber string, companyName string, caseTyp
 func companyProfileResponse(jurisdiction string, companyStatus string, companyType string) string {
 	return `
 {
- "company_name": "companyName",
+ "company_name": "COMPANYNAME",
  "company_number": "01234567",
  "jurisdiction": "` + jurisdiction + `",
  "company_status": "` + companyStatus + `",
@@ -77,7 +77,18 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 			err, statusCode := CheckCompanyInsolvencyValid(request, &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusBadRequest)
-			So(err.Error(), ShouldEqual, `company names do not match - provided: [wrongName], expected: [companyName]`)
+			So(err.Error(), ShouldEqual, `company names do not match - provided: [wrongName], expected: [COMPANYNAME]`)
+		})
+
+		Convey("Provided company name matches company profile api ignoring case sensitivity", func() {
+			defer httpmock.Reset()
+			httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/01234567", httpmock.NewStringResponder(http.StatusOK,
+				companyProfileResponse("england-wales", "active", "private-shares-exemption-30")))
+
+			request := incomingInsolvencyRequest("01234567", "CompanyName", constants.CVL.String())
+			err, statusCode := CheckCompanyInsolvencyValid(request, &http.Request{})
+			So(err, ShouldBeNil)
+			So(statusCode, ShouldEqual, http.StatusOK)
 		})
 
 		Convey("Jurisdiction of company is not allowed to create insolvency case", func() {

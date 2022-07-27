@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/companieshouse/api-sdk-go/companieshouseapi"
 	"github.com/companieshouse/go-sdk-manager/manager"
@@ -66,7 +67,7 @@ func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, 
 func checkCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile, insolvencyRequest *models.InsolvencyRequest) error {
 
 	// Check company name in request and company profile match
-	if companyProfile.CompanyName != insolvencyRequest.CompanyName {
+	if !strings.EqualFold(companyProfile.CompanyName, insolvencyRequest.CompanyName) {
 		return fmt.Errorf("company names do not match - provided: [%s], expected: [%s]", insolvencyRequest.CompanyName, companyProfile.CompanyName)
 	}
 
