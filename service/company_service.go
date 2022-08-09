@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/companieshouse/api-sdk-go/companieshouseapi"
 	"github.com/companieshouse/go-sdk-manager/manager"
@@ -30,6 +29,13 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 		// Else there has been an error contacting the company profile api
 		return fmt.Errorf("error communicating with the company profile api"), companyProfile.HTTPStatusCode
 	}
+
+	//check company name in request and companyprofile match by alphakey
+	err, httpStatusCode:= checkCompanyNameAlphaKey(companyProfile.CompanyName, insolvencyRequest, req)
+	if err != nil {
+		return err, httpStatusCode
+	}
+	
 
 	// check company is valid for insolvency
 	if err := checkCompanyDetailsAreValid(companyProfile, insolvencyRequest); err != nil {
@@ -65,11 +71,6 @@ func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, 
 
 // checkCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
 func checkCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile, insolvencyRequest *models.InsolvencyRequest) error {
-
-	// Check company name in request and company profile match
-	if !strings.EqualFold(companyProfile.CompanyName, insolvencyRequest.CompanyName) {
-		return fmt.Errorf("company names do not match - provided: [%s], expected: [%s]", insolvencyRequest.CompanyName, companyProfile.CompanyName)
-	}
 
 	// Check if company jurisdiction is allowed
 	if !checkJurisdictionIsAllowed(companyProfile.Jurisdiction) {
