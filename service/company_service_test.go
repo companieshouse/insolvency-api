@@ -128,9 +128,28 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 		})
 
 		Convey("Company is allowed to start insolvency case", func() {
+
+			alphakeyResponse := `{
+					"sameAsAlphaKey": "COMPANYNAME",
+					"orderedAlphaKey": "COMPANYNAME",
+					"upperCaseName": "COMPANYNAME"
+				}`
+
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/01234567", httpmock.NewStringResponder(http.StatusOK,
 				companyProfileResponse("england-wales", "active", "private-shares-exemption-30")))
+
+			httpmock.RegisterResponder(
+				http.MethodGet,
+				"http://localhost:4001/alphakey?name=companyName",
+				httpmock.NewStringResponder(http.StatusOK, alphakeyResponse),
+				)
+
+			httpmock.RegisterResponder(
+				http.MethodGet,
+				"http://localhost:4001/alphakey?name=COMPANYNAME",
+				httpmock.NewStringResponder(http.StatusOK, alphakeyResponse),
+			)
 
 			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
 			err, statusCode := CheckCompanyInsolvencyValid(request, &http.Request{})
