@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/companieshouse/api-sdk-go/companieshouseapi"
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -69,13 +70,31 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		// Check with company profile API if company is valid
-		err, httpStatus = service.CheckCompanyInsolvencyValid(&request, req)
+		// Check with company profile API if company exists
+		var companyProfile *companieshouseapi.CompanyProfile
+		err, httpStatus, companyProfile = service.CheckCompanyExists(&request, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
+		}
+
+		//Check with alphakey service if company name valid and Check with company profile API if other details are valid
+		err, httpStatus = service.CheckCompanyNameAlphaKey(companyProfile.CompanyName, &request, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("company name was not found valid when checking company profile API [%v]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("company name [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			return
+		} else {
+			err = service.CheckCompanyDetailsAreValid(companyProfile, &request)
+			if err != nil {
+				log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
+				m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+				return
+			}
 		}
 
 		// Add new insolvency resource to mongo
