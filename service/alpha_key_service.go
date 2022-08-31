@@ -17,8 +17,6 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 		return fmt.Errorf("error creating private SDK to call alphakeyservice: [%v]", err.Error()), http.StatusInternalServerError
 	}
 
-	log.Info("AAAAPIIII", log.Data{"api": api})
-
 	requestAlphaKeyResponse, err := api.AlphaKey.Get(insolvencyRequest.CompanyName).Do()
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error communicating with alphakey service [%v]", err))
