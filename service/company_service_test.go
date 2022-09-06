@@ -73,37 +73,34 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 
 		Convey("Jurisdiction of company is not allowed to create insolvency case", func() {
 
-			var companyProfile *companieshouseapi.CompanyProfile
+			// var companyProfile *companieshouseapi.CompanyProfile
 			json.Unmarshal([]byte(companyProfileResponse("scotland", "active", "private-shares-exemption-30")), &companyProfile)
 
-			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-			err := CheckCompanyDetailsAreValid(companyProfile, request)
+			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `jurisdiction [scotland] not permitted`)
 		})
 
 		Convey("Company status is not allowed to create insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "dissolved", "private-shares-exemption-30")), &companyProfile)
-			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-			// err, statusCode := CheckCompanyInsolvencyValid(request, &http.Request{})
-			err := CheckCompanyDetailsAreValid(companyProfile, request)
+			
+			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldNotBeNil)
-			// So(statusCode, ShouldEqual, http.StatusBadRequest)
 			So(err.Error(), ShouldEqual, `company status [dissolved] not permitted`)
 		})
 
 		Convey("Company type is not allowed to create insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "active", "converted-or-closed")), &companyProfile)
-			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-			err := CheckCompanyDetailsAreValid(companyProfile, request)
+			
+			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `company type [converted-or-closed] not permitted`)
 		})
 
 		Convey("Company is allowed to start insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "active", "private-shares-exemption-30")), &companyProfile)
-			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-			err := CheckCompanyDetailsAreValid(companyProfile, request)
+			
+			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldBeNil)
 		})
 	})

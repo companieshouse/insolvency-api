@@ -57,8 +57,8 @@ func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, 
 	return companyProfile.DateOfCreation, nil
 }
 
-// checkCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
-func CheckCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile, insolvencyRequest *models.InsolvencyRequest) error {
+// CheckCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
+func CheckCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile) error {
 
 	// Check if company jurisdiction is allowed
 	if !checkJurisdictionIsAllowed(companyProfile.Jurisdiction) {

@@ -80,22 +80,24 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		//Check with alphakey service if company name valid and Check with company profile API if other details are valid
+		// Check with alphakey service if company name valid
 		err, httpStatus = service.CheckCompanyNameAlphaKey(companyProfile.CompanyName, &request, req)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("company name was not found valid when checking company profile API [%v]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("company name [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
-		} else {
-			err = service.CheckCompanyDetailsAreValid(companyProfile, &request)
-			if err != nil {
-				log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
-				m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
-				utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-				return
-			}
+		} 
+		
+		// Check with company profile API if other details are valid
+		err = service.CheckCompanyDetailsAreValid(companyProfile)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
 		}
+		
 
 		// Add new insolvency resource to mongo
 		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID)

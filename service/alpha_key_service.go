@@ -20,7 +20,7 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 	requestAlphaKeyResponse, err := api.AlphaKey.Get(insolvencyRequest.CompanyName).Do()
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error communicating with alphakey service [%v]", err))
-		return fmt.Errorf("error verifying company name"), requestAlphaKeyResponse.HTTPStatusCode
+		return fmt.Errorf("error communicating with alphakey service"), requestAlphaKeyResponse.HTTPStatusCode
 	}
 
 	insolvencyRequestAlphaKey := requestAlphaKeyResponse.SameAsAlphaKey
@@ -28,7 +28,7 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 	profileAlphaKeyResponse, err := api.AlphaKey.Get(companyProfileCompanyName).Do()
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error communicating with alphakey service [%v]", err))
-		return fmt.Errorf("error verifying company name"), requestAlphaKeyResponse.HTTPStatusCode
+		return fmt.Errorf("error communicating with alphakey service"), requestAlphaKeyResponse.HTTPStatusCode
 	}
 
 	profileAlphaKey := profileAlphaKeyResponse.SameAsAlphaKey
@@ -37,6 +37,5 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 		return fmt.Errorf("company names do not match - provided: [%s], expected: [%s]", insolvencyRequest.CompanyName, companyProfileCompanyName), http.StatusBadRequest
 	}
 
-	//no error
 	return nil, requestAlphaKeyResponse.HTTPStatusCode
 }
