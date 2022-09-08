@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/companieshouse/api-sdk-go/companieshouseapi"
 	"github.com/companieshouse/go-sdk-manager/manager"
@@ -11,13 +10,13 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 )
 
-// CheckCompanyInsolvencyValid will check that the company is valid to be made insolvent against the company profile api
-func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, req *http.Request) (error, int) {
+// CheckCompanyExists will check that the company exists against the company profile api to make a valid insolvency
+func CheckCompanyExists(insolvencyRequest *models.InsolvencyRequest, req *http.Request) (error, int, *companieshouseapi.CompanyProfile) {
 
 	// Create SDK session
 	api, err := manager.GetSDK(req)
 	if err != nil {
-		return fmt.Errorf("error creating SDK to call company profile: [%v]", err.Error()), http.StatusInternalServerError
+		return fmt.Errorf("error creating SDK to call company profile: [%v]", err.Error()), http.StatusInternalServerError, nil
 	}
 
 	// Call company profile api to retrieve company details
@@ -25,19 +24,14 @@ func CheckCompanyInsolvencyValid(insolvencyRequest *models.InsolvencyRequest, re
 	if err != nil {
 		// If 404 then return that company not found
 		if companyProfile.HTTPStatusCode == http.StatusNotFound {
-			return fmt.Errorf("company not found"), http.StatusNotFound
+			return fmt.Errorf("company not found"), http.StatusNotFound, nil
 		}
 		// Else there has been an error contacting the company profile api
-		return fmt.Errorf("error communicating with the company profile api"), companyProfile.HTTPStatusCode
+		return fmt.Errorf("error communicating with the company profile api"), companyProfile.HTTPStatusCode, nil
 	}
 
-	// check company is valid for insolvency
-	if err := checkCompanyDetailsAreValid(companyProfile, insolvencyRequest); err != nil {
-		return err, http.StatusBadRequest
-	}
-
-	// If no errors then the company is valid for insolvency
-	return nil, companyProfile.HTTPStatusCode
+	// If no errors then the company exists
+	return nil, companyProfile.HTTPStatusCode, companyProfile
 
 }
 
@@ -63,13 +57,8 @@ func GetCompanyIncorporatedOn(companyNumber string, req *http.Request) (string, 
 	return companyProfile.DateOfCreation, nil
 }
 
-// checkCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
-func checkCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile, insolvencyRequest *models.InsolvencyRequest) error {
-
-	// Check company name in request and company profile match
-	if !strings.EqualFold(companyProfile.CompanyName, insolvencyRequest.CompanyName) {
-		return fmt.Errorf("company names do not match - provided: [%s], expected: [%s]", insolvencyRequest.CompanyName, companyProfile.CompanyName)
-	}
+// CheckCompanyDetailsAreValid checks the incoming company profile to see if it's valid for insolvency
+func CheckCompanyDetailsAreValid(companyProfile *companieshouseapi.CompanyProfile) error {
 
 	// Check if company jurisdiction is allowed
 	if !checkJurisdictionIsAllowed(companyProfile.Jurisdiction) {
