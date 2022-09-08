@@ -22,8 +22,8 @@ github.com/companieshouse/gofigure v0.1.4 h1:BN7Dqn0xvNHwC+KHOUHigwP7ajkfHORos3h
 github.com/companieshouse/gofigure v0.1.4/go.mod h1:lBAsI13q21rMce+pO7x4xUYAXzO0MchuDsZUbCs0Yng=
 github.com/companieshouse/htmlform v0.1.0/go.mod h1:fWScPVYjGyeBhYwppGaGRDtCQ5hMd3t3Q+0I6HaUZT4=
 github.com/companieshouse/private-api-sdk-go v0.1.11/go.mod h1:EaRgxVpcHv6IZ1LKp2xqE4rdEsQwgYqVz3g/BIHQVD4=
-github.com/companieshouse/private-api-sdk-go v0.1.12 h1:lyWDAhyUGD5pXObbA7ICRWEMrhyRthnXMg2WM7MAWT4=
-github.com/companieshouse/private-api-sdk-go v0.1.12/go.mod h1:g1zvBCn8Tyc45x+5BmlHsq+BYwuekd5FLRaFOqTUu+A=
+github.com/companieshouse/private-api-sdk-go v0.1.13 h1:o9PD1aSVu3+tbf/WUZT/wX1e0DNx+9xcJugbqo7rbxE=
+github.com/companieshouse/private-api-sdk-go v0.1.13/go.mod h1:g1zvBCn8Tyc45x+5BmlHsq+BYwuekd5FLRaFOqTUu+A=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

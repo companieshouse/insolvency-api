@@ -49,14 +49,13 @@ func TestUnitCheckCompanyNameValid(t *testing.T) {
 
 		Convey("Error contacting the alpha key service api", func() {
 			defer httpmock.Reset()
-			req, _ := http.NewRequest("GET", "", nil)
-			httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey/name=companyName", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
+			httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 			request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-			err, statusCode := CheckCompanyNameAlphaKey("companyName", request, req)
+			err, statusCode := CheckCompanyNameAlphaKey("companyName", request, &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusInternalServerError)
-			So(err.Error(), ShouldEqual, `error communicating with the company profile api`)
+			So(err.Error(), ShouldContainSubstring, `error communicating with alphakey service`)
 		})
 	})
 }
