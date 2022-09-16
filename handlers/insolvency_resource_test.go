@@ -177,7 +177,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
@@ -273,7 +273,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and return an error
@@ -302,7 +302,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect CreateInsolvencyResource to be called once and return an error
@@ -331,7 +331,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		// Expect the transaction api to be patched and return a success
 		httpmock.RegisterResponder(http.MethodPatch, "http://localhost:4001/private/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, transactionProfileResponse))
@@ -363,7 +363,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		// Expect the transaction api to be patched and return a success
 		httpmock.RegisterResponder(http.MethodPatch, "http://localhost:4001/private/transactions/12345678", httpmock.NewStringResponder(http.StatusNotFound, ""))
@@ -395,7 +395,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/01234567", httpmock.NewStringResponder(http.StatusOK, companyProfileResponse))
 
 		// Expect the alphakeyservice api to be called and return an alphakey
-		httpmock.RegisterResponder(http.MethodGet, "http://localhost:4001/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
+		httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphakeyResponse))
 
 		// Expect the transaction api to be patched and return a success
 		httpmock.RegisterResponder(http.MethodPatch, "http://localhost:4001/private/transactions/12345678", httpmock.NewStringResponder(http.StatusNoContent, transactionProfileResponse))

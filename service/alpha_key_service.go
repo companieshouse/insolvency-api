@@ -7,7 +7,6 @@ import (
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-sdk-manager/manager"
 	"github.com/companieshouse/insolvency-api/models"
-	"strings"
 )
 
 func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyRequest *models.InsolvencyRequest, req *http.Request) (error, int) {
@@ -33,7 +32,7 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 
 	profileAlphaKey := profileAlphaKeyResponse.SameAsAlphaKey
 
-	if !strings.EqualFold(insolvencyRequestAlphaKey, profileAlphaKey) {
+	if insolvencyRequestAlphaKey != profileAlphaKey {
 		return fmt.Errorf("company names do not match - provided: [%s], expected: [%s]", insolvencyRequest.CompanyName, companyProfileCompanyName), http.StatusBadRequest
 	}
 
