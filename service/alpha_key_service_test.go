@@ -24,7 +24,7 @@ func TestUnitCheckCompanyNameValid(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		Convey("Company name matches with company profile by alphaley", func() {
+		Convey("Company name matches with company profile by alphakey", func() {
 			httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=companyName", httpmock.NewStringResponder(http.StatusOK, alphaKeyResponse("COMPANYNAME")))
 			httpmock.RegisterResponder(http.MethodGet, "http://localhost:18103/alphakey?name=COMPANYNAME", httpmock.NewStringResponder(http.StatusOK, alphaKeyResponse("COMPANYNAME")))
 

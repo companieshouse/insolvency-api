@@ -27,7 +27,7 @@ func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyReques
 	profileAlphaKeyResponse, err := api.AlphaKey.Get(companyProfileCompanyName).Do()
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error communicating with alphakey service [%v]", err))
-		return fmt.Errorf("error communicating with alphakey service"), requestAlphaKeyResponse.HTTPStatusCode
+		return fmt.Errorf("error communicating with alphakey service"), http.StatusInternalServerError
 	}
 
 	profileAlphaKey := profileAlphaKeyResponse.SameAsAlphaKey
