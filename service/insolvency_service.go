@@ -345,23 +345,13 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 // generateDataBlockForFiling generates the block of data to be included with a filing
 func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
 
-	// If the form is a 600 do not include attachment details, otherwise do include them
-	if form == "600" {
-		return map[string]interface{}{
-			"company_number": &insolvencyResource.Data.CompanyNumber,
-			"case_type":      &insolvencyResource.Data.CaseType,
-			"company_name":   &insolvencyResource.Data.CompanyName,
-			"practitioners":  &insolvencyResource.Data.Practitioners,
-		}
-	} else if form == "LRESEX" || form == "LIQ02" {
-		return map[string]interface{}{
-			"company_number": &insolvencyResource.Data.CompanyNumber,
-			"case_type":      &insolvencyResource.Data.CaseType,
-			"company_name":   &insolvencyResource.Data.CompanyName,
-			"practitioners":  &insolvencyResource.Data.Practitioners,
-			"attachments":    &insolvencyResource.Data.Attachments,
-		}
+	return map[string]interface{}{
+		"company_number": &insolvencyResource.Data.CompanyNumber,
+		"case_type":      &insolvencyResource.Data.CaseType,
+		"case_date":      &insolvencyResource.Data.Resolution.DateOfResolution,
+		"soa_date":       &insolvencyResource.Data.StatementOfAffairs.StatementDate,
+		"company_name":   &insolvencyResource.Data.CompanyName,
+		"practitioners":  &insolvencyResource.Data.Practitioners,
+		"attachments":    &insolvencyResource.Data.Attachments,
 	}
-
-	return nil
 }
