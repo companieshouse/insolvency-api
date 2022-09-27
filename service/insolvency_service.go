@@ -345,13 +345,20 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 // generateDataBlockForFiling generates the block of data to be included with a filing
 func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
 
-	return map[string]interface{}{
+	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,
 		"case_type":      &insolvencyResource.Data.CaseType,
-		"case_date":      &insolvencyResource.Data.Resolution.DateOfResolution,
-		"soa_date":       &insolvencyResource.Data.StatementOfAffairs.StatementDate,
+		"case_date":      "",
+		"soa_date":       "",
 		"company_name":   &insolvencyResource.Data.CompanyName,
 		"practitioners":  &insolvencyResource.Data.Practitioners,
 		"attachments":    &insolvencyResource.Data.Attachments,
 	}
+	if insolvencyResource.Data.Resolution != nil {
+		dataBlock["case_date"] = &insolvencyResource.Data.Resolution.DateOfResolution
+	}
+	if insolvencyResource.Data.StatementOfAffairs != nil {
+		dataBlock["soa_date"] = &insolvencyResource.Data.StatementOfAffairs.StatementDate
+	}
+	return dataBlock
 }
