@@ -83,7 +83,7 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		// Check with alphakey service if company name valid
 		err, httpStatus = service.CheckCompanyNameAlphaKey(companyProfile.CompanyName, &request, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("company name was not found valid when checking company profile API [%v]", err))
+			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("company name [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
