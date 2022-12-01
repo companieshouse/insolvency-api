@@ -87,8 +87,8 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
-		} 
-		
+		}
+
 		// Check with company profile API if other details are valid
 		err = service.CheckCompanyDetailsAreValid(companyProfile)
 		if err != nil {
@@ -97,7 +97,6 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
-		
 
 		// Add new insolvency resource to mongo
 		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
