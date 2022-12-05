@@ -83,7 +83,7 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 
 		Convey("Company status is not allowed to create insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "dissolved", "private-shares-exemption-30")), &companyProfile)
-			
+
 			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `company status [dissolved] not permitted`)
@@ -91,7 +91,7 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 
 		Convey("Company type is not allowed to create insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "active", "converted-or-closed")), &companyProfile)
-			
+
 			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldNotBeNil)
 			So(err.Error(), ShouldEqual, `company type [converted-or-closed] not permitted`)
@@ -99,7 +99,7 @@ func TestUnitCheckCompanyInsolvencyValid(t *testing.T) {
 
 		Convey("Company is allowed to start insolvency case", func() {
 			json.Unmarshal([]byte(companyProfileResponse("england-wales", "active", "private-shares-exemption-30")), &companyProfile)
-			
+
 			err := CheckCompanyDetailsAreValid(companyProfile)
 			So(err, ShouldBeNil)
 		})
