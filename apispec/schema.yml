@@ -450,6 +450,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgressReport'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden
 
     get:
       tags:
@@ -472,7 +478,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProgressReport'
-
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: not found.
     delete:
       tags:
         - "progress report"
@@ -490,6 +501,14 @@ paths:
       responses:
         204:
           description: the progress report was deleted
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden.
+        404:
+          description: Not found.
 
 
 
