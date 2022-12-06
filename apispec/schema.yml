@@ -423,6 +423,74 @@ paths:
                     type: string
                     format: date
 
+  /transactions/{transaction_id}/insolvency/progress-report:
+    post:
+      tags:
+        - "progress report"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [ submit_insolvency_data ]
+      operationId: createProgressReport
+      summary: Create progress report on case
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProgressReportWritable'
+      responses:
+        200:
+          description: Progress report created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressReport'
+
+    get:
+      tags:
+        - "progress report"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [ submit_insolvency_data ]
+      operationId: getProgressReport
+      summary: Get the progress report resource
+      responses:
+        200:
+          description: the progress report resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressReport'
+
+    delete:
+      tags:
+        - "progress report"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [ submit_insolvency_data ]
+      operationId: deleteProgressReport
+      summary: Delete the progress report resource
+      responses:
+        204:
+          description: the progress report was deleted
+
 
 
 components:
@@ -510,6 +578,7 @@ components:
         - statement-of-affairs-liquidator
         - statement-of-affairs-director
         - statement-of-concurrence
+        - progress-report
     AttachmentWritable:
       type: object
       properties:
@@ -680,6 +749,45 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/statement-of-affairs
+
+    ProgressReportWritable:
+      type: object
+      properties:
+        progress_report_from_date:
+          type: string
+          format: date
+        progress_report_to_date:
+          type: string
+          format: date
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    ProgressReport:
+      type: object
+      properties:
+        progress_report_from_date:
+          type: string
+          format: date
+        progress_report_to_date:
+          type: string
+          format: date
+        etag:
+          type: string
+        kind:
+          type: string
+          enum:
+            - insolvency-resource#progress-report
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
+              example: /transactions/{transaction_id}/insolvency/progress-report
+
   securitySchemes:
     oauth2:
       type: oauth2
@@ -690,3 +798,5 @@ components:
           authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
           scopes:
             submit_insolvency_data: Submit data
+
+
