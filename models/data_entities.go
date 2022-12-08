@@ -98,3 +98,9 @@ type StatementOfAffairsResourceDao struct {
 	StatementDate string   `bson:"statement_date"`
 	Attachments   []string `bson:"attachments"`
 }
+
+type ProgressReportResourceDao struct {
+	ProgressReportFromDate string   `json:"progress_report_from_date"`
+	ProgressReportToDate   string   `json:"progress_report_to_date"`
+	Attachments            []string `json:"attachments"`
+}

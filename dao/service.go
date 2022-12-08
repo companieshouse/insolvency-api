@@ -49,6 +49,9 @@ type Service interface {
 	// CreateStatementOfAffairsResource creates the statement of affairs resource for an Insolvency Case
 	CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error)
 
+	// CreateProgressReportResource creates the progress report resource for an Insolvency Case
+	CreateProgressReportResource(dao *models.ProgressReportResourceDao, transactionID string) (int, error)
+
 	// DeleteStatementOfAffairsResource deletes the statement of affairs filed for an insolvency case
 	DeleteStatementOfAffairsResource(transactionID string) (int, error)
 

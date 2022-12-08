@@ -52,6 +52,7 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("getStatementOfAffairs"), ShouldBeNil)
 		So(router.GetRoute("deleteStatementOfAffairs"), ShouldBeNil)
 
+		So(router.GetRoute("createProgressReport"), ShouldBeNil)
 	})
 
 	// Simulate ENABLE_NON_LIVE_ROUTE_HANDLERS feature toggle being enabled
@@ -90,6 +91,8 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("createResolution"), ShouldNotBeNil)
 		So(router.GetRoute("getResolution"), ShouldNotBeNil)
 		So(router.GetRoute("deleteResolution"), ShouldNotBeNil)
+
+		So(router.GetRoute("createProgressReport"), ShouldNotBeNil)
 	})
 }
 
