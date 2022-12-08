@@ -89,8 +89,16 @@ type AttachmentResourceLinksDao struct {
 
 // ResolutionResourceDao contains the data for the resolution DB resource
 type ResolutionResourceDao struct {
-	DateOfResolution string   `bson:"date_of_resolution"`
-	Attachments      []string `bson:"attachments"`
+	Etag             string                     `bson:"etag"`
+	Kind             string                     `bson:"kind"`
+	DateOfResolution string                     `bson:"date_of_resolution"`
+	Attachments      []string                   `bson:"attachments"`
+	Links            ResolutionResourceLinksDao `bson:"links"`
+}
+
+// ResolutionResourceLinksDao contains the Links data for a resolution
+type ResolutionResourceLinksDao struct {
+	Self string `bson:"self,omitempty"`
 }
 
 // StatementOfAffairsResourceDao contains the data for the statement of affairs DB resource

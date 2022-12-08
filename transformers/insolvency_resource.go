@@ -4,23 +4,24 @@ import (
 	"fmt"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // InsolvencyResourceRequestToDB will take the input request from the REST call and transform it to a dao ready for
 // insertion into the database
-func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string) *models.InsolvencyResourceDao {
-	kind := "insolvency-resource#insolvency-resource"
+func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string, helperService utils.HelperService) *models.InsolvencyResourceDao {
 
-	etag, err := utils.GenerateEtag()
+	etag, err := helperService.GenerateEtag()
 	if err != nil {
 		log.Error(fmt.Errorf("error generating etag: [%s]", err))
+		return nil
 	}
 
-	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency")
-	transactionLink := fmt.Sprintf("/transactions/" + transactionID)
-	validationLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/validation-status")
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.InsolvencyPath)
+	transactionLink := fmt.Sprintf(constants.TransactionsPath + transactionID)
+	validationLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath)
 
 	dao := &models.InsolvencyResourceDao{
 		TransactionID: transactionID,
@@ -30,7 +31,7 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 			CompanyName:   req.CompanyName,
 		},
 		Etag: etag,
-		Kind: kind,
+		Kind: "insolvency-resource#insolvency-resource",
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             selfLink,
 			Transaction:      transactionLink,
@@ -70,8 +71,10 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity
-func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string) (*models.AttachmentResource, error) {
-	etag, err := utils.GenerateEtag()
+func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string,helperService utils.HelperService) (*models.AttachmentResource, error) {
+	
+	etag, err := helperService.GenerateEtag()
+	
 	if err != nil {
 		return nil, fmt.Errorf("error generating etag")
 	}

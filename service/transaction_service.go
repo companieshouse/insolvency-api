@@ -14,12 +14,14 @@ func CheckTransactionID(transactionID string, req *http.Request) (error, int) {
 
 	// Create SDK session
 	api, err := manager.GetSDK(req)
+
 	if err != nil {
 		return fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error()), http.StatusInternalServerError
 	}
 
 	// Call transaction api to retrieve details of the transaction
 	transactionProfile, err := api.Transaction.Get(transactionID).Do()
+
 	if err != nil {
 		// If 404 then return the transaction not found
 		if transactionProfile.HTTPStatusCode == http.StatusNotFound {
@@ -37,12 +39,14 @@ func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyReso
 
 	// Create Private SDK session
 	api, err := manager.GetPrivateSDK(req)
+
 	if err != nil {
 		return fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error()), http.StatusInternalServerError
 	}
 
 	// Patch transaction api with insolvency resource
 	transactionProfile, err := api.Transaction.Patch(transactionID, transformers.InsolvencyResourceDaoToTransactionResource(insolvencyResource)).Do()
+
 	if err != nil {
 		// If 404 then return the transaction not found
 		if transactionProfile.HTTPStatusCode == http.StatusNotFound {
@@ -60,12 +64,14 @@ func CheckIfTransactionClosed(transactionID string, req *http.Request) (bool, er
 
 	// Create SDK session
 	api, err := manager.GetSDK(req)
+
 	if err != nil {
 		return false, fmt.Errorf("error creating SDK to call transaction api: [%v]", err.Error()), http.StatusInternalServerError
 	}
 
 	// Call transaction api to retrieve details of the transaction
 	transactionProfile, err := api.Transaction.Get(transactionID).Do()
+	
 	if err != nil {
 		// If 404 then return the transaction not found
 		if transactionProfile.HTTPStatusCode == http.StatusNotFound {

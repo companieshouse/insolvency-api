@@ -1,6 +1,7 @@
 package transformers
 
 import (
+	"fmt"
 	"testing"
 
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
@@ -14,9 +15,10 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
-
 	Convey("field mappings are correct", t, func() {
+
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
 		dao := &models.ProgressReport{
 			FromDate: "2021-06-06",
 			ToDate:   "2021-06-07",
@@ -25,6 +27,7 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 			},
 		}
 
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 
 		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
@@ -34,7 +37,10 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 		So(response.Attachments, ShouldResemble, dao.Attachments)
 	})
 
-	Convey("field mappings are correct", t, func() {
+	Convey("Etag failed to generate", t, func() {
+
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
 		dao := &models.ProgressReport{
 			FromDate: "2021-06-06",
 			ToDate:   "2021-06-07",
@@ -43,11 +49,33 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 			},
 		}
 
+		mockHelperService.EXPECT().GenerateEtag().Return("", fmt.Errorf("err"))
+
 		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
 
-		So(response.FromDate, ShouldEqual, dao.FromDate)
-		So(response.ToDate, ShouldEqual, dao.ToDate)
-		So(response.Attachments, ShouldResemble, dao.Attachments)
+		So(response, ShouldBeNil)
+
+	})
+
+	Convey("Etag generated not validated", t, func() {
+
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
+		dao := &models.ProgressReport{
+			FromDate: "2021-06-06",
+			ToDate:   "2021-06-07",
+			Attachments: []string{
+				"1234567890",
+			},
+		}
+
+		mockHelperService.EXPECT().GenerateEtag().Return("", fmt.Errorf("err"))
+		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(false).AnyTimes()
+
+		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
+
+		So(response, ShouldBeNil)
+
 	})
 }
 

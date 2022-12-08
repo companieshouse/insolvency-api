@@ -31,9 +31,10 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 
-		_, validTransactionNotClosed, httpStatusCode := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		_, validTransactionNotClosed, httpStatusCodes := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		
 		if !validTransactionNotClosed {
-			http.Error(w, "Transaction closed", httpStatusCode)
+			http.Error(w, "Transaction closed", httpStatusCodes)
 			return
 		}
 
@@ -54,6 +55,11 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 		//todo replace using generics when GO version 1.18+
 		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
+
+		if err != nil {
+			http.Error(w, "Server error", http.StatusInternalServerError)
+			return
+		}
 
 		isReportValidated, htthttpStatusCode := helperService.HandleCreateProgressReportResourceValidation(w, req, err, statusCode)
 

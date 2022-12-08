@@ -15,10 +15,12 @@ import (
 )
 
 // HandleCreateResolution receives a resolution to be stored against the Insolvency case
-func HandleCreateResolution(svc dao.Service) http.Handler {
+func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
+
 		if transactionID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
 			m := models.NewMessageResponse("transaction ID is not in the URL path")
@@ -30,12 +32,14 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
+
 		if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
@@ -54,7 +58,13 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			return
 		}
 
-		resolutionDao := transformers.ResolutionResourceRequestToDB(&request)
+		resolutionDao := transformers.ResolutionResourceRequestToDB(&request, transactionID, helperService)
+
+		if resolutionDao == nil {
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction id [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
 
 		// Validate all mandatory fields
 		if errs := utils.Validate(request); errs != "" {
@@ -80,6 +90,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
+
 		if validationErrs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
 			m := models.NewMessageResponse("invalid request body: " + validationErrs)
@@ -107,6 +118,7 @@ func HandleCreateResolution(svc dao.Service) http.Handler {
 
 		// Creates the resolution resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
+
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
@@ -156,8 +168,10 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 // HandleDeleteResolution deletes a resolution stored against the Insolvency Case
 func HandleDeleteResolution(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
+
 		if transactionID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
 			m := models.NewMessageResponse("transaction ID is not in the URL path")
@@ -169,12 +183,14 @@ func HandleDeleteResolution(svc dao.Service) http.Handler {
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
+		
 		if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
