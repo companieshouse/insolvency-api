@@ -46,13 +46,13 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
 	// Get environment config - only required whilst feature flag in use to disable
-	// non 600 form handling routes unless set to true
+	// non-live form handling routes unless set to true
 	cfg, err := config.Get()
-	// Check environment variable to enable non 600 form endpoints if set to true
+	// Check environment variable to enable non-live form endpoints if set to true
 	// and if so, block enable those handlers
 	if err != nil {
-		log.Info("Failed to get config for EnableNon600RouteHandlers")
-	} else if cfg.EnableNon600RouteHandlers {
+		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
+	} else if cfg.EnableNonLiveRouteHandlers {
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc)).Methods(http.MethodPost).Name("submitAttachment")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc)).Methods(http.MethodGet).Name("getAttachmentDetails")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")

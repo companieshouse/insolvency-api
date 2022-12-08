@@ -14,10 +14,10 @@ import (
 )
 
 func TestUnitRegisterRoutes(t *testing.T) {
-	// Certain routes are now disabled when ENABLE_NON600_ROUTE_HANDLERS is unset or flase
+	// Certain routes are now disabled when ENABLE_NON_LIVE_ROUTE_HANDLERS is unset or false
 	cfg, _ := config.Get()
 
-	Convey("Register routes: ENABLE_NON600_ROUTE_HANDLERS unset or false", t, func() {
+	Convey("Register routes: ENABLE_NON_LIVE_ROUTE_HANDLERS unset or false", t, func() {
 		router := mux.NewRouter()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -54,9 +54,9 @@ func TestUnitRegisterRoutes(t *testing.T) {
 
 	})
 
-	// Simulate ENABLE_NON600_ROUTE_HANDLERS feature toggle being enabled
-	cfg.EnableNon600RouteHandlers = true
-	Convey("Register routes: ENABLE_NON600_ROUTE_HANDLERS is set as true", t, func() {
+	// Simulate ENABLE_NON_LIVE_ROUTE_HANDLERS feature toggle being enabled
+	cfg.EnableNonLiveRouteHandlers = true
+	Convey("Register routes: ENABLE_NON_LIVE_ROUTE_HANDLERS is set as true", t, func() {
 		router := mux.NewRouter()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
