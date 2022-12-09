@@ -401,32 +401,71 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                date_of_resolution:
-                  type: string
-                  format: date
-                attachments:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/ResolutionResourceWritable'
       responses:
         200:
           description: The resolution details was sent successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  date_of_resolution:
-                    type: string
-                    format: date
+                $ref: '#/components/schemas/Resolution'
+    get:
+      tags:
+        - "Resolution"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [ submit_insolvency_data ]
+      operationId: getResolution
+      summary: Get the resolution resource
+      responses:
+        200:
+          description: the resolution resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Resolution'
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        404:
+          description: not found.
+    delete:
+      tags:
+        - "Resolution"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [ submit_insolvency_data ]
+      operationId: deleteResolution
+      summary: Delete the resolution resource
+      responses:
+        204:
+          description: the resolution was deleted
+        400:
+          description: Bad request.
+        401:
+          description: Unauthorised.
+        403:
+          description: Forbidden.
+        404:
+          description: Not found.
 
   /transactions/{transaction_id}/insolvency/progress-report:
     post:
       tags:
-        - "progress report"
+        - "Progress Report"
       parameters:
         - in: path
           name: transaction_id
@@ -459,7 +498,7 @@ paths:
 
     get:
       tags:
-        - "progress report"
+        - "Progress Report"
       parameters:
         - in: path
           name: transaction_id
@@ -486,7 +525,7 @@ paths:
           description: not found.
     delete:
       tags:
-        - "progress report"
+        - "Progress Report"
       parameters:
         - in: path
           name: transaction_id
@@ -737,8 +776,45 @@ components:
               format: uri
               example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
+    ResolutionResourceWritable:
+      type: object
+      required:
+        - date_of_resolution
+        - attachments
+      properties:
+        date_of_resolution:
+          type: string
+          format: date
+        attachments:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    Resolution:
+      allOf:
+        - $ref: '#/components/schemas/ResolutionResourceWritable'
+        - type: object
+          properties:
+            etag:
+              type: string
+            kind:
+              type: string
+              enum:
+                - insolvency-resource#resolution
+            links:
+              type: object
+              properties:
+                self:
+                  type: string
+                  format: uri
+                  example: /transactions/{transaction_id}/insolvency/resolution
+
     StatementOfAffairsWritable:
       type: object
+      required:
+        - statement_date
+        - attachments
       properties:
         statement_date:
           type: string
@@ -750,32 +826,35 @@ components:
             format: uuid
 
     StatementOfAffairs:
-      type: object
-      properties:
-        statement_date:
-          type: string
-          format: date
-        etag:
-          type: string
-        kind:
-          type: string
-          enum:
-            - insolvency-resource#statement-of-affairs
-        links:
-          type: object
+      allOf:
+        - $ref: '#/components/schemas/StatementOfAffairsWritable'
+        - type: object
           properties:
-            self:
+            etag:
               type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/statement-of-affairs
+            kind:
+              type: string
+              enum:
+                - insolvency-resource#statement-of-affairs
+            links:
+              type: object
+              properties:
+                self:
+                  type: string
+                  format: uri
+                  example: /transactions/{transaction_id}/insolvency/statement-of-affairs
 
     ProgressReportWritable:
       type: object
+      required:
+        - from_date
+        - to_date
+        - attachments
       properties:
-        progress_report_from_date:
+        from_date:
           type: string
           format: date
-        progress_report_to_date:
+        to_date:
           type: string
           format: date
         attachments:
@@ -785,27 +864,34 @@ components:
             format: uuid
 
     ProgressReport:
-      type: object
-      properties:
-        progress_report_from_date:
-          type: string
-          format: date
-        progress_report_to_date:
-          type: string
-          format: date
-        etag:
-          type: string
-        kind:
-          type: string
-          enum:
-            - insolvency-resource#progress-report
-        links:
-          type: object
+      allOf:
+        - $ref: '#/components/schemas/ProgressReportWritable'
+        - type: object
           properties:
-            self:
+            from_date:
               type: string
-              format: uri
-              example: /transactions/{transaction_id}/insolvency/progress-report
+              format: date
+            to_date:
+              type: string
+              format: date
+            attachments:
+              type: array
+              items:
+                type: string
+                format: uuid
+            etag:
+              type: string
+            kind:
+              type: string
+              enum:
+                - insolvency-resource#progress-report
+            links:
+              type: object
+              properties:
+                self:
+                  type: string
+                  format: uri
+                  example: /transactions/{transaction_id}/insolvency/progress-report
 
   securitySchemes:
     oauth2:
