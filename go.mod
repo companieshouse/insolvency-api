@@ -3,7 +3,7 @@ module github.com/companieshouse/insolvency-api
 go 1.16
 
 require (
-	github.com/companieshouse/api-sdk-go v0.1.35
+	github.com/companieshouse/api-sdk-go v0.1.41
 	github.com/companieshouse/chs.go v1.2.6
 	github.com/companieshouse/go-sdk-manager v0.1.13
 	github.com/companieshouse/go-session-handler v0.1.5

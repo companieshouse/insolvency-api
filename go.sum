@@ -3,8 +3,9 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/DataDog/zstd v1.3.6-0.20190409195224-796139022798/go.mod h1:1jcaCB/ufaK+sKp1NBhlGmpz41jOoPQ35bpF36t7BBo=
 github.com/Shopify/sarama v1.23.1/go.mod h1:XLH1GYJnLVE0XCr6KdJGVJRTwY30moWNJ4sERjXX6fs=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
-github.com/companieshouse/api-sdk-go v0.1.35 h1:jMbnPxfzwovVByoVHea0pB/KAE96F3IEWz7wI2vZg5k=
 github.com/companieshouse/api-sdk-go v0.1.35/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
+github.com/companieshouse/api-sdk-go v0.1.41 h1:TfzmoU+5309vKfvPwkzF6wuegYE3D0ZOJb08c0E1dL4=
+github.com/companieshouse/api-sdk-go v0.1.41/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/chs.go v1.2.6 h1:q5W8JPUDIDBrwiRYl5UefnWK14x4aTC+ZysYyrge//8=
