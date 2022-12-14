@@ -12,10 +12,10 @@ func TestUnitIsValidAttachmentTypes(t *testing.T) {
 			AttachmentType string
 		}{
 			{"resolution"},
-			{"progress-report"},
 			{"statement-of-affairs-liquidator"},
 			{"statement-of-affairs-director"},
 			{"statement-of-concurrence"},
+			{"progress-report"},
 		}
 
 		for _, table := range tables {
