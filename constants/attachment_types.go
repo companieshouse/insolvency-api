@@ -9,6 +9,7 @@ const (
 	StatementOfAffairsLiquidator
 	StatementOfAffairsDirector
 	StatementOfConcurrence
+	ProgressReport
 )
 
 var attachmentTypes = [...]string{
@@ -16,6 +17,7 @@ var attachmentTypes = [...]string{
 	"statement-of-affairs-liquidator",
 	"statement-of-affairs-director",
 	"statement-of-concurrence",
+	"progress-report",
 }
 
 // String returns the correctly formatted AttachmentType
