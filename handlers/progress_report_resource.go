@@ -41,7 +41,7 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request)
 
 		//todo replace using generics when GO version 1.18+
-		// Creates the statement of affairs resource in mongo if all previous checks pass
+		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
@@ -50,6 +50,6 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 			return
 		}
 
-		utils.WriteJSONWithStatus(w, req, req.Body, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(progressReportDao), http.StatusOK)
 	})
 }

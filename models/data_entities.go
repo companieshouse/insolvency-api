@@ -100,7 +100,9 @@ type StatementOfAffairsResourceDao struct {
 }
 
 type ProgressReportResourceDao struct {
-	ProgressReportFromDate string   `json:"progress_report_from_date"`
-	ProgressReportToDate   string   `json:"progress_report_to_date"`
-	Attachments            []string `json:"attachments"`
+	FromDate    string   `bson:"from_date"`
+	ToDate      string   `bson:"to_date"`
+	Attachments []string `bson:"attachments"`
+	Etag        string   `bson:"etag"`
+	Kind        string   `bson:"kind"`
 }

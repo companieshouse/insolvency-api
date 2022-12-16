@@ -709,9 +709,11 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 	filter := bson.M{"transaction_id": transactionID}
 
 	progessReportDao := models.ProgressReportResourceDao{
-		ProgressReportFromDate: dao.ProgressReportFromDate,
-		ProgressReportToDate:   dao.ProgressReportToDate,
-		Attachments:            dao.Attachments,
+		FromDate:    dao.FromDate,
+		ToDate:      dao.ToDate,
+		Attachments: dao.Attachments,
+		Etag:        dao.Etag,
+		Kind:        dao.Kind,
 	}
 
 	// Retrieve insolvency case from Mongo

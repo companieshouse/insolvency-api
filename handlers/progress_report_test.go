@@ -122,8 +122,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 func generateProgressReport() models.ProgressReport {
 	return models.ProgressReport{
-		//ProgressReportFromDate: "2021-06-06",
-		ProgressReportToDate: "2021-06-07",
+		FromDate: "2021-06-06",
+		ToDate: "2021-06-07",
 		Attachments: []string{
 			"123456789",
 		},

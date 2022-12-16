@@ -94,9 +94,11 @@ type StatementOfAffairsResource struct {
 }
 
 type ProgressReportResource struct {
-	ProgressReportFromDate string   `json:"progress_report_from_date"`
-	ProgressReportToDate   string   `json:"progress_report_to_date"`
-	Attachments            []string `json:"attachments"`
+	FromDate    string   `json:"from_date"`
+	ToDate      string   `json:"to_date"`
+	Attachments []string `json:"attachments"`
+	Etag        string   `json:"etag"`
+	Kind        string   `json:"kind"`
 }
 
 // ValidationStatusResponse is the object returned when checking the validation of a case
