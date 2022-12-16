@@ -235,6 +235,11 @@ func (mr *MockServiceMockRecorder) DeleteStatementOfAffairsResource(transactionI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteStatementOfAffairsResource", reflect.TypeOf((*MockService)(nil).DeleteStatementOfAffairsResource), transactionID)
 }
 
+// CreateProgressReportResource indicates an expected call of CreateProgressReportResource
+func (mr *MockServiceMockRecorder) CreateProgressReportResource(dao, transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProgressReportResource", reflect.TypeOf((*MockService)(nil).CreateProgressReportResource), dao, transactionID)
+}
+
 // CreateResolutionResource mocks base method
 func (m *MockService) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
 	ret := m.ctrl.Call(m, "CreateResolutionResource", dao, transactionID)

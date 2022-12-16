@@ -94,6 +94,30 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		convey.So(res.Code, convey.ShouldEqual, http.StatusInternalServerError)
 	})
+
+	convey.Convey("Successfully add insolvency resource to mongo", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		statement := generateProgressReport()
+		body, _ := json.Marshal(statement)
+
+		// Expect CreateStatementOfAffairsResource to be called once and return an error
+		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
+
+		res := serveHandleCreateProgressReport(body, mockService, true)
+
+		convey.So(res.Code, convey.ShouldEqual, http.StatusOK)
+	})
 }
 
 func generateProgressReport() models.ProgressReport {
