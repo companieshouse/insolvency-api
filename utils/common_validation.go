@@ -89,3 +89,13 @@ func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter
 func NewHelperService() HelperService {
 	return &helperService{}
 }
+
+func HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool {
+	if err != nil {
+		log.ErrorR(req, err)
+		m := models.NewMessageResponse(err.Error())
+		WriteJSONWithStatus(w, req, m, statusCode)
+		return false
+	}
+	return true
+}
