@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/companieshouse/insolvency-api/service"
+	"github.com/gorilla/mux"
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
@@ -16,14 +17,15 @@ import (
 // HandleCreateProgressReport receives a progress report to be stored against the Insolvency case
 func HandleCreateProgressReport(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		transactionID, validTransactionId := service.TransactionIdExists(w, req)
+		transactionID, validTransactionId := utils.HandleTransactionIdExistsValidation(w, req, utils.GetTransactionIDFromVars(mux.Vars(req)))
 		if !validTransactionId {
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start POST request for submit progress report with transaction id: %s", transactionID))
 
-		err, validTransactionNotClosed := service.ValidateTransactionNotClosed(w, req, transactionID)
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		err, validTransactionNotClosed := utils.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
 		if !validTransactionNotClosed {
 			return
 		}
@@ -33,7 +35,7 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		err = json.NewDecoder(req.Body).Decode(&request)
 
 		// Request body failed to get decoded
-		if !service.ValidBodyDecode(w, req, err, transactionID) {
+		if !utils.HandleBodyDecodedValidation(w, req, transactionID, err) {
 			return
 		}
 

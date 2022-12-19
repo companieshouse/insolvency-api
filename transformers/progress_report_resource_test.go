@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/smartystreets/goconvey/convey"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
-	convey.Convey("field mappings are correct", t, func() {
+	Convey("field mappings are correct", t, func() {
 		dao := &models.ProgressReport{
 			FromDate: "2021-06-06",
 			ToDate:   "2021-06-07",
@@ -19,12 +20,12 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 
 		response := ProgressReportResourceRequestToDB(dao)
 
-		convey.So(response.FromDate, convey.ShouldEqual, dao.FromDate)
-		convey.So(response.ToDate, convey.ShouldEqual, dao.ToDate)
-		convey.So(response.Attachments, convey.ShouldResemble, dao.Attachments)
+		So(response.FromDate, ShouldEqual, dao.FromDate)
+		So(response.ToDate, ShouldEqual, dao.ToDate)
+		So(response.Attachments, ShouldResemble, dao.Attachments)
 	})
 
-	convey.Convey("field mappings are correct", t, func() {
+	Convey("field mappings are correct", t, func() {
 		dao := &models.ProgressReport{
 			FromDate: "2021-06-06",
 			ToDate:   "2021-06-07",
@@ -35,14 +36,14 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 
 		response := ProgressReportResourceRequestToDB(dao)
 
-		convey.So(response.FromDate, convey.ShouldEqual, dao.FromDate)
-		convey.So(response.ToDate, convey.ShouldEqual, dao.ToDate)
-		convey.So(response.Attachments, convey.ShouldResemble, dao.Attachments)
+		So(response.FromDate, ShouldEqual, dao.FromDate)
+		So(response.ToDate, ShouldEqual, dao.ToDate)
+		So(response.Attachments, ShouldResemble, dao.Attachments)
 	})
 }
 
 func TestUnitProgressReportDaoToResponse(t *testing.T) {
-	convey.Convey("field mappings are correct", t, func() {
+	Convey("field mappings are correct", t, func() {
 		dao := &models.ProgressReportResourceDao{
 			FromDate: "2021-06-06",
 			ToDate:   "2021-06-07",
@@ -55,10 +56,10 @@ func TestUnitProgressReportDaoToResponse(t *testing.T) {
 
 		response := ProgressReportDaoToResponse(dao)
 
-		convey.So(response.FromDate, convey.ShouldEqual, dao.FromDate)
-		convey.So(response.ToDate, convey.ShouldEqual, dao.ToDate)
-		convey.So(response.Attachments, convey.ShouldResemble, dao.Attachments)
-		convey.So(response.Etag, convey.ShouldEqual, dao.Etag)
-		convey.So(response.Kind, convey.ShouldEqual, dao.Kind)
+		So(response.FromDate, ShouldEqual, dao.FromDate)
+		So(response.ToDate, ShouldEqual, dao.ToDate)
+		So(response.Attachments, ShouldResemble, dao.Attachments)
+		So(response.Etag, ShouldEqual, dao.Etag)
+		So(response.Kind, ShouldEqual, dao.Kind)
 	})
 }

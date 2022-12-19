@@ -1,8 +1,6 @@
 package transformers
 
 import (
-	"fmt"
-	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
@@ -10,8 +8,8 @@ import (
 // ProgressReportResourceRequestToDB transforms a progress report request to a dao model
 func ProgressReportResourceRequestToDB(req *models.ProgressReport) *models.ProgressReportResourceDao {
 	etag, err := utils.GenerateEtag()
-	if err != nil {
-		log.Error(fmt.Errorf("error generating etag: [%s]", err))
+	if !utils.HandleEtagGenerationValidation(etag, err) {
+		return nil
 	}
 
 	dao := &models.ProgressReportResourceDao{

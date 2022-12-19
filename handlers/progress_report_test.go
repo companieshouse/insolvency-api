@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/jarcoal/httpmock"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/jarcoal/httpmock"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -17,7 +18,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 
-	"github.com/smartystreets/goconvey/convey"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func serveHandleCreateProgressReport(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
@@ -40,17 +41,17 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
-	convey.Convey("Must need a transaction ID in the url", t, func() {
+	Convey("Must need a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), false)
 
-		convey.So(res.Code, convey.ShouldEqual, http.StatusBadRequest)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-	convey.Convey("Error checking if transaction is closed against transaction api", t, func() {
+	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
@@ -62,10 +63,10 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
 
-		convey.So(res.Code, convey.ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
-	convey.Convey("Transaction is already closed and cannot be updated", t, func() {
+	Convey("Transaction is already closed and cannot be updated", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
@@ -77,10 +78,10 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
 
-		convey.So(res.Code, convey.ShouldEqual, http.StatusForbidden)
+		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
-	convey.Convey("Failed to read request body", t, func() {
+	Convey("Failed to read request body", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -92,10 +93,10 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		body := []byte(`{"first_name":error`)
 		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
 
-		convey.So(res.Code, convey.ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
-	convey.Convey("Successfully add insolvency resource to mongo", t, func() {
+	Convey("Successfully add insolvency resource to mongo", t, func() {
 		httpmock.Activate()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -116,14 +117,14 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		res := serveHandleCreateProgressReport(body, mockService, true)
 
-		convey.So(res.Code, convey.ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusOK)
 	})
 }
 
 func generateProgressReport() models.ProgressReport {
 	return models.ProgressReport{
 		FromDate: "2021-06-06",
-		ToDate: "2021-06-07",
+		ToDate:   "2021-06-07",
 		Attachments: []string{
 			"123456789",
 		},
