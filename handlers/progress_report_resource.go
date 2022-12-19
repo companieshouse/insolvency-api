@@ -3,9 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/companieshouse/insolvency-api/service"
 	"github.com/gorilla/mux"
-	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -25,7 +26,7 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start POST request for submit progress report with transaction id: %s", transactionID))
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		err, validTransactionNotClosed := utils.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		_, validTransactionNotClosed := utils.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
 		if !validTransactionNotClosed {
 			return
 		}
@@ -33,8 +34,6 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		//todo replace using generics when GO version 1.18+
 		var request models.ProgressReport
 		err = json.NewDecoder(req.Body).Decode(&request)
-
-		// Request body failed to get decoded
 		if !utils.HandleBodyDecodedValidation(w, req, transactionID, err) {
 			return
 		}
@@ -45,10 +44,7 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		//todo replace using generics when GO version 1.18+
 		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
-		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+		if !utils.HandleCreateProgressReportResourceValidation(w, req, err, statusCode) {
 			return
 		}
 

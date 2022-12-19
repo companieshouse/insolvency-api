@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
-	"net/http"
 )
 
 func HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool) {
@@ -44,9 +45,19 @@ func HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, trans
 	return true
 }
 
-func HandleEtagGenerationValidation(etag string, err error) bool {
+func HandleEtagGenerationValidation(err error) bool {
 	if err != nil {
 		log.Error(fmt.Errorf("error generating etag: [%s]", err))
+		return false
+	}
+	return true
+}
+
+func HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool {
+	if err != nil {
+		log.ErrorR(req, err)
+		m := models.NewMessageResponse(err.Error())
+		WriteJSONWithStatus(w, req, m, statusCode)
 		return false
 	}
 	return true
