@@ -25,6 +25,8 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 			},
 		}
 
+		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
+
 		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
 
 		So(response.FromDate, ShouldEqual, dao.FromDate)

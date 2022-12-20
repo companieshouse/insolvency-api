@@ -3,26 +3,25 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/jarcoal/httpmock"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
+	"github.com/jarcoal/httpmock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func serveHandleCreateProgressReport(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleCreateProgressReport(body []byte, service dao.Service, helperService utils.HelperService, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/progress-report"
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
 	if tranIDSet {
@@ -30,7 +29,7 @@ func serveHandleCreateProgressReport(body []byte, service dao.Service, tranIDSet
 	}
 	res := httptest.NewRecorder()
 
-	handler := HandleCreateProgressReport(service)
+	handler := HandleCreateProgressReport(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -41,58 +40,68 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), false)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return("", false, http.StatusBadRequest).AnyTimes()
+
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError)
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("error"), true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusForbidden)
+
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
 	Convey("Failed to read request body", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"first_name":error`)
-		res := serveHandleCreateProgressReport(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError)
+
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -113,10 +122,9 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		statement := generateProgressReport()
 		body, _ := json.Marshal(statement)
 
-		// Expect CreateProgressReportResource to be called once and return an error
-		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, errors.New("anything")).Times(1)
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError)
 
-		res := serveHandleCreateProgressReport(body, mockService, true)
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -137,10 +145,12 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		statement := generateProgressReport()
 		body, _ := json.Marshal(statement)
 
-		// Expect CreateStatementOfAffairsResource to be called once and return an error
-		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
+		mockHelperService.EXPECT().HandleCreateProgressReportResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK)
+		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusOK, fmt.Errorf("error")).Times(1)
+		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true)
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK)
 
-		res := serveHandleCreateProgressReport(body, mockService, true)
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
 	})

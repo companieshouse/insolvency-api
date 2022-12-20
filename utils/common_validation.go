@@ -11,40 +11,40 @@ import (
 // HelperService interface declares
 type HelperService interface {
 	// HandleTransactionIdExistsValidation
-	HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool)
+	HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int)
 	// HandleTransactionNotClosedValidation
-	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool)
+	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int)
 	// HandleBodyDecodedValidation
-	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) bool
+	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
 	// HandleEtagGenerationValidation
 	HandleEtagGenerationValidation(err error) bool
 	// HandleCreateProgressReportResourceValidation
-	HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool
+	HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
 }
 
 type helperService struct {
 }
 
 // HandleBodyDecodedValidation implements HelperService
-func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) bool {
+func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int) {
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("invalid request"))
 		m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-		return false
+		return false, http.StatusInternalServerError
 	}
-	return true
+	return true, http.StatusOK
 }
 
 // HandleCreateProgressReportResourceValidation implements HelperService
-func (*helperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool {
+func (*helperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
 	if err != nil {
 		log.ErrorR(req, err)
 		m := models.NewMessageResponse(err.Error())
 		WriteJSONWithStatus(w, req, m, statusCode)
-		return false
+		return false, statusCode
 	}
-	return true
+	return true, statusCode
 }
 
 // HandleEtagGenerationValidation implements HelperService
@@ -57,45 +57,35 @@ func (*helperService) HandleEtagGenerationValidation(err error) bool {
 }
 
 // HandleTransactionIdExistsValidation implements HelperService
-func (*helperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool) {
+func (*helperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int) {
 	if transactionID == "" {
 		log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
 		m := models.NewMessageResponse("transaction ID is not in the URL path")
 		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-		return "", false
+		return "", false, http.StatusBadRequest
 	}
-	return transactionID, true
+	return transactionID, true, http.StatusOK
 }
 
 // HandleTransactionNotClosedValidation implements HelperService
-func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool) {
+func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int) {
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
 		m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
 		WriteJSONWithStatus(w, req, m, httpStatus)
-		return nil, false
+		return nil, false, httpStatus
 	}
 
 	if isTransactionClosed {
 		log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 		m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
 		WriteJSONWithStatus(w, req, m, httpStatus)
-		return nil, false
+		return nil, false, httpStatus
 	}
-	return err, true
+	return err, true, httpStatus
 }
 
 // NewHelperService will create a new instance of the HelperService interface.
 func NewHelperService() HelperService {
 	return &helperService{}
-}
-
-func HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool {
-	if err != nil {
-		log.ErrorR(req, err)
-		m := models.NewMessageResponse(err.Error())
-		WriteJSONWithStatus(w, req, m, statusCode)
-		return false
-	}
-	return true
 }

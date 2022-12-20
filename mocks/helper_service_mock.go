@@ -31,36 +31,39 @@ func (m *MockHelperService) EXPECT() *MockHelperServiceMockRecorder {
 }
 
 // HandleTransactionIdExistsValidation mocks base method
-func (m *MockHelperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool) {
+func (m *MockHelperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int) {
 	ret := m.ctrl.Call(m, "HandleTransactionIdExistsValidation", w, req, transactionID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	ret2, _ := ret[2].(int)
+	return ret0, ret1, ret2
 }
 
 // HandleTransactionIdExistsValidation indicates an expected call of HandleTransactionIdExistsValidation
-func (mr *MockHelperServiceMockRecorder) HandleTransactionIdExistsValidation(helpers interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleTransactionIdExistsValidation", reflect.TypeOf((*MockHelperService)(nil).HandleTransactionIdExistsValidation), helpers)
+func (mr *MockHelperServiceMockRecorder) HandleTransactionIdExistsValidation(w, req, transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleTransactionIdExistsValidation", reflect.TypeOf((*MockHelperService)(nil).HandleTransactionIdExistsValidation), w, req, transactionID)
 }
 
 // HandleTransactionNotClosedValidation mocks base method
-func (m *MockHelperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool) {
+func (m *MockHelperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int) {
 	ret := m.ctrl.Call(m, "HandleTransactionNotClosedValidation", w, req, transactionID, isTransactionClosed, err, httpStatus)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	ret2, _ := ret[1].(int)
+	return ret0, ret1, ret2
 }
 
 // HandleTransactionNotClosedValidation indicates an expected call of HandleTransactionNotClosedValidation
-func (mr *MockHelperServiceMockRecorder) HandleTransactionNotClosedValidation(helpers interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInsolvencyResource", reflect.TypeOf((*MockHelperService)(nil).HandleTransactionNotClosedValidation), helpers)
+func (mr *MockHelperServiceMockRecorder) HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleTransactionNotClosedValidation", reflect.TypeOf((*MockHelperService)(nil).HandleTransactionNotClosedValidation), w, req, transactionID, isTransactionClosed, err, httpStatus)
 }
 
 // HandleBodyDecodedValidation mocks base method
-func (m *MockHelperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) bool {
+func (m *MockHelperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int) {
 	ret := m.ctrl.Call(m, "HandleBodyDecodedValidation", w, req, transactionID, err)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
 }
 
 // HandleBodyDecodedValidation indicates an expected call of HandleBodyDecodedValidation
@@ -81,10 +84,11 @@ func (mr *MockHelperServiceMockRecorder) HandleEtagGenerationValidation(err inte
 }
 
 // HandleCreateProgressReportResourceValidation mocks base method
-func (m *MockHelperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) bool {
+func (m *MockHelperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
 	ret := m.ctrl.Call(m, "HandleCreateProgressReportResourceValidation", w, req, err, statusCode)
 	ret0, _ := ret[0].(bool)
-	return ret0
+	ret1, _ := ret[0].(int)
+	return ret0, ret1
 }
 
 // HandleCreateProgressReportResourceValidation indicates an expected call of HandleCreateProgressReportResourceValidation
