@@ -3,12 +3,19 @@ package transformers
 import (
 	"testing"
 
+	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/golang/mock/gomock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
 	Convey("field mappings are correct", t, func() {
 		dao := &models.ProgressReport{
 			FromDate: "2021-06-06",
@@ -18,7 +25,7 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 			},
 		}
 
-		response := ProgressReportResourceRequestToDB(dao)
+		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
 
 		So(response.FromDate, ShouldEqual, dao.FromDate)
 		So(response.ToDate, ShouldEqual, dao.ToDate)
@@ -34,7 +41,7 @@ func TestUnitProgressReportResourceRequestToDB(t *testing.T) {
 			},
 		}
 
-		response := ProgressReportResourceRequestToDB(dao)
+		response := ProgressReportResourceRequestToDB(dao, mockHelperService)
 
 		So(response.FromDate, ShouldEqual, dao.FromDate)
 		So(response.ToDate, ShouldEqual, dao.ToDate)

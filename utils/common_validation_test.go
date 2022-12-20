@@ -23,63 +23,64 @@ func prepareForTest() (*http.Request, *httptest.ResponseRecorder) {
 }
 
 func TestUnitHandleRequestValidation(t *testing.T) {
+	helperService := NewHelperService()
 	Convey("Fails validation when transaction ID does exists", t, func() {
 		var req, res = prepareForTest()
-		_, actual := HandleTransactionIdExistsValidation(res, req, "")
+		_, actual := helperService.HandleTransactionIdExistsValidation(res, req, "")
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when transaction ID exists", t, func() {
 		var req, res = prepareForTest()
-		_, actual := HandleTransactionIdExistsValidation(res, req, "1234567")
+		_, actual := helperService.HandleTransactionIdExistsValidation(res, req, "1234567")
 
 		So(actual, ShouldBeTrue)
 	})
 
 	Convey("Fails validation when transaction is closed against transaction api", t, func() {
 		var req, res = prepareForTest()
-		_, actual := HandleTransactionNotClosedValidation(res, req, "anything", false, errors.New("anything"), http.StatusInternalServerError)
+		_, actual := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, errors.New("anything"), http.StatusInternalServerError)
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Fails validation when transaction is already closed and cannot be updated", t, func() {
 		var req, res = prepareForTest()
-		_, actual := HandleTransactionNotClosedValidation(res, req, "anything", true, nil, http.StatusInternalServerError)
+		_, actual := helperService.HandleTransactionNotClosedValidation(res, req, "anything", true, nil, http.StatusInternalServerError)
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when transaction is not closed", t, func() {
 		var req, res = prepareForTest()
-		_, actual := HandleTransactionNotClosedValidation(res, req, "anything", false, nil, http.StatusInternalServerError)
+		_, actual := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, nil, http.StatusInternalServerError)
 
 		So(actual, ShouldBeTrue)
 	})
 
 	Convey("Fails validation when invalid request body", t, func() {
 		var req, res = prepareForTest()
-		actual := HandleBodyDecodedValidation(res, req, "anything", errors.New("anything"))
+		actual := helperService.HandleBodyDecodedValidation(res, req, "anything", errors.New("anything"))
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when valid request body", t, func() {
 		var req, res = prepareForTest()
-		actual := HandleBodyDecodedValidation(res, req, "anything", nil)
+		actual := helperService.HandleBodyDecodedValidation(res, req, "anything", nil)
 
 		So(actual, ShouldBeTrue)
 	})
 
 	Convey("Fails validation when etag generation fails", t, func() {
-		actual := HandleEtagGenerationValidation("anything", errors.New("anything"))
+		actual := helperService.HandleEtagGenerationValidation(errors.New("anything"))
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when etag generation succeeds", t, func() {
-		actual := HandleEtagGenerationValidation("anything", nil)
+		actual := helperService.HandleEtagGenerationValidation(nil)
 
 		So(actual, ShouldBeTrue)
 	})

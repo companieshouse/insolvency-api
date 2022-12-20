@@ -6,9 +6,9 @@ import (
 )
 
 // ProgressReportResourceRequestToDB transforms a progress report request to a dao model
-func ProgressReportResourceRequestToDB(req *models.ProgressReport) *models.ProgressReportResourceDao {
+func ProgressReportResourceRequestToDB(req *models.ProgressReport, helperService utils.HelperService) *models.ProgressReportResourceDao {
 	etag, err := utils.GenerateEtag()
-	if !utils.HandleEtagGenerationValidation(err) {
+	if !helperService.HandleEtagGenerationValidation(err) {
 		return nil
 	}
 

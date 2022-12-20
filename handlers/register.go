@@ -9,11 +9,12 @@ import (
 	"github.com/companieshouse/insolvency-api/config"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/interceptors"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
 )
 
 // Register defines the endpoints for the API
-func Register(mainRouter *mux.Router, svc dao.Service) {
+func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.HelperService) {
 
 	userAuthInterceptor := &authentication.UserAuthenticationInterceptor{
 		AllowAPIKeyUser:                false,
@@ -66,7 +67,7 @@ func Register(mainRouter *mux.Router, svc dao.Service) {
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
 
-		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc)).Methods(http.MethodPost).Name("createProgressReport")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}

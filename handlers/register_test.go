@@ -22,7 +22,8 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
-		Register(router, mockService)
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+		Register(router, mockService, mockHelperService)
 
 		So(router.GetRoute("healthcheck"), ShouldNotBeNil)
 
@@ -62,7 +63,8 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mock_dao.NewMockService(mockCtrl)
-		Register(router, mockService)
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+		Register(router, mockService, mockHelperService)
 
 		So(router.GetRoute("healthcheck"), ShouldNotBeNil)
 

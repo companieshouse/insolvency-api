@@ -16,9 +16,9 @@ import (
 )
 
 // HandleCreateProgressReport receives a progress report to be stored against the Insolvency case
-func HandleCreateProgressReport(svc dao.Service) http.Handler {
+func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		transactionID, validTransactionId := utils.HandleTransactionIdExistsValidation(w, req, utils.GetTransactionIDFromVars(mux.Vars(req)))
+		transactionID, validTransactionId := helperService.HandleTransactionIdExistsValidation(w, req, utils.GetTransactionIDFromVars(mux.Vars(req)))
 		if !validTransactionId {
 			return
 		}
@@ -26,7 +26,7 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start POST request for submit progress report with transaction id: %s", transactionID))
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		_, validTransactionNotClosed := utils.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		_, validTransactionNotClosed := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
 		if !validTransactionNotClosed {
 			return
 		}
@@ -34,17 +34,17 @@ func HandleCreateProgressReport(svc dao.Service) http.Handler {
 		//todo replace using generics when GO version 1.18+
 		var request models.ProgressReport
 		err = json.NewDecoder(req.Body).Decode(&request)
-		if !utils.HandleBodyDecodedValidation(w, req, transactionID, err) {
+		if !helperService.HandleBodyDecodedValidation(w, req, transactionID, err) {
 			return
 		}
 
 		//todo replace using generics when GO version 1.18+
-		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request)
+		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request,helperService)
 
 		//todo replace using generics when GO version 1.18+
 		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
-		if !utils.HandleCreateProgressReportResourceValidation(w, req, err, statusCode) {
+		if !helperService.HandleCreateProgressReportResourceValidation(w, req, err, statusCode) {
 			return
 		}
 
