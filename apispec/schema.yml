@@ -1,7 +1,8 @@
+---
 openapi: 3.0.0
 info:
   title: Insolvency API
-  description: API specification for submiting insolvency data
+  description: API specification for submitting insolvency data
   version: 1.0.0-dev
 paths:
   /transactions/{transaction_id}/insolvency:
@@ -440,7 +441,7 @@ paths:
           description: Forbidden
         500:
           description: "attachment not found on transaction"
-        }
+
     get:
       tags:
         - "Resolution"
@@ -479,7 +480,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: deleteResolution
       summary: Delete the resolution resource
       responses:
@@ -506,7 +507,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: createProgressReport
       summary: Create progress report on case
       requestBody:
@@ -583,8 +584,6 @@ paths:
         404:
           description: Not found.
 
-
-
 components:
   schemas:
     InsolvencyResourceWritable:
@@ -632,21 +631,24 @@ components:
             validation_status:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/validation-status
+              example:
+                /transactions/{transaction_id}/insolvency/validation-status
         liquidators:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}
+              example:
+                /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}
         attachments:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachments/{attachment_id}
+              example:
+                /transactions/{transaction_id}/insolvency/attachments/{attachment_id}
     Address:
       type: object
       properties:
@@ -713,11 +715,13 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+              example:
+                /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
             download:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
+              example:
+                /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
     PractitionerWritable:
       type: object
       properties:
@@ -728,7 +732,6 @@ components:
         ip_code:
           type: string
         address:
-          type: object
           $ref: '#/components/schemas/Address'
         role:
           type: string
@@ -759,7 +762,6 @@ components:
         last_name:
           type: string
         address:
-          type: object
           $ref: '#/components/schemas/Address'
         email:
           type: string
@@ -789,7 +791,8 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
+              example:
+                /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
 
     PractitionerAppointment:
       type: object
@@ -808,7 +811,8 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
+              example:
+                /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
     ResolutionResourceWritable:
       type: object
@@ -842,7 +846,8 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/resolution
+                  example:
+                    /transactions/{transaction_id}/insolvency/resolution
 
     StatementOfAffairsWritable:
       type: object
@@ -876,7 +881,8 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/statement-of-affairs
+                  example:
+                    /transactions/{transaction_id}/insolvency/statement-of-affairs
 
     ProgressReportWritable:
       type: object
@@ -925,7 +931,8 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/progress-report
+                  example:
+                    /transactions/{transaction_id}/insolvency/progress-report
 
   securitySchemes:
     oauth2:
