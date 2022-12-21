@@ -53,3 +53,10 @@ type StatementOfAffairs struct {
 	StatementDate string   `json:"statement_date" validate:"required,datetime=2006-01-02"`
 	Attachments   []string `json:"attachments" validate:"required"`
 }
+
+// ProgressReport is the model to represent a progress report for an insolvency case
+type ProgressReport struct {
+	FromDate    string   `json:"from_date"`
+	ToDate      string   `json:"to_date"`
+	Attachments []string `json:"attachments"`
+}

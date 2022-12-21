@@ -93,6 +93,14 @@ type StatementOfAffairsResource struct {
 	StatementDate string `json:"statement_date"`
 }
 
+type ProgressReportResource struct {
+	FromDate    string   `json:"from_date"`
+	ToDate      string   `json:"to_date"`
+	Attachments []string `json:"attachments"`
+	Etag        string   `json:"etag"`
+	Kind        string   `json:"kind"`
+}
+
 // ValidationStatusResponse is the object returned when checking the validation of a case
 type ValidationStatusResponse struct {
 	IsValid bool                              `json:"is_valid"`
