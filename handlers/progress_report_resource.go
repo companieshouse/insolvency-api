@@ -58,10 +58,10 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		isReportValidated, htthttpStatusCode := helperService.HandleCreateResourceValidation(w, req, err, statusCode)
+		isReportValidated, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, err, statusCode)
 
 		if !isReportValidated {
-			http.Error(w, "", htthttpStatusCode)
+			http.Error(w, "", httpStatusCode)
 			return
 		}
 
