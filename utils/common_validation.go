@@ -18,8 +18,8 @@ type HelperService interface {
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
 	// HandleEtagGenerationValidation
 	HandleEtagGenerationValidation(err error) bool
-	// HandleCreateProgressReportResourceValidation
-	HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
+	// HandleCreateResourceValidation
+	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
 	// GenerateEtag generates a random etag which is generated on every write action
 	GenerateEtag() (string, error)
 }
@@ -38,8 +38,8 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 	return true, http.StatusOK
 }
 
-// HandleCreateProgressReportResourceValidation implements HelperService
-func (*helperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
+// HandleCreateResourceValidation implements HelperService
+func (*helperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
 	if err != nil {
 		log.ErrorR(req, err)
 		m := models.NewMessageResponse(err.Error())

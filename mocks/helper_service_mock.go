@@ -3,8 +3,9 @@ package mocks
 import (
 	"net/http"
 
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockHelperService is a mock of Service interface
@@ -96,15 +97,15 @@ func (mr *MockHelperServiceMockRecorder) HandleEtagGenerationValidation(err inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleEtagGenerationValidation", reflect.TypeOf((*MockHelperService)(nil).HandleEtagGenerationValidation), err)
 }
 
-// HandleCreateProgressReportResourceValidation mocks base method
-func (m *MockHelperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
-	ret := m.ctrl.Call(m, "HandleCreateProgressReportResourceValidation", w, req, err, statusCode)
+// HandleCreateResourceValidation mocks base method
+func (m *MockHelperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
+	ret := m.ctrl.Call(m, "HandleCreateResourceValidation", w, req, err, statusCode)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(int)
 	return ret0, ret1
 }
 
-// HandleCreateProgressReportResourceValidation indicates an expected call of HandleCreateProgressReportResourceValidation
-func (mr *MockHelperServiceMockRecorder) HandleCreateProgressReportResourceValidation(w, req, err, statusCode interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleCreateProgressReportResourceValidation", reflect.TypeOf((*MockHelperService)(nil).HandleCreateProgressReportResourceValidation), w, req, err, statusCode)
+// HandleCreateResourceValidation indicates an expected call of HandleCreateResourceValidation
+func (mr *MockHelperServiceMockRecorder) HandleCreateResourceValidation(w, req, err, statusCode interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleCreateResourceValidation", reflect.TypeOf((*MockHelperService)(nil).HandleCreateResourceValidation), w, req, err, statusCode)
 }
