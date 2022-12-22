@@ -54,7 +54,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
 
 		if err != nil {
-			http.Error(w, "Server error", http.StatusInternalServerError)
+			http.Error(w, "Server error", statusCode)
 			return
 		}
 
