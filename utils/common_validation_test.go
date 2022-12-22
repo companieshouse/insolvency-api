@@ -90,4 +90,18 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 		So(actual, ShouldNotBeNil)
 	})
+
+	Convey("Fails validation when create resource fails", t, func() {
+		var req, res = prepareForTest()
+		actual, _ := helperService.HandleCreateResourceValidation(res, req, errors.New("anything"), http.StatusInternalServerError)
+
+		So(actual, ShouldBeFalse)
+	})
+
+	Convey("Passes validation when create resource succeeds", t, func() {
+		var req, res = prepareForTest()
+		actual, _ := helperService.HandleCreateResourceValidation(res, req, nil, http.StatusInternalServerError)
+
+		So(actual, ShouldBeTrue)
+	})
 }
