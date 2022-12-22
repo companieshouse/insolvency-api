@@ -14,6 +14,7 @@ import (
 func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string, helperService utils.HelperService) *models.InsolvencyResourceDao {
 
 	etag, err := helperService.GenerateEtag()
+	
 	if err != nil {
 		log.Error(fmt.Errorf("error generating etag: [%s]", err))
 		return nil

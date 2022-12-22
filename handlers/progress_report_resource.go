@@ -32,7 +32,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 
 		_, validTransactionNotClosed, httpStatusCodes := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
-		
+
 		if !validTransactionNotClosed {
 			http.Error(w, "Transaction closed", httpStatusCodes)
 			return
@@ -68,6 +68,8 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(progressReportDao), http.StatusOK)
+		daoResponse := transformers.ProgressReportDaoToResponse(progressReportDao)
+
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
 	})
 }

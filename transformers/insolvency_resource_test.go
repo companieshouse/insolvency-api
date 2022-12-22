@@ -42,6 +42,26 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 		So(response.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
 		So(response.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
 	})
+
+	Convey("Etag failed to generate", t, func() {
+
+		transactionID := "987654321"
+
+		incomingRequest := &models.InsolvencyRequest{
+			CompanyNumber: "12345678",
+			CaseType:      constants.CVL.String(),
+			CompanyName:   "companyName",
+		}
+
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
+		mockHelperService.EXPECT().GenerateEtag().Return("", fmt.Errorf("err"))
+
+		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID, mockHelperService)
+
+		So(response, ShouldBeNil)
+
+	})
 }
 
 func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
