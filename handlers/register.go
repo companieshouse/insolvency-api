@@ -63,7 +63,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	if err != nil {
 		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
 	} else if cfg.EnableNonLiveRouteHandlers {
-		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc)).Methods(http.MethodPost).Name("createStatementOfAffairs")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc, helperService)).Methods(http.MethodPost).Name("createStatementOfAffairs")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
 
