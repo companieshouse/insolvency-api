@@ -38,7 +38,6 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		//todo replace using generics when GO version 1.18+
 		var request models.ProgressReport
 		err = json.NewDecoder(req.Body).Decode(&request)
 
@@ -49,10 +48,8 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		//todo replace using generics when GO version 1.18+
 		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request, helperService)
 
-		//todo replace using generics when GO version 1.18+
 		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
 
