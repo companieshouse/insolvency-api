@@ -18,6 +18,7 @@ import (
 	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
@@ -30,7 +31,7 @@ const (
 	attachmentID = "987654321"
 )
 
-func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool, helperService utils.HelperService) *httptest.ResponseRecorder {
 	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
 	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
 	req.Header.Set("Content-Type", "multipart/form-data; boundary=test_boundary")
@@ -39,7 +40,7 @@ func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet boo
 	}
 	res := httptest.NewRecorder()
 
-	handler := HandleSubmitAttachment(service)
+	handler := HandleSubmitAttachment(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -74,66 +75,71 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), false)
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+		res := serveHandleSubmitAttachment(body, mockService, false, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
 	Convey("Failed to read request body", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"company_name":error`)
-		res := serveHandleSubmitAttachment(body, mock_dao.NewMockService(mockCtrl), true)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - invalid attachment type", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -143,19 +149,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - invalid attachment file format", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -165,19 +169,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - attachment with type has already been filed", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -193,19 +195,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			},
 		}
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachments, nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error uploading attachment", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -215,59 +215,53 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Error updating DB", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Error when retrieving existing attachments from DB", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(nil, fmt.Errorf("err"))
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -280,28 +274,28 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		daoResponse := models.AttachmentResourceDao{
 			Type: "attachment",
 		}
+
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(&daoResponse, nil)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
 		if err != nil {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
 }
 
-func serveHandleGetAttachmentDetails(service dao.Service, tranIDSet bool, attachmentIDSet bool) *httptest.ResponseRecorder {
+func serveHandleGetAttachmentDetails(service dao.Service, tranIDSet bool, attachmentIDSet bool, helperService utils.HelperService) *httptest.ResponseRecorder {
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	vars := make(map[string]string)
 	if tranIDSet {
@@ -313,7 +307,7 @@ func serveHandleGetAttachmentDetails(service dao.Service, tranIDSet bool, attach
 	req = mux.SetURLVars(req, vars)
 	res := httptest.NewRecorder()
 
-	handler := HandleGetAttachmentDetails(service)
+	handler := HandleGetAttachmentDetails(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -325,11 +319,19 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+
 	Convey("Must have a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleGetAttachmentDetails(mock_dao.NewMockService(mockCtrl), false, true)
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+		res := serveHandleGetAttachmentDetails(mockService, false, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -338,7 +340,7 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleGetAttachmentDetails(mock_dao.NewMockService(mockCtrl), true, false)
+		res := serveHandleGetAttachmentDetails(mockService, true, false, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -349,14 +351,12 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"name": "file"}`))
 
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an error
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(models.AttachmentResourceDao{}, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
-
-		res := serveHandleGetAttachmentDetails(mockService, true, true)
+		
+		res := serveHandleGetAttachmentDetails(mockService, true, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -367,14 +367,12 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"name": "file"}`))
 
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return nothing
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(models.AttachmentResourceDao{}, nil).Times(1)
-
-		res := serveHandleGetAttachmentDetails(mockService, true, true)
+	
+		res := serveHandleGetAttachmentDetails(mockService, true, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 		So(res.Body.String(), ShouldContainSubstring, "attachment id is not valid")
@@ -385,8 +383,6 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, `{"name": "file"}`))
 
@@ -399,8 +395,8 @@ func TestUnitHandleGetAttachment(t *testing.T) {
 
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return the attachment
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(attachment, nil)
-
-		res := serveHandleGetAttachmentDetails(mockService, true, true)
+		
+		res := serveHandleGetAttachmentDetails(mockService, true, true, mockHelperService)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
 	})
@@ -433,12 +429,17 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+
 	Convey("Must have a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), false, false)
+		res := serveHandleDownloadAttachment(body, mockService, false, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -448,7 +449,7 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleDownloadAttachment(body, mock_dao.NewMockService(mockCtrl), true, false)
+		res := serveHandleDownloadAttachment(body, mockService, true, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -457,7 +458,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(models.AttachmentResourceDao{}, fmt.Errorf("err"))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -469,8 +469,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 	Convey("Invalid attachment ID", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, attachmentID).Return(models.AttachmentResourceDao{}, nil)
 
@@ -484,7 +482,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		response := models.AttachmentResourceDao{
 			ID: attachmentID,
 		}
@@ -505,7 +502,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 		httpmock.RegisterResponder(http.MethodGet, `=~`+attachmentID+`$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "virus"}`))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		response := models.AttachmentResourceDao{
 			ID: attachmentID,
 		}
@@ -526,7 +522,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, `=~`+attachmentID+`$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "clean"}`))
 		httpmock.RegisterResponder(http.MethodGet, `=~download$`, httpmock.NewStringResponder(http.StatusTeapot, ""))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		response := models.AttachmentResourceDao{
 			ID: attachmentID,
 		}
@@ -548,7 +543,6 @@ func TestUnitHandleDownloadAttachment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, `=~`+attachmentID+`$`, httpmock.NewStringResponder(http.StatusOK, `{"av_status": "clean"}`))
 		httpmock.RegisterResponder(http.MethodGet, `=~download$`, httpmock.NewStringResponder(http.StatusOK, `downloaded`))
 
-		mockService := mock_dao.NewMockService(mockCtrl)
 		response := models.AttachmentResourceDao{
 			ID: attachmentID,
 		}
@@ -585,11 +579,16 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+
 	Convey("Must have a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), false, true)
+		res := serveHandleDeleteAttachment(mockService, false, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -598,7 +597,7 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), true, false)
+		res := serveHandleDeleteAttachment(mockService, true, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -612,7 +611,7 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), true, true)
+		res := serveHandleDeleteAttachment(mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -626,7 +625,7 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		res := serveHandleDeleteAttachment(mock_dao.NewMockService(mockCtrl), true, true)
+		res := serveHandleDeleteAttachment(mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
@@ -639,10 +638,7 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect DeleteAttachmentResource to be called once and return an error
 		mockService.EXPECT().DeleteAttachmentResource(transactionID, attachmentID).Return(http.StatusInternalServerError, fmt.Errorf("err"))
@@ -658,11 +654,8 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
 
 		// Expect DeleteAttachmentResource to be called once and return a not found
@@ -679,11 +672,8 @@ func TestUnitHandleDeleteAttachment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
 		httpmock.RegisterResponder(http.MethodDelete, `=~.*`, httpmock.NewStringResponder(http.StatusNoContent, ``))
 
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an error

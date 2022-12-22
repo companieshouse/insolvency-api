@@ -33,7 +33,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	publicAppRouter.Use(userAuthInterceptor.UserAuthenticationIntercept, interceptors.EmailAuthIntercept, interceptors.InsolvencyPermissionsIntercept)
 
 	// Declare endpoint URIs
-	publicAppRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	publicAppRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc, helperService)).Methods(http.MethodPost).Name("createInsolvencyResource")
 
 	publicAppRouter.Handle("/{transaction_id}/insolvency/validation-status", HandleGetValidationStatus(svc)).Methods(http.MethodGet).Name("getValidationStatus")
 
@@ -46,12 +46,12 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleGetPractitionerAppointment(svc)).Methods(http.MethodGet).Name("getPractitionerAppointment")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc)).Methods(http.MethodPost).Name("submitAttachment")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc)).Methods(http.MethodGet).Name("getAttachmentDetails")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc, helperService)).Methods(http.MethodPost).Name("submitAttachment")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc, helperService)).Methods(http.MethodGet).Name("getAttachmentDetails")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleDeleteAttachment(svc)).Methods(http.MethodDelete).Name("deleteAttachment")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc)).Methods(http.MethodPost).Name("createResolution")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc, helperService)).Methods(http.MethodPost).Name("createResolution")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 

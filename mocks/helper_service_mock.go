@@ -30,6 +30,19 @@ func (m *MockHelperService) EXPECT() *MockHelperServiceMockRecorder {
 	return m.recorder
 }
 
+// GenerateEtag mocks base method
+func (m *MockHelperService) GenerateEtag() (string, error) {
+	ret := m.ctrl.Call(m, "GenerateEtag")
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateEtag indicates an expected call of GenerateEtag
+func (mr *MockHelperServiceMockRecorder) GenerateEtag() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateEtag", reflect.TypeOf((*MockHelperService)(nil).GenerateEtag))
+}
+
 // HandleTransactionIdExistsValidation mocks base method
 func (m *MockHelperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int) {
 	ret := m.ctrl.Call(m, "HandleTransactionIdExistsValidation", w, req, transactionID)
@@ -49,7 +62,7 @@ func (m *MockHelperService) HandleTransactionNotClosedValidation(w http.Response
 	ret := m.ctrl.Call(m, "HandleTransactionNotClosedValidation", w, req, transactionID, isTransactionClosed, err, httpStatus)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[1].(int)
+	ret2, _ := ret[2].(int)
 	return ret0, ret1, ret2
 }
 
@@ -87,7 +100,7 @@ func (mr *MockHelperServiceMockRecorder) HandleEtagGenerationValidation(err inte
 func (m *MockHelperService) HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
 	ret := m.ctrl.Call(m, "HandleCreateProgressReportResourceValidation", w, req, err, statusCode)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[0].(int)
+	ret1, _ := ret[1].(int)
 	return ret0, ret1
 }
 

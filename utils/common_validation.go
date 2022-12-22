@@ -20,6 +20,8 @@ type HelperService interface {
 	HandleEtagGenerationValidation(err error) bool
 	// HandleCreateProgressReportResourceValidation
 	HandleCreateProgressReportResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
+	// GenerateEtag generates a random etag which is generated on every write action
+	GenerateEtag() (string, error)
 }
 
 type helperService struct {

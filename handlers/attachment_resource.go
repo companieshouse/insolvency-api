@@ -14,7 +14,7 @@ import (
 )
 
 // HandleSubmitAttachment receives an attachment to be stored against the Insolvency case
-func HandleSubmitAttachment(svc dao.Service) http.Handler {
+func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
@@ -99,7 +99,11 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao, header.Filename, header.Size, header.Header.Get("Content-Type"))
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(attachmentDao,
+			header.Filename,
+			header.Size,
+			header.Header.Get("Content-Type"),
+			helperService)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
@@ -112,7 +116,7 @@ func HandleSubmitAttachment(svc dao.Service) http.Handler {
 }
 
 // HandleSubmitAttachment receives an attachment to be stored against the Insolvency case
-func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
+func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
@@ -163,7 +167,11 @@ func HandleGetAttachmentDetails(svc dao.Service) http.Handler {
 			return
 		}
 
-		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao, GetAttachmentDetailsResponse.Name, GetAttachmentDetailsResponse.Size, GetAttachmentDetailsResponse.ContentType)
+		attachmentResponse, err := transformers.AttachmentResourceDaoToResponse(&attachmentDao,
+			GetAttachmentDetailsResponse.Name,
+			GetAttachmentDetailsResponse.Size,
+			GetAttachmentDetailsResponse.ContentType,
+			helperService)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")

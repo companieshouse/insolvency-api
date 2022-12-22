@@ -84,4 +84,10 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 		So(actual, ShouldBeTrue)
 	})
+
+	Convey("Passes generating etags", t, func() {
+		actual, _ := helperService.GenerateEtag()
+
+		So(actual, ShouldNotBeNil)
+	})
 }

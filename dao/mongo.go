@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -355,8 +356,8 @@ func (m *MongoService) AddAttachmentToInsolvencyResource(transactionID string, f
 		Type:   attachmentType,
 		Status: "submitted",
 		Links: models.AttachmentResourceLinksDao{
-			Self:     "/transactions/" + transactionID + "/insolvency/attachments/" + fileID,
-			Download: "/transactions/" + transactionID + "/insolvency/attachments/" + fileID + "/download",
+			Self:     constants.TransactionsPath + transactionID + constants.AttachmentsPath + fileID,
+			Download: constants.TransactionsPath + transactionID + constants.AttachmentsPath + fileID + "/download",
 		},
 	}
 
@@ -550,6 +551,9 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 	resolutionDao := models.ResolutionResourceDao{
 		DateOfResolution: dao.DateOfResolution,
 		Attachments:      dao.Attachments,
+		Kind:             dao.Kind,
+		Etag:             dao.Etag,
+		Links:            dao.Links,
 	}
 
 	// Retrieve insolvency case from Mongo

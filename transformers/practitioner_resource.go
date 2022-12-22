@@ -3,6 +3,7 @@ package transformers
 import (
 	"fmt"
 
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
@@ -11,7 +12,7 @@ import (
 func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
 
 	id := utils.GenerateID()
-	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + id)
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + id)
 
 	// Pad IP Code with leading zeros
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
@@ -82,7 +83,7 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 // PractitionerAppointmentRequestToDB transforms an appointment request to a dao model
 func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
 
-	selfLink := fmt.Sprintf("/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID + "/appointment")
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
 	dao := &models.AppointmentResourceDao{
 		AppointedOn: req.AppointedOn,
 		MadeBy:      req.MadeBy,

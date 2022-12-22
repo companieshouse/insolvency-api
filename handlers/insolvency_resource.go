@@ -17,7 +17,7 @@ import (
 )
 
 // HandleCreateInsolvencyResource creates an insolvency resource
-func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
+func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		// Check for a transaction id in request
@@ -99,7 +99,12 @@ func HandleCreateInsolvencyResource(svc dao.Service) http.Handler {
 		}
 
 		// Add new insolvency resource to mongo
-		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
+		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID, helperService)
+		if model == nil {
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction id [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
 
 		err, httpStatus = svc.CreateInsolvencyResource(model)
 		if err != nil {

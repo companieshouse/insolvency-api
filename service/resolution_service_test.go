@@ -19,7 +19,7 @@ func TestUnitIsValidResolutionRequest(t *testing.T) {
 		resolution := generateResolution()
 		resolution.Attachments = []string{}
 
-		err := ValidateResolutionRequest(models.Resolution(resolution))
+		err := ValidateResolutionRequest(resolution)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "please supply only one attachment")
@@ -32,7 +32,7 @@ func TestUnitIsValidResolutionRequest(t *testing.T) {
 			"0987654321",
 		}
 
-		err := ValidateResolutionRequest(models.Resolution(resolution))
+		err := ValidateResolutionRequest(resolution)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "please supply only one attachment")
@@ -53,7 +53,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("err"))
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
@@ -71,7 +71,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
 		So(validationErr, ShouldBeEmpty)
@@ -88,7 +88,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 		resolution.DateOfResolution = "2001/1/2"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -104,7 +104,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("error")))
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
@@ -124,7 +124,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 		resolution.DateOfResolution = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -143,7 +143,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 		resolution.DateOfResolution = "1999-01-01"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -162,7 +162,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		resolution := generateResolution()
+		resolution := generateResolutionDao()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
@@ -172,7 +172,16 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 
 }
 
-func generateResolution() models.ResolutionResourceDao {
+func generateResolution() models.Resolution {
+	return models.Resolution{
+		DateOfResolution: "2012-01-23",
+		Attachments: []string{
+			"123456789",
+		},
+	}
+}
+
+func generateResolutionDao() models.ResolutionResourceDao {
 	return models.ResolutionResourceDao{
 		DateOfResolution: "2012-01-23",
 		Attachments: []string{

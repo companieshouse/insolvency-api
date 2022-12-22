@@ -569,7 +569,7 @@ func generatePractitioner() models.PractitionerRequest {
 }
 
 func serveGetPractitionerResourcesRequest(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
-	path := "/transactions/" + transactionID + "/insolvency/practitioners"
+	path := constants.TransactionsPath + transactionID + "/insolvency/practitioners"
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
@@ -664,7 +664,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 }
 
 func serveGetPractitionerResourceRequest(service dao.Service, tranIDSet bool, practIDSet bool) *httptest.ResponseRecorder {
-	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
+	path := constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	vars := make(map[string]string)
 	if tranIDSet {
@@ -770,7 +770,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 }
 
 func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practIdSet bool) *httptest.ResponseRecorder {
-	path := "/transactions/" + transactionID + "/insolvency/practitioners/" + practitionerID
+	path := constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
 	vars := make(map[string]string)
 	if tranIdSet {
