@@ -49,13 +49,14 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request)
 
-		// // Validate all mandatory fields
-		// if errs := utils.Validate(request); errs != "" {
-		// 	log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-		// 	m := models.NewMessageResponse("invalid request body: " + errs)
-		// 	utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-		// 	return
-		// }
+		errs := utils.Validate(request)
+
+		isValid, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs, httpStatus)
+
+		if !isValid {
+			http.Error(w, errs, httpStatusCode)
+			return
+		}
 
 		// // Validate the provided statement details are in the correct format
 		// validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)

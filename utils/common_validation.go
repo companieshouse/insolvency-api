@@ -16,6 +16,8 @@ type HelperService interface {
 	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int)
 	// HandleBodyDecodedValidation
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
+	// HandleMandatoryFieldValidation
+	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string, statusCode int) (bool, int)
 	// HandleEtagGenerationValidation
 	HandleEtagGenerationValidation(err error) bool
 	// HandleCreateResourceValidation
@@ -36,6 +38,17 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 		return false, http.StatusInternalServerError
 	}
 	return true, http.StatusOK
+}
+
+// HandleMandatoryFieldValidation implements HelperService
+func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string, statusCode int) (bool, int) {
+	if errs != "" {
+		log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
+		m := models.NewMessageResponse(errs)
+		WriteJSONWithStatus(w, req, m, statusCode)
+		return false, statusCode
+	}
+	return true, statusCode
 }
 
 // HandleCreateResourceValidation implements HelperService

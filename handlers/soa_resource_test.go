@@ -17,6 +17,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -111,24 +112,31 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
-	//todo convert to new way
-	// Convey("Incoming request has statement date missing", t, func() {
-	// 	httpmock.Activate()
-	// 	mockCtrl := gomock.NewController(t)
-	// 	defer mockCtrl.Finish()
-	// 	defer httpmock.DeactivateAndReset()
+	Convey("Incoming request has statement date missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
-	// 	// Expect the transaction api to be called and return an open transaction
-	// 	httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-	// 	statement := generateStatement()
-	// 	statement.StatementDate = ""
-	// 	body, _ := json.Marshal(statement)
-	// 	res := serveHandleCreateStatementOfAffairs(body, mock_dao.NewMockService(mockCtrl), true)
+		statement := generateStatement()
+		statement.StatementDate = ""
+		body, _ := json.Marshal(statement)
 
-	// 	So(res.Code, ShouldEqual, http.StatusBadRequest)
-	// 	So(res.Body.String(), ShouldContainSubstring, "statement_date is a required field")
-	// })
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusBadRequest).AnyTimes()
+
+		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "statement_date is a required field")
+	})
 
 	// Convey("Incoming request has invalid date format", t, func() {
 	// 	httpmock.Activate()
@@ -348,6 +356,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, true, http.StatusForbidden).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusBadRequest).AnyTimes()
 		mockService.EXPECT().CreateStatementOfAffairsResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID))
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(false).AnyTimes()
@@ -380,6 +389,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, true, http.StatusForbidden).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusBadRequest).AnyTimes()
 		mockService.EXPECT().CreateStatementOfAffairsResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID))
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(false).AnyTimes()
@@ -407,6 +417,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, true, http.StatusForbidden).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusBadRequest).AnyTimes()
 		mockService.EXPECT().CreateStatementOfAffairsResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
 		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
 

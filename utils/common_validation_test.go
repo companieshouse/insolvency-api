@@ -104,4 +104,18 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 		So(actual, ShouldBeTrue)
 	})
+
+	Convey("Fails validation when missing mandatory field value check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, _ := helperService.HandleMandatoryFieldValidation(res, req, "anything", http.StatusInternalServerError)
+
+		So(actual, ShouldBeFalse)
+	})
+
+	Convey("Passes validation when mandatory field value check succeeds", t, func() {
+		var req, res = prepareForTest()
+		actual, _ := helperService.HandleMandatoryFieldValidation(res, req, "", http.StatusInternalServerError)
+
+		So(actual, ShouldBeTrue)
+	})
 }
