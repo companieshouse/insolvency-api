@@ -76,8 +76,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -117,7 +115,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
@@ -338,8 +335,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -371,8 +366,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -402,8 +395,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	Convey("Successfully add insolvency resource to mongo", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
