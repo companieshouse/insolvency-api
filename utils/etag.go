@@ -15,7 +15,6 @@ func (*helperService) GenerateEtag() (string, error) {
 	// Get a random number and the time in seconds and milliseconds
 	timeNow := time.Now()
 	rand.Seed(timeNow.UTC().UnixNano())
-
 	randomNumber := fmt.Sprintf("%07d", rand.Intn(9999999))
 
 	timeInMillis := strconv.FormatInt(timeNow.UnixNano()/int64(time.Millisecond), 10)
