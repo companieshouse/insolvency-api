@@ -73,7 +73,14 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		// attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, statementDao.Attachments[0])
+		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, statementDao.Attachments[0])
+
+		isValidAttachment, httpStatusCode := helperService.HandleAttachmentResourceValidation(w, req, transactionID, attachment, err)
+
+		if !isValidAttachment {
+			http.Error(w, "Server error", httpStatusCode)
+			return
+		}
 
 		// // Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
 		// if attachment == (models.AttachmentResourceDao{}) {

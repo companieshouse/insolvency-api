@@ -10,17 +10,12 @@ import (
 
 // HelperService interface declares
 type HelperService interface {
-	// HandleTransactionIdExistsValidation
 	HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int)
-	// HandleTransactionNotClosedValidation
 	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int)
-	// HandleBodyDecodedValidation
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
-	// HandleMandatoryFieldValidation
 	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string, statusCode int) (bool, int)
-	// HandleEtagGenerationValidation
+	HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
 	HandleEtagGenerationValidation(err error) bool
-	// HandleCreateResourceValidation
 	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
 	// GenerateEtag generates a random etag which is generated on every write action
 	GenerateEtag() (string, error)
@@ -49,6 +44,17 @@ func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req 
 		return false, statusCode
 	}
 	return true, statusCode
+}
+
+// HandleAttachmentResourceValidation implements HelperService
+func (*helperService) HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int) {
+	if attachment == (models.AttachmentResourceDao{}) {
+		log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachment, err))
+		m := models.NewMessageResponse("attachment not found on transaction")
+		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+		return false, http.StatusInternalServerError
+	}
+	return true, http.StatusOK
 }
 
 // HandleCreateResourceValidation implements HelperService
