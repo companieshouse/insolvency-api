@@ -43,7 +43,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		isDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 
 		if !isDecoded {
-			http.Error(w, "Server error", httpStatusCode)
+			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
@@ -78,7 +78,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		isValidAttachment, httpStatusCode := helperService.HandleAttachmentResourceValidation(w, req, transactionID, attachment, err)
 
 		if !isValidAttachment {
-			http.Error(w, "Server error", httpStatusCode)
+			http.Error(w, "attachment not found on transaction", httpStatusCode)
 			return
 		}
 

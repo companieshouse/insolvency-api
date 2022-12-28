@@ -17,6 +17,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -112,6 +113,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 	})
 
 	Convey("Incoming request has statement date missing", t, func() {
@@ -221,6 +223,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "attachment not found on transaction")
 	})
 
 	// Convey("Failed to validate statement of affairs", t, func() {
