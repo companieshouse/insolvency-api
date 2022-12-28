@@ -59,19 +59,19 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		}
 
 		// // Validate the provided statement details are in the correct format
-		// validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
-		// if err != nil {
-		// 	log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
-		// 	m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
-		// 	utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-		// 	return
-		// }
-		// if validationErrs != "" {
-		// 	log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
-		// 	m := models.NewMessageResponse("invalid request body: " + validationErrs)
-		// 	utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-		// 	return
-		// }
+		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request body: " + validationErrs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
 
 		// attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, statementDao.Attachments[0])
 

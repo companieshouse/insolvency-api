@@ -166,23 +166,31 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "statement_date does not match the 2006-01-02 format")
 	})
 
-	// Convey("Incoming request has attachments missing", t, func() {
-	// 	httpmock.Activate()
-	// 	mockCtrl := gomock.NewController(t)
-	// 	defer mockCtrl.Finish()
-	// 	defer httpmock.DeactivateAndReset()
+	Convey("Incoming request has attachments missing", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		defer httpmock.DeactivateAndReset()
+		mockService := mock_dao.NewMockService(mockCtrl)
+		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
-	// 	// Expect the transaction api to be called and return an open transaction
-	// 	httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-	// 	statement := generateStatement()
-	// 	statement.Attachments = nil
-	// 	body, _ := json.Marshal(statement)
-	// 	res := serveHandleCreateStatementOfAffairs(body, mock_dao.NewMockService(mockCtrl), mockHelperService, true)
+		statement := generateStatement()
+		statement.Attachments = nil
+		body, _ := json.Marshal(statement)
 
-	// 	So(res.Code, ShouldEqual, http.StatusBadRequest)
-	// 	So(res.Body.String(), ShouldContainSubstring, "attachments is a required field")
-	// })
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusBadRequest).AnyTimes()
+
+		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "attachments is a required field")
+	})
 
 	//Convey("Attachment is not associated with transaction", t, func() {
 	//	httpmock.Activate()
