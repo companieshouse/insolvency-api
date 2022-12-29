@@ -11,14 +11,14 @@ import (
 // HelperService interface declares
 type HelperService interface {
 	HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int)
-	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int)
+	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, httpStatus int, err error) (error, bool, int)
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
-	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string, statusCode int) (bool, int)
+	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string) (bool, int)
 	HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int)
 	HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
 	HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int
 	HandleEtagGenerationValidation(err error) bool
-	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
+	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, statusCode int, err error) (bool, int)
 	// GenerateEtag generates a random etag which is generated on every write action
 	GenerateEtag() (string, error)
 }
@@ -38,7 +38,7 @@ func (*helperService) HandleTransactionIdExistsValidation(w http.ResponseWriter,
 }
 
 // HandleTransactionNotClosedValidation implements HelperService
-func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int) {
+func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, httpStatus int, err error) (error, bool, int) {
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
 		m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
@@ -67,14 +67,14 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 }
 
 // HandleMandatoryFieldValidation implements HelperService
-func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string, statusCode int) (bool, int) {
+func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string) (bool, int) {
 	if errs != "" {
 		log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
 		m := models.NewMessageResponse(errs)
-		WriteJSONWithStatus(w, req, m, statusCode)
-		return false, statusCode
+		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		return false, http.StatusBadRequest
 	}
-	return true, statusCode
+	return true, http.StatusOK
 }
 
 // HandleStatementDetailsValidation implements HelperService
@@ -113,17 +113,8 @@ func (*helperService) HandleAttachmentTypeValidation(w http.ResponseWriter, req 
 	return http.StatusBadRequest
 }
 
-// HandleEtagGenerationValidation implements HelperService
-func (*helperService) HandleEtagGenerationValidation(err error) bool {
-	if err != nil {
-		log.Error(fmt.Errorf("error generating etag: [%s]", err))
-		return false
-	}
-	return true
-}
-
 // HandleCreateResourceValidation implements HelperService
-func (*helperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int) {
+func (*helperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, statusCode int, err error) (bool, int) {
 	if err != nil {
 		log.ErrorR(req, err)
 		m := models.NewMessageResponse(err.Error())
@@ -131,6 +122,15 @@ func (*helperService) HandleCreateResourceValidation(w http.ResponseWriter, req 
 		return false, statusCode
 	}
 	return true, statusCode
+}
+
+// HandleEtagGenerationValidation implements HelperService
+func (*helperService) HandleEtagGenerationValidation(err error) bool {
+	if err != nil {
+		log.Error(fmt.Errorf("error generating etag: [%s]", err))
+		return false
+	}
+	return true
 }
 
 // NewHelperService will create a new instance of the HelperService interface.
