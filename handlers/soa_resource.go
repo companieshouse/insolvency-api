@@ -19,9 +19,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
-		transactionID, validTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 
-		if !validTransactionId {
+		if !isValidTransactionId {
 			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
@@ -30,9 +30,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 
-		_, validTransactionNotClosed, httpStatusCodes := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		_, isValidTransactionNotClosed, httpStatusCodes := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
 
-		if !validTransactionNotClosed {
+		if !isValidTransactionNotClosed {
 			http.Error(w, "Transaction closed", httpStatusCodes)
 			return
 		}
@@ -40,9 +40,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		var request models.StatementOfAffairs
 		err = json.NewDecoder(req.Body).Decode(&request)
 
-		isDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 
-		if !isDecoded {
+		if !isValidDecoded {
 			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
@@ -51,18 +51,18 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		errs := utils.Validate(request)
 
-		isValid, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs, httpStatus)
+		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs, httpStatus)
 
-		if !isValid {
+		if !isValidMarshallToDB {
 			http.Error(w, errs, httpStatusCode)
 			return
 		}
 
 		// Validate the provided statement details are in the correct format
 		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
-		isStatementValid, httpStatusCode := helperService.HandleStatementDetailsValidation(w, req, transactionID, validationErrs, err)
+		isValidStatementDetails, httpStatusCode := helperService.HandleStatementDetailsValidation(w, req, transactionID, validationErrs, err)
 
-		if !isStatementValid {
+		if !isValidStatementDetails {
 			if validationErrs == "" {
 				http.Error(w, err.Error(), httpStatusCode)
 			} else {
@@ -97,9 +97,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		isReportValidated, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, err, statusCode)
+		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, err, statusCode)
 
-		if !isReportValidated {
+		if !isValidCreateResource {
 			http.Error(w, "", httpStatusCode)
 			return
 		}
