@@ -30,7 +30,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 
-		_, isValidTransactionNotClosed, httpStatusCodes := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, err, httpStatus)
+		isValidTransactionNotClosed, httpStatusCodes, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
 
 		if !isValidTransactionNotClosed {
 			http.Error(w, "Transaction closed", httpStatusCodes)
@@ -51,7 +51,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		errs := utils.Validate(request)
 
-		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs, httpStatus)
+		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
 
 		if !isValidMarshallToDB {
 			http.Error(w, errs, httpStatusCode)
@@ -97,7 +97,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, err, statusCode)
+		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
 
 		if !isValidCreateResource {
 			http.Error(w, "", httpStatusCode)

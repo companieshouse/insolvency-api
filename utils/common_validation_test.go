@@ -40,21 +40,21 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 	Convey("Fails validation when transaction is closed against transaction api", t, func() {
 		var req, res = prepareForTest()
-		_, actual, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, errors.New("anything"), http.StatusInternalServerError)
+		actual, _, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, http.StatusInternalServerError, errors.New("anything"))
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Fails validation when transaction is already closed and cannot be updated", t, func() {
 		var req, res = prepareForTest()
-		_, actual, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", true, nil, http.StatusInternalServerError)
+		actual, _, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", true, http.StatusInternalServerError, nil)
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when transaction is not closed", t, func() {
 		var req, res = prepareForTest()
-		_, actual, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, nil, http.StatusInternalServerError)
+		actual, _, _ := helperService.HandleTransactionNotClosedValidation(res, req, "anything", false, http.StatusInternalServerError, nil)
 
 		So(actual, ShouldBeTrue)
 	})
@@ -72,6 +72,83 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 		So(actual, ShouldBeTrue)
 	})
+
+	Convey("Fails validation when missing mandatory field values check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "anything")
+
+		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Passes validation when mandatory field values check succeeds", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "")
+
+		So(actual, ShouldBeTrue)
+		So(httpStatusCode, ShouldEqual, http.StatusOK)
+	})
+
+	Convey("Fails validation when missing mandatory fields check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "anything")
+
+		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Fails validation when Statement Details check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "", errors.New(""))
+
+		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Fails validation when Statement Details check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "anything", nil)
+
+		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Passes validation when Statement Details check succeeds", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "", nil)
+
+		So(actual, ShouldBeTrue)
+		So(httpStatusCode, ShouldEqual, http.StatusOK)
+	})
+
+	Convey("Fails validation when Attachment Resource check fails", t, func() {
+		var req, res = prepareForTest()
+		actual, httpStatusCode := helperService.HandleAttachmentResourceValidation(res, req, "", models.AttachmentResourceDao{}, nil)
+
+		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Passes validation when Attachment Resource check succeeds", t, func() {
+		var req, res = prepareForTest()
+		attachmentDao := models.AttachmentResourceDao{
+			ID: "anything",
+		}
+
+		actual, httpStatusCode := helperService.HandleAttachmentResourceValidation(res, req, "", attachmentDao, nil)
+
+		So(actual, ShouldBeTrue)
+		So(httpStatusCode, ShouldEqual, http.StatusOK)
+	})
+
+	Convey("Records Attachment Type failure successfully", t, func() {
+		var req, res = prepareForTest()
+		httpStatusCode := helperService.HandleAttachmentTypeValidation(res, req, "", errors.New("anything"))
+
+		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
+	})
+
+	//1*	HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int
 
 	Convey("Fails validation when etag generation fails", t, func() {
 		actual := helperService.HandleEtagGenerationValidation(errors.New("anything"))
@@ -93,29 +170,31 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 	Convey("Fails validation when create resource fails", t, func() {
 		var req, res = prepareForTest()
-		actual, _ := helperService.HandleCreateResourceValidation(res, req, errors.New("anything"), http.StatusInternalServerError)
+		actual, _ := helperService.HandleCreateResourceValidation(res, req, http.StatusInternalServerError, errors.New("anything"))
 
 		So(actual, ShouldBeFalse)
 	})
 
 	Convey("Passes validation when create resource succeeds", t, func() {
 		var req, res = prepareForTest()
-		actual, _ := helperService.HandleCreateResourceValidation(res, req, nil, http.StatusInternalServerError)
+		actual, _ := helperService.HandleCreateResourceValidation(res, req, http.StatusInternalServerError, nil)
 
 		So(actual, ShouldBeTrue)
 	})
 
 	Convey("Fails validation when missing mandatory field value check fails", t, func() {
 		var req, res = prepareForTest()
-		actual, _ := helperService.HandleMandatoryFieldValidation(res, req, "anything", http.StatusInternalServerError)
+		actual, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "anything")
 
 		So(actual, ShouldBeFalse)
+		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Passes validation when mandatory field value check succeeds", t, func() {
 		var req, res = prepareForTest()
-		actual, _ := helperService.HandleMandatoryFieldValidation(res, req, "", http.StatusInternalServerError)
+		actual, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "")
 
 		So(actual, ShouldBeTrue)
+		So(httpStatusCode, ShouldEqual, http.StatusOK)
 	})
 }
