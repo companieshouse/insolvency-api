@@ -52,7 +52,7 @@ func (*helperService) HandleTransactionNotClosedValidation(w http.ResponseWriter
 		WriteJSONWithStatus(w, req, m, httpStatus)
 		return false, httpStatus, nil
 	}
-	return true, httpStatus, err
+	return true, httpStatus, nil
 }
 
 // HandleBodyDecodedValidation implements HelperService
