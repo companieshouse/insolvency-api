@@ -13,6 +13,7 @@ type HelperService interface {
 	HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int)
 	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, err error, httpStatus int) (error, bool, int)
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
+	HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int)
 	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string, statusCode int) (bool, int)
 	HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
 	HandleEtagGenerationValidation(err error) bool
@@ -31,6 +32,23 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 		m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 		return false, http.StatusInternalServerError
+	}
+	return true, http.StatusOK
+}
+
+// HandleStatementDetailsValidation implements HelperService
+func (*helperService) HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int) {
+	if err != nil {
+		log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
+		m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
+		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+		return false, http.StatusInternalServerError
+	}
+	if validationErrs != "" {
+		log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+		m := models.NewMessageResponse("invalid request body: " + validationErrs)
+		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		return false, http.StatusBadRequest
 	}
 	return true, http.StatusOK
 }

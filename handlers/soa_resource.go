@@ -58,18 +58,16 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		// // Validate the provided statement details are in the correct format
+		// Validate the provided statement details are in the correct format
 		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
-			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-			return
-		}
-		if validationErrs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
-			m := models.NewMessageResponse("invalid request body: " + validationErrs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		isStatementValid, httpStatusCode := helperService.HandleStatementDetailsValidation(w, req, transactionID, validationErrs, err)
+
+		if !isStatementValid {
+			if validationErrs == "" {
+				http.Error(w, err.Error(), httpStatusCode)
+			} else {
+				http.Error(w, validationErrs, httpStatusCode)
+			}
 			return
 		}
 
@@ -82,21 +80,13 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		// // Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
-		// if attachment == (models.AttachmentResourceDao{}) {
-		// 	log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, statementDao.Attachments[0], err))
-		// 	m := models.NewMessageResponse("attachment not found on transaction")
-		// 	utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-		// 	return
-		// }
-
-		// // Validate the supplied attachment is a valid type
-		// if attachment.Type != "statement-of-affairs-director" && attachment.Type != "statement-of-affairs-liquidator" {
-		// 	log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], err))
-		// 	m := models.NewMessageResponse("attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator")
-		// 	utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-		// 	return
-		// }
+		// Validate the supplied attachment is a valid type
+		if attachment.Type != "statement-of-affairs-director" && attachment.Type != "statement-of-affairs-liquidator" {
+			log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], err))
+			m := models.NewMessageResponse("attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
 
 		// Creates the statement of affairs resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateStatementOfAffairsResource(statementDao, transactionID)
