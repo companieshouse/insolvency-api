@@ -20,9 +20,9 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
-		transactionID, validTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 
-		if !validTransactionId {
+		if !isValidTransactionId {
 			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
@@ -31,9 +31,9 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 
-		validTransactionNotClosed, httpStatusCodes, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
+		isValidTransactionNotClosed, httpStatusCodes, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
 
-		if !validTransactionNotClosed {
+		if !isValidTransactionNotClosed {
 			http.Error(w, "Transaction closed", httpStatusCodes)
 			return
 		}
@@ -41,10 +41,10 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 		var request models.ProgressReport
 		err = json.NewDecoder(req.Body).Decode(&request)
 
-		isDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 
-		if !isDecoded {
-			http.Error(w, "Server error", httpStatusCode)
+		if !isValidDecoded {
+			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
@@ -58,9 +58,9 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		isReportValidated, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
+		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
 
-		if !isReportValidated {
+		if !isValidCreateResource {
 			http.Error(w, "", httpStatusCode)
 			return
 		}
