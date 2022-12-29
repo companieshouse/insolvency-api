@@ -18,41 +18,37 @@ import (
 func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		// Check transaction id exists in path
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
 		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
-
 		if !isValidTransactionId {
 			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
 
-		log.InfoR(req, fmt.Sprintf("start POST request for submit progress report with transaction id: %s", transactionID))
+		log.InfoR(req, fmt.Sprintf("start POST request for submit statement of affairs with transaction id: %s", transactionID))
 
+		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-
 		isValidTransactionNotClosed, httpStatusCodes, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
-
 		if !isValidTransactionNotClosed {
 			http.Error(w, "Transaction closed", httpStatusCodes)
 			return
 		}
 
+		// Decode Request body
 		var request models.StatementOfAffairs
 		err = json.NewDecoder(req.Body).Decode(&request)
-
 		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
-
 		if !isValidDecoded {
 			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
+		// Validate all mandatory fields
 		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request)
-
 		errs := utils.Validate(request)
-
 		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
-
 		if !isValidMarshallToDB {
 			http.Error(w, errs, httpStatusCode)
 			return
@@ -61,7 +57,6 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		// Validate the provided statement details are in the correct format
 		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
 		isValidStatementDetails, httpStatusCode := helperService.HandleStatementDetailsValidation(w, req, transactionID, validationErrs, err)
-
 		if !isValidStatementDetails {
 			if validationErrs == "" {
 				http.Error(w, err.Error(), httpStatusCode)
@@ -71,10 +66,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
+		// Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, statementDao.Attachments[0])
-
 		isValidAttachment, httpStatusCode := helperService.HandleAttachmentResourceValidation(w, req, transactionID, attachment, err)
-
 		if !isValidAttachment {
 			http.Error(w, "attachment not found on transaction", httpStatusCode)
 			return
@@ -92,15 +86,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		// Creates the statement of affairs resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateStatementOfAffairsResource(statementDao, transactionID)
-		if err != nil {
-			http.Error(w, "Server error", statusCode)
-			return
-		}
-
 		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
-
 		if !isValidCreateResource {
-			http.Error(w, "", httpStatusCode)
+			http.Error(w, "Server error", httpStatusCode)
 			return
 		}
 
