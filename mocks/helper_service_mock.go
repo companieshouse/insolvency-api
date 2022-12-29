@@ -87,6 +87,18 @@ func (m *MockHelperService) HandleBodyDecodedValidation(w http.ResponseWriter, r
 	return ret0, ret1
 }
 
+// HandleAttachmentTypeValidation indicates an expected call of HandleAttachmentTypeValidation
+func (mr *MockHelperServiceMockRecorder) HandleAttachmentTypeValidation(http, req, responseMessage, err interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleAttachmentTypeValidation", reflect.TypeOf((*MockHelperService)(nil).HandleAttachmentTypeValidation), http, req, responseMessage, err)
+}
+
+// HandleAttachmentTypeValidation mocks base method
+func (m *MockHelperService) HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int {
+	ret := m.ctrl.Call(m, "HandleAttachmentTypeValidation", w, req, responseMessage, err)
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
 // HandleStatementDetailsValidation indicates an expected call of HandleStatementDetailsValidation
 func (mr *MockHelperServiceMockRecorder) HandleStatementDetailsValidation(http, req, transactionID, validationErrs, err interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleStatementDetailsValidation", reflect.TypeOf((*MockHelperService)(nil).HandleStatementDetailsValidation), http, req, transactionID, validationErrs, err)

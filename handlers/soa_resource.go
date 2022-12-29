@@ -82,9 +82,11 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		// Validate the supplied attachment is a valid type
 		if attachment.Type != "statement-of-affairs-director" && attachment.Type != "statement-of-affairs-liquidator" {
-			log.ErrorR(req, fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], err))
-			m := models.NewMessageResponse("attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], attachment.Type)
+			responseMessage := "attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator"
+
+			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
+			http.Error(w, responseMessage, httpStatusCode)
 			return
 		}
 

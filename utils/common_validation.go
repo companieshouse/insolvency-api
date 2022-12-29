@@ -15,6 +15,7 @@ type HelperService interface {
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
 	HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int)
 	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string, statusCode int) (bool, int)
+	HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int
 	HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
 	HandleEtagGenerationValidation(err error) bool
 	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, err error, statusCode int) (bool, int)
@@ -62,6 +63,14 @@ func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req 
 		return false, statusCode
 	}
 	return true, statusCode
+}
+
+// HandleAttachmentTypeValidation implements HelperService
+func (*helperService) HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int {
+	log.ErrorR(req, err)
+	m := models.NewMessageResponse(responseMessage)
+	WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+	return http.StatusBadRequest
 }
 
 // HandleAttachmentResourceValidation implements HelperService
