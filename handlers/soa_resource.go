@@ -45,8 +45,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		// Validate all mandatory fields
 		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request)
+
+		// Validate all mandatory fields
 		errs := utils.Validate(request)
 		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
