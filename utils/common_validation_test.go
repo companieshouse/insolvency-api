@@ -27,18 +27,18 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 	Convey("Fails validation when transaction ID does exists", t, func() {
 		var req, res = prepareForTest()
-		transactionId_, valid, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, "")
+		transactionId, valid, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, "")
 
-		So(transactionId_, ShouldEqual, "")
+		So(transactionId, ShouldEqual, "")
 		So(valid, ShouldBeFalse)
 		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Passes validation when transaction ID exists", t, func() {
 		var req, res = prepareForTest()
-		transactionId_, valid, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, "1234567")
+		transactionId, valid, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, "1234567")
 
-		So(transactionId_, ShouldEqual, "1234567")
+		So(transactionId, ShouldEqual, "1234567")
 		So(valid, ShouldBeTrue)
 		So(httpStatusCode, ShouldEqual, http.StatusOK)
 	})
