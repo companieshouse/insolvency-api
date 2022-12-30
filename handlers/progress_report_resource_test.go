@@ -85,8 +85,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusForbidden, nil).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusForbidden).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusForbidden, nil).AnyTimes()
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true)
 
@@ -116,8 +115,6 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 	Convey("Generic error when adding progress report resource to mongo", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
@@ -148,8 +145,6 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 	Convey("Error adding progress report resource to mongo - insolvency case not found", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
 		defer httpmock.DeactivateAndReset()
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
