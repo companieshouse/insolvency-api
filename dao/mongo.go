@@ -76,7 +76,6 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 
 	// Try to retrieve existing insolvency case from Mongo
 	existingInsolvency := collection.FindOne(context.Background(), filter)
-	
 	err := existingInsolvency.Err()
 	if err != nil {
 		// If no documents can be found then the insolvency case can be created

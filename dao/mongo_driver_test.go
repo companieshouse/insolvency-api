@@ -26,7 +26,7 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 		CollectionName: cfg.MongoCollection,
 	}
 
-	commanError := mtest.CommandError{
+	commandError := mtest.CommandError{
 		Code:    1,
 		Message: "Message",
 		Name:    "Name",
@@ -68,7 +68,7 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	}
 	opts := mtest.NewOptions().DatabaseName("databaseName").ClientType(mtest.Mock)
 
-	return mongoService, commanError, expectedInsolvency, opts, append(practitioners, practitionerResourceDao)
+	return mongoService, commandError, expectedInsolvency, opts, append(practitioners, practitionerResourceDao)
 }
 
 func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
@@ -76,14 +76,14 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
 	mt.Run("CreateInsolvencyResource with error findone", func(mt *mtest.T) {
 		mt.Parallel()
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, _ := mongoService.CreateInsolvencyResource(&expectedInsolvency)
@@ -113,7 +113,7 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -121,7 +121,7 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 	mt.Run("GetInsolvencyResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.GetInsolvencyResource("transactionID")
@@ -154,7 +154,7 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -164,7 +164,7 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 	mt.Run("CreatePractitionersResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, code := mongoService.CreatePractitionersResource(&practitionerResourceDao, "transactionID")
@@ -198,7 +198,7 @@ func TestUnitGetPractitionerResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, practitioners := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, practitioners := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -206,7 +206,7 @@ func TestUnitGetPractitionerResourceDriver(t *testing.T) {
 	mt.Run("GetPractitionerResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		practitioner, err := mongoService.GetPractitionerResource("practitionerID", "transactionID")
@@ -263,7 +263,7 @@ func TestUnitGetPractitionerResourcesDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, practitioners := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, practitioners := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -271,7 +271,7 @@ func TestUnitGetPractitionerResourcesDriver(t *testing.T) {
 	mt.Run("GetPractitionerResources runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.GetPractitionerResources("transactionID")
@@ -327,7 +327,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -335,7 +335,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 	mt.Run("DeletePractitioner runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, _ := mongoService.DeletePractitioner("practitionerID", "transactionID")
@@ -372,7 +372,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(bson.D{
 			{"ok", 1},
@@ -392,7 +392,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 	bsonData := bson.M{
 		"id":               "ID",
 		"ip_code":          "IPCode",
@@ -423,7 +423,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	mt.Run("AppointPractitioner runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -443,7 +443,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(bson.D{
 			{"ok", 1},
@@ -476,7 +476,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, code := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
@@ -504,7 +504,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, code := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
@@ -519,7 +519,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -545,7 +545,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mt.Run("DeletePractitionerAppointment runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -565,7 +565,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(bson.D{
 			{"ok", 1},
@@ -598,7 +598,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, code := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
@@ -626,7 +626,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		err, code := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
@@ -642,7 +642,7 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -650,7 +650,7 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 	mt.Run("AddAttachmentToInsolvencyResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.AddAttachmentToInsolvencyResource("transactionID", "fileID", "attachmentType")
@@ -675,7 +675,7 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 			{"data", expectedInsolvency.Data.Practitioners},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		attachmentDao, err := mongoService.AddAttachmentToInsolvencyResource("transactionID", "fileID", "attachmentType")
@@ -693,7 +693,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -701,7 +701,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 	mt.Run("GetAttachmentResources runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.GetAttachmentResources("transactionID")
@@ -766,7 +766,7 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -774,7 +774,7 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 	mt.Run("GetAttachmentFromInsolvencyResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.GetAttachmentFromInsolvencyResource("transactionID", "fileID")
@@ -838,7 +838,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -864,7 +864,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 	mt.Run("DeleteAttachmentResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -884,7 +884,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -912,7 +912,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -933,7 +933,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -970,7 +970,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 	mt.Run("UpdateAttachmentStatus runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -1016,7 +1016,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 			bson.E{Key: "upserted", Value: 1},
 		))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.UpdateAttachmentStatus("transactionID", "attachmentID", "avStatus")
@@ -1037,7 +1037,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1065,7 +1065,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1086,7 +1086,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -1096,7 +1096,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 	mt.Run("CreateResolutionResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.CreateResolutionResource(&resolutionResourceDao, "transactionID")
@@ -1130,7 +1130,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -1140,7 +1140,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 	mt.Run("CreateStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.CreateStatementOfAffairsResource(&statementOfAffairsResourceDao, "transactionID")
@@ -1174,7 +1174,7 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -1217,7 +1217,7 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 	mt.Run("GetStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.GetStatementOfAffairsResource("transactionID")
@@ -1250,7 +1250,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -1276,7 +1276,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 	mt.Run("DeleteStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -1296,7 +1296,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.DeleteStatementOfAffairsResource("transactionID")
@@ -1318,7 +1318,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1346,7 +1346,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1368,7 +1368,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	progressReportResourceDao := models.ProgressReportResourceDao{}
 
@@ -1377,7 +1377,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 
 	mt.Run("CreateProgressReportResource with error findone", func(mt *mtest.T) {
 		mt.Parallel()
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		_, err := mongoService.CreateProgressReportResource(&progressReportResourceDao,"transactionID")
@@ -1395,7 +1395,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 			{"etag", expectedInsolvency.Etag},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1416,7 +1416,7 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -1467,7 +1467,7 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 	mt.Run("GetResolutionResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.GetResolutionResource("transactionID")
@@ -1487,7 +1487,7 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1507,7 +1507,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mongoService, commanError, expectedInsolvency, opts, _ := setDriverUp()
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -1533,7 +1533,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 	mt.Run("DeleteResolutionResource runs with error", func(mt *mtest.T) {
 		mt.Parallel()
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 
@@ -1553,7 +1553,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
 		code, err := mongoService.DeleteResolutionResource("transactionID")
@@ -1575,7 +1575,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
@@ -1603,7 +1603,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commanError))
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
