@@ -17,5 +17,6 @@ require (
 	github.com/jarcoal/httpmock v1.0.8
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/smartystreets/goconvey v1.7.2
+	github.com/stretchr/testify v1.6.1 // indirect
 	go.mongodb.org/mongo-driver v1.7.0
 )
