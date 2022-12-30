@@ -3,6 +3,11 @@ package utils
 import (
 	"fmt"
 	"net/http"
+	"testing"
+
+	mock_dao "github.com/companieshouse/insolvency-api/mocks"
+	"github.com/golang/mock/gomock"
+	"github.com/jarcoal/httpmock"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
@@ -14,8 +19,7 @@ type HelperService interface {
 	HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, httpStatus int, err error) (bool, int, error)
 	HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int)
 	HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, err string) (bool, int)
-	HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int)
-	HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
+	HandleAttachmentValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int)
 	HandleAttachmentTypeValidation(w http.ResponseWriter, req *http.Request, responseMessage string, err error) int
 	HandleEtagGenerationValidation(err error) bool
 	HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, statusCode int, err error) (bool, int)
@@ -77,25 +81,8 @@ func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req 
 	return true, http.StatusOK
 }
 
-// HandleStatementDetailsValidation implements HelperService
-func (*helperService) HandleStatementDetailsValidation(w http.ResponseWriter, req *http.Request, transactionID string, validationErrs string, err error) (bool, int) {
-	if err != nil {
-		log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
-		m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
-		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-		return false, http.StatusInternalServerError
-	}
-	if validationErrs != "" {
-		log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
-		m := models.NewMessageResponse("invalid request body: " + validationErrs)
-		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
-		return false, http.StatusBadRequest
-	}
-	return true, http.StatusOK
-}
-
-// HandleAttachmentResourceValidation implements HelperService
-func (*helperService) HandleAttachmentResourceValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int) {
+// HandleAttachmentValidation implements HelperService
+func (*helperService) HandleAttachmentValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int) {
 	if attachment == (models.AttachmentResourceDao{}) {
 		log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachment, err))
 		m := models.NewMessageResponse("attachment not found on transaction")
@@ -136,4 +123,11 @@ func (*helperService) HandleEtagGenerationValidation(err error) bool {
 // NewHelperService will create a new instance of the HelperService interface.
 func NewHelperService() HelperService {
 	return &helperService{}
+}
+
+func CreateTestServices(t *testing.T) (*mock_dao.MockService, *mock_dao.MockHelperService) {
+	defer httpmock.DeactivateAndReset()
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	return mock_dao.NewMockService(mockCtrl), mock_dao.NewHelperMockHelperService(mockCtrl)
 }

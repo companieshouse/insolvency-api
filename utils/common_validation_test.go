@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/models"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -94,49 +93,9 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
 	})
 
-	Convey("Passes validation when mandatory field values check succeeds", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "")
-
-		So(valid, ShouldBeTrue)
-		So(httpStatusCode, ShouldEqual, http.StatusOK)
-	})
-
-	Convey("Fails validation when missing mandatory fields check fails", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "anything")
-
-		So(valid, ShouldBeFalse)
-		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
-	})
-
-	Convey("Fails validation when Statement Details check fails", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "", errors.New(""))
-
-		So(valid, ShouldBeFalse)
-		So(httpStatusCode, ShouldEqual, http.StatusInternalServerError)
-	})
-
-	Convey("Fails validation when Statement Details check fails", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "anything", nil)
-
-		So(valid, ShouldBeFalse)
-		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
-	})
-
-	Convey("Passes validation when Statement Details check succeeds", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleStatementDetailsValidation(res, req, "", "", nil)
-
-		So(valid, ShouldBeTrue)
-		So(httpStatusCode, ShouldEqual, http.StatusOK)
-	})
-
 	Convey("Fails validation when Attachment Resource check fails", t, func() {
 		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleAttachmentResourceValidation(res, req, "", models.AttachmentResourceDao{}, nil)
+		valid, httpStatusCode := helperService.HandleAttachmentValidation(res, req, "", models.AttachmentResourceDao{}, nil)
 
 		So(valid, ShouldBeFalse)
 		So(httpStatusCode, ShouldEqual, http.StatusInternalServerError)
@@ -148,7 +107,7 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 			ID: "anything",
 		}
 
-		valid, httpStatusCode := helperService.HandleAttachmentResourceValidation(res, req, "", attachmentDao, nil)
+		valid, httpStatusCode := helperService.HandleAttachmentValidation(res, req, "", attachmentDao, nil)
 
 		So(valid, ShouldBeTrue)
 		So(httpStatusCode, ShouldEqual, http.StatusOK)

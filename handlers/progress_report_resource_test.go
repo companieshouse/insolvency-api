@@ -11,7 +11,6 @@ import (
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
-	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
@@ -39,12 +38,11 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
+		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
+
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return("", false, http.StatusBadRequest).AnyTimes()
@@ -55,10 +53,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
@@ -74,10 +70,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
@@ -93,10 +87,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -114,10 +106,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Generic error when adding progress report resource to mongo", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
@@ -144,10 +134,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Error adding progress report resource to mongo - insolvency case not found", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
@@ -174,10 +162,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockService := mock_dao.NewMockService(mockCtrl)
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 

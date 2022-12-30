@@ -31,9 +31,9 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		isValidTransactionNotClosed, httpStatusCodes, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
+		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
 		if !isValidTransactionNotClosed {
-			http.Error(w, "Transaction closed", httpStatusCodes)
+			http.Error(w, "Transaction closed", httpStatusCode)
 			return
 		}
 
