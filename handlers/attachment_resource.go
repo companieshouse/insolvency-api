@@ -16,29 +16,22 @@ import (
 // HandleSubmitAttachment receives an attachment to be stored against the Insolvency case
 func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		vars := mux.Vars(req)
-		transactionID := utils.GetTransactionIDFromVars(vars)
-		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
-			m := models.NewMessageResponse("transaction ID is not in the URL path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+
+		// Check transaction id exists in path
+		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
+		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		if !isValidTransactionId {
+			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
 
-		log.InfoR(req, fmt.Sprintf("start POST request for submit attachment with transaction id: %s", transactionID))
+		log.InfoR(req, fmt.Sprintf("start POST request for submit resolution with transaction id: %s", transactionID))
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
-			return
-		}
-		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
+		if !isValidTransactionNotClosed {
+			http.Error(w, "Transaction closed", httpStatusCode)
 			return
 		}
 

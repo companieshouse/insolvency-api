@@ -17,52 +17,40 @@ import (
 
 // HandleCreatePractitionersResource updates the insolvency resource with the
 // incoming list of practitioners
-func HandleCreatePractitionersResource(svc dao.Service) http.Handler {
+func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// Check for a transaction id in request
-		vars := mux.Vars(req)
-		transactionID := utils.GetTransactionIDFromVars(vars)
-		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
-			m := models.NewMessageResponse("transaction id is not in the url path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		// Check transaction id exists in path
+		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
+		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		if !isValidTransactionId {
+			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
 
-		log.InfoR(req, fmt.Sprintf("start POST request for practitioners resource with transaction id: %s", transactionID))
+		log.InfoR(req, fmt.Sprintf("start POST request for submit statement of affairs with transaction id: %s", transactionID))
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
-			return
-		}
-		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
+		if !isValidTransactionNotClosed {
+			http.Error(w, "Transaction closed", httpStatusCode)
 			return
 		}
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerRequest
 		err = json.NewDecoder(req.Body).Decode(&request)
-
-		// Request body failed to get decoded
-		if err != nil {
-			log.ErrorR(req, fmt.Errorf("invalid request"))
-			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		if !isValidDecoded {
+			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
 		// Validate all mandatory fields
-		if errs := utils.Validate(request); errs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-			m := models.NewMessageResponse("invalid request body: " + errs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		errs := utils.Validate(request)
+		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		if !isValidMarshallToDB {
+			http.Error(w, errs, httpStatusCode)
 			return
 		}
 

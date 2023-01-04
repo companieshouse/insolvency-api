@@ -41,8 +41,8 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 

@@ -37,7 +37,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 
 	publicAppRouter.Handle("/{transaction_id}/insolvency/validation-status", HandleGetValidationStatus(svc)).Methods(http.MethodGet).Name("getValidationStatus")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc, helperService)).Methods(http.MethodPost).Name("createPractitionersResource")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleDeletePractitioner(svc)).Methods(http.MethodDelete).Name("deletePractitioner")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleGetPractitionerResource(svc)).Methods(http.MethodGet).Name("getPractitionerResource")
