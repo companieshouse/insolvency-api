@@ -42,6 +42,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
@@ -54,6 +55,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
@@ -70,6 +72,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
@@ -86,6 +89,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Failed to read request body", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -103,6 +107,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Incoming request has date of resolution missing", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -125,6 +130,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Incoming request has invalid date format", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -147,6 +153,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 	Convey("Incoming request has attachments missing", t, func() {
 		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
