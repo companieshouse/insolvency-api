@@ -19,6 +19,7 @@ import (
 // incoming list of practitioners
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		// Check transaction id exists in path
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
 		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
@@ -223,6 +224,7 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 // HandleAppointPractitioner adds appointment details to a practitioner resource on a transaction
 func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		// Check transaction id exists in path
 		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
 		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
