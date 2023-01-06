@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/companieshouse/insolvency-api/service"
-	"github.com/gorilla/mux"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/service"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
 )
@@ -19,27 +17,16 @@ import (
 func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		// Check transaction id exists in path
-		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
-		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
-		if !isValidTransactionId {
-			http.Error(w, "Bad request", httpStatusCode)
-			return
-		}
-
-		log.InfoR(req, fmt.Sprintf("start POST request for submit progress report with transaction id: %s", transactionID))
-
-		// Check if transaction is closed
-		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
-		if !isValidTransactionNotClosed {
-			http.Error(w, "Transaction closed", httpStatusCode)
+		// Check transaction is valid
+		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.HandleTransactionValidation(helperService, req, w, "progress report", service.CheckIfTransactionClosed)
+		if !isValidTransaction {
+			http.Error(w, errMessage, httpStatusCode)
 			return
 		}
 
 		// Decode Request body
 		var request models.ProgressReport
-		err = json.NewDecoder(req.Body).Decode(&request)
+		err := json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
 			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)

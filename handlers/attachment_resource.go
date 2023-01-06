@@ -17,21 +17,10 @@ import (
 func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		// Check transaction id exists in path
-		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
-		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
-		if !isValidTransactionId {
-			http.Error(w, "Bad request", httpStatusCode)
-			return
-		}
-
-		log.InfoR(req, fmt.Sprintf("start POST request for submit resolution with transaction id: %s", transactionID))
-
-		// Check if transaction is closed
-		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
-		if !isValidTransactionNotClosed {
-			http.Error(w, "Transaction closed", httpStatusCode)
+		// Check transaction is valid
+		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.HandleTransactionValidation(helperService, req, w, "attachment", service.CheckIfTransactionClosed)
+		if !isValidTransaction {
+			http.Error(w, errMessage, httpStatusCode)
 			return
 		}
 
