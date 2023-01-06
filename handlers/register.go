@@ -7,6 +7,7 @@ import (
 	"github.com/companieshouse/chs.go/authentication"
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/config"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/interceptors"
 	"github.com/companieshouse/insolvency-api/utils"
@@ -76,7 +77,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
 	privateAppRouter.Use(privateUserAuthInterceptor.UserAuthenticationIntercept)
 
-	privateAppRouter.Handle("/transactions/{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
+	privateAppRouter.Handle(constants.TransactionsPath + "{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
 	mainRouter.Use(log.Handler)
 }
