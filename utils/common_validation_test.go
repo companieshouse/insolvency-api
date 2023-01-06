@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/models"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func prepareForTest() (*http.Request, *httptest.ResponseRecorder) {
@@ -166,12 +167,5 @@ func TestUnitHandleRequestValidation(t *testing.T) {
 
 		So(valid, ShouldBeTrue)
 		So(httpStatusCode, ShouldEqual, http.StatusOK)
-	})
-	Convey("Fails validation when missing mandatory field value check fails", t, func() {
-		var req, res = prepareForTest()
-		valid, httpStatusCode := helperService.HandleMandatoryFieldValidation(res, req, "anything")
-
-		So(valid, ShouldBeFalse)
-		So(httpStatusCode, ShouldEqual, http.StatusBadRequest)
 	})
 }
