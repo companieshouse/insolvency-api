@@ -35,6 +35,47 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request, helperService)
 
+		// Validate all mandatory fields
+		errs := utils.Validate(request)
+		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		if !isValidMarshallToDB {
+			http.Error(w, errs, httpStatusCode)
+			return
+		}
+
+		// Validate the provided statement details are in the correct format
+		validationErrs, err := service.ValidateProgressReportDetails(svc, progressReportDao, transactionID, req)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to validate progress report: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if validationErrs != "" {
+			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
+			m := models.NewMessageResponse("invalid request body: " + validationErrs)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		// Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
+		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, progressReportDao.Attachments[0])
+		isValidAttachment, httpStatusCode := helperService.HandleAttachmentValidation(w, req, transactionID, attachment, err)
+		if !isValidAttachment {
+			http.Error(w, "attachment not found on transaction", httpStatusCode)
+			return
+		}
+
+		// Validate the supplied attachment is a valid type
+		if attachment.Type != "progress-report" {
+			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", progressReportDao.Attachments[0], attachment.Type)
+			responseMessage := "attachment is not a progress-report"
+
+			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
+			http.Error(w, responseMessage, httpStatusCode)
+			return
+		}
+
 		// Creates the progress report resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateProgressReportResource(progressReportDao, transactionID)
 		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
