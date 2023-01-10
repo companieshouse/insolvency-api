@@ -2,9 +2,13 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
+	"github.com/gorilla/mux"
+
+	"github.com/companieshouse/chs.go/log"
 	"github.com/go-playground/locales/en"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
@@ -47,4 +51,25 @@ func extractJson(fld reflect.StructField) string {
 	}
 
 	return name
+}
+
+func ValidateTransaction(helperService HelperService, req *http.Request, res http.ResponseWriter, startMessage string, checkIfTransactionClosedFn func(transactionID string, req *http.Request) (bool, error, int)) (string, bool, int, string) {
+
+	// Check transaction id exists in path
+	incomingTransactionId := GetTransactionIDFromVars(mux.Vars(req))
+	transactionID, isValidTransaction, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, incomingTransactionId)
+	if !isValidTransaction {
+		return transactionID, isValidTransaction, httpStatusCode, "Bad request"
+	}
+
+	log.InfoR(req, fmt.Sprintf("start POST request for submit "+startMessage+"with transaction id: %s", transactionID))
+
+	// Check if transaction is checkIfTransactionClosedFn
+	var isTransactionClosed, err, httpStatus = checkIfTransactionClosedFn(transactionID, req)
+	isValidTransaction, httpStatusCode, _ = helperService.HandleTransactionNotClosedValidation(res, req, transactionID, isTransactionClosed, httpStatus, err)
+	if !isValidTransaction {
+		return transactionID, isValidTransaction, httpStatusCode, "Transaction checkIfTransactionClosedFn"
+	}
+
+	return transactionID, isValidTransaction, 0, ""
 }

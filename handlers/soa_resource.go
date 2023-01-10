@@ -19,7 +19,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		// Check transaction is valid
-		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.HandleTransactionValidation(helperService, req, w, "statement of affairs", service.CheckIfTransactionClosed)
+		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "statement of affairs", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
 			http.Error(w, errMessage, httpStatusCode)
 			return
