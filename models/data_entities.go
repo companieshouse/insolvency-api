@@ -21,6 +21,7 @@ type InsolvencyResourceDaoData struct {
 	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
 	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
 	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
+	ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
 }
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
