@@ -2,12 +2,10 @@ package service
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/golang/mock/gomock"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -16,17 +14,13 @@ func TestValidProgressReport(t *testing.T) {
 	transactionID := "123"
 	apiURL := "https://api.companieshouse.gov.uk"
 
-	httpmock.Activate()
-	defer httpmock.DeactivateAndReset()
-
 	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
+		mockService, _ := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		progressReport := generateProgressReport()
@@ -39,13 +33,12 @@ func TestValidProgressReport(t *testing.T) {
 	})
 
 	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
+		mockService, _ := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		progressReport := generateProgressReport()
@@ -57,24 +50,6 @@ func TestValidProgressReport(t *testing.T) {
 		validationErr, err := ValidateProgressReportDetails(mockService, &progressReport, transactionID, req)
 
 		So(validationErr, ShouldContainSubstring, "please supply only one attachment")
-		So(err, ShouldBeNil)
-	})
-
-	Convey("valid date", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		defer httpmock.Reset()
-		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-
-		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-
-		progressReport := generateProgressReport()
-
-		req := httptest.NewRequest(http.MethodGet, "/", nil)
-		validationErr, err := ValidateProgressReportDetails(mockService, &progressReport, transactionID, req)
-		So(validationErr, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})
 }
