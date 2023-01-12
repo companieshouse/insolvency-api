@@ -97,7 +97,7 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 	})
 }
 
-// HandleGetAttachmentDetails receives an attachment to be stored against the Insolvency case
+// HandleGetAttachmentDetails retrieves the details of an attachment stored against the Insolvency case
 func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
