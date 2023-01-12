@@ -1003,4 +1003,99 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[2].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(err, ShouldBeNil)
 	})
+
+	Convey("Generate filing for LIQ03 case with progress-report attachment and one practitioner", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		insolvencyResource := createInsolvencyResource()
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+			{
+				ID:              "1234",
+				IPCode:          "1234",
+				FirstName:       "Name",
+				LastName:        "LastName",
+				TelephoneNumber: "1234",
+				Email:           "name@email.com",
+				Address:         models.AddressResourceDao{},
+				Role:            "final-liquidator",
+				Links:           models.PractitionerResourceLinksDao{},
+			},
+		}
+		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				ID:     "id",
+				Type:   "progress-report",
+				Status: "status",
+				Links: models.AttachmentResourceLinksDao{
+					Self:     "self",
+					Download: "download",
+				},
+			},
+		}
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+
+		filings, err := GenerateFilings(mockService, transactionID)
+
+		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ03")
+		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ03")
+		So(err, ShouldBeNil)
+	})
+
+	Convey("Generate filing for 600 and LIQ03 case with progress-report attachment and one practitioner", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+		mockService := mocks.NewMockService(mockCtrl)
+
+		// Expect the transaction api to be called and return a closed transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
+
+		insolvencyResource := createInsolvencyResource()
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+			{
+				ID:              "1234",
+				IPCode:          "1234",
+				FirstName:       "Name",
+				LastName:        "LastName",
+				TelephoneNumber: "1234",
+				Email:           "name@email.com",
+				Address:         models.AddressResourceDao{},
+				Role:            "final-liquidator",
+				Links:           models.PractitionerResourceLinksDao{},
+				Appointment: &models.AppointmentResourceDao{
+					AppointedOn: "2021-07-07",
+					MadeBy:      "creditors",
+				},
+			},
+		}
+		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				ID:     "id",
+				Type:   "progress-report",
+				Status: "status",
+				Links: models.AttachmentResourceLinksDao{
+					Self:     "self",
+					Download: "download",
+				},
+			},
+		}
+
+		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+
+		filings, err := GenerateFilings(mockService, transactionID)
+
+		So(filings[0].Kind, ShouldEqual, "insolvency#600")
+		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
+		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ03")
+		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ03")
+		So(err, ShouldBeNil)
+	})
+
 }
