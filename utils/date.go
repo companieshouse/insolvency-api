@@ -9,34 +9,34 @@ import (
 )
 
 // IsValidDate is a helper function to check if the date supplied
-// is after today or before the company was incorporated
-func IsValidDate(date string, incorporatedOn string) (bool, error) {
+// is after today or before a date benchmark
+func IsValidDate(dateToTest string, dateToTestAgainst string) (bool, error) {
 	layout := "2006-01-02"
 	today := time.Now()
-	suppliedDate, err := time.Parse(layout, date)
+	testDate, err := time.Parse(layout, dateToTest)
 	if err != nil {
-		log.Error(fmt.Errorf("error when parsing date: [%s]", err))
+		log.Error(fmt.Errorf("error when parsing dateToTest: [%s]", err))
 		return false, err
 	}
 
-	// Retrieve only the date portion of the incorporatedOn datetime string
-	if idx := strings.Index(incorporatedOn, " "); idx != -1 {
-		incorporatedOn = incorporatedOn[:idx]
+	// Retrieve only the dateToTest portion of the dateToTestAgainst datetime string
+	if idx := strings.Index(dateToTestAgainst, " "); idx != -1 {
+		dateToTestAgainst = dateToTestAgainst[:idx]
 	}
 
-	incorporatedDate, err := time.Parse(layout, incorporatedOn)
+	dateBenchmark, err := time.Parse(layout, dateToTestAgainst)
 	if err != nil {
-		log.Error(fmt.Errorf("error when parsing incorporatedOn to date: [%s]", err))
+		log.Error(fmt.Errorf("error when parsing dateToTestAgainst to dateToTest: [%s]", err))
 		return false, err
 	}
 
-	// Check if suppliedDate is in the future
-	if today.Before(suppliedDate) {
+	// Check if testDate is in the future
+	if today.Before(testDate) {
 		return false, nil
 	}
 
-	// Check if suppliedDate is before company was incorporated
-	if suppliedDate.Before(incorporatedDate) {
+	// Check if testDate is before company was incorporated
+	if testDate.Before(dateBenchmark) {
 		return false, nil
 	}
 
