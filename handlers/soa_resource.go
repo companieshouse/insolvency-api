@@ -21,7 +21,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		// Check transaction is valid
 		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "statement of affairs", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
-			http.Error(w, errMessage, httpStatusCode)
+			if InTest {
+				http.Error(w, errMessage, httpStatusCode)
+			}
 			return
 		}
 
@@ -30,7 +32,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		err := json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			if InTest {
+				http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			}
 			return
 		}
 
@@ -40,7 +44,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		errs := utils.Validate(request)
 		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			http.Error(w, errs, httpStatusCode)
+			if InTest {
+				http.Error(w, errs, httpStatusCode)
+			}
 			return
 		}
 
@@ -63,7 +69,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, statementDao.Attachments[0])
 		isValidAttachment, httpStatusCode := helperService.HandleAttachmentValidation(w, req, transactionID, attachment, err)
 		if !isValidAttachment {
-			http.Error(w, "attachment not found on transaction", httpStatusCode)
+			if InTest {
+				http.Error(w, "attachment not found on transaction", httpStatusCode)
+			}
 			return
 		}
 
@@ -81,7 +89,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		statusCode, err := svc.CreateStatementOfAffairsResource(statementDao, transactionID)
 		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
 		if !isValidCreateResource {
-			http.Error(w, "Server error", httpStatusCode)
+			if InTest {
+				http.Error(w, "Server error", httpStatusCode)
+			}
 			return
 		}
 

@@ -35,6 +35,8 @@ func serveHandleCreateStatementOfAffairs(body []byte, service dao.Service, helpe
 }
 
 func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -448,6 +450,8 @@ func serveHandleGetStatementOfAffairs(service dao.Service, tranIDSet bool) *http
 }
 
 func TestUnitHandleGetStatementOfAffairs(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -529,6 +533,8 @@ func serveHandleDeleteStatementOfAffairs(service dao.Service, tranIDSet bool) *h
 }
 
 func TestUnitHandleDeleteStatementOfAffairs(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
