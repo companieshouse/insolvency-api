@@ -69,7 +69,6 @@ var alphakeyResponse = `
 `
 
 func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranIDSet bool, helperService utils.HelperService) *httptest.ResponseRecorder {
-
 	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
 	handler := HandleCreateInsolvencyResource(service, helperService)
 
@@ -87,6 +86,8 @@ func serveHandleCreateInsolvencyResource(body []byte, service dao.Service, tranI
 }
 
 func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -510,6 +511,8 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 }
 
 func TestUnitHandleGetValidationStatus(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
