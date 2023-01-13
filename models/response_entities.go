@@ -121,7 +121,7 @@ func NewValidationStatusResponse(isValid bool, errors *[]ValidationErrorResponse
 	return &ValidationStatusResponse{IsValid: isValid, Errors: *errors}
 }
 
-// ValidationResponseResource contains the details of an error when checking the validation for closing a case - as expected by transaction api
+// ValidationErrorResponseResource contains the details of an error when checking the validation for closing a case - as expected by transaction api
 type ValidationErrorResponseResource struct {
 	Error        string `json:"error"`
 	Location     string `json:"location"`

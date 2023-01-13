@@ -38,12 +38,12 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 
 	publicAppRouter.Handle("/{transaction_id}/insolvency/validation-status", HandleGetValidationStatus(svc)).Methods(http.MethodGet).Name("getValidationStatus")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc)).Methods(http.MethodPost).Name("createPractitionersResource")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc, helperService)).Methods(http.MethodPost).Name("createPractitionersResource")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleDeletePractitioner(svc)).Methods(http.MethodDelete).Name("deletePractitioner")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleGetPractitionerResource(svc)).Methods(http.MethodGet).Name("getPractitionerResource")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleAppointPractitioner(svc)).Methods(http.MethodPost).Name("appointPractitioner")
+	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleAppointPractitioner(svc, helperService)).Methods(http.MethodPost).Name("appointPractitioner")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleGetPractitionerAppointment(svc)).Methods(http.MethodGet).Name("getPractitionerAppointment")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
@@ -56,10 +56,6 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
 	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc)).Methods(http.MethodPost).Name("createStatementOfAffairs")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
-
 	// Get environment config - only required whilst feature flag in use to disable
 	// non-live form handling routes unless set to true
 	cfg, err := config.Get()
@@ -68,6 +64,10 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	if err != nil {
 		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
 	} else if cfg.EnableNonLiveRouteHandlers {
+		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc, helperService)).Methods(http.MethodPost).Name("createStatementOfAffairs")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
+
 		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
 	} else {
 		log.Info("Non-live endpoints blocked")

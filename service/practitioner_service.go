@@ -70,7 +70,7 @@ func ValidatePractitionerDetails(svc dao.Service, transactionID string, practiti
 	return strings.Join(errs, ", "), nil
 }
 
-// ValidateAppointment checks that the incoming appointment details are valid
+// ValidateAppointmentDetails checks that the incoming appointment details are valid
 func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) (string, error) {
 	var errs []string
 
