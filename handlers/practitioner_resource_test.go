@@ -38,6 +38,8 @@ func serveHandleCreatePractitionersResource(body []byte, service dao.Service, he
 }
 
 func TestUnitHandleCreatePractitionersResource(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -636,6 +638,8 @@ func serveGetPractitionerResourcesRequest(service dao.Service, tranIDSet bool) *
 }
 
 func TestUnitHandleGetPractitionerResources(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -737,6 +741,8 @@ func serveGetPractitionerResourceRequest(service dao.Service, tranIDSet bool, pr
 }
 
 func TestUnitHandleGetPractitionerResource(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -844,6 +850,8 @@ func serveDeletePractitionerRequest(service dao.Service, tranIdSet bool, practId
 }
 
 func TestUnitHandleDeletePractitioner(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))

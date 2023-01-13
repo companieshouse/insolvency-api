@@ -23,7 +23,9 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		// Check transaction is valid
 		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "practitioners", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
-			http.Error(w, errMessage, httpStatusCode)
+			if InTest {
+				http.Error(w, errMessage, httpStatusCode)
+			}
 			return
 		}
 
@@ -32,7 +34,9 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		err := json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			if InTest {
+				http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			}
 			return
 		}
 
@@ -40,7 +44,9 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		errs := utils.Validate(request)
 		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			http.Error(w, errs, httpStatusCode)
+			if InTest {
+				http.Error(w, errs, httpStatusCode)
+			}
 			return
 		}
 
