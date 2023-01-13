@@ -34,6 +34,8 @@ func serveHandleCreateProgressReport(body []byte, service dao.Service, helperSer
 }
 
 func TestUnitHandleCreateProgressReport(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
