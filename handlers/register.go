@@ -14,6 +14,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Introduced to allow testing on response failures, by default "false" and ignored outside unit tests
+var InTest bool = false
+
 // Register defines the endpoints for the API
 func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.HelperService) {
 
@@ -77,7 +80,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
 	privateAppRouter.Use(privateUserAuthInterceptor.UserAuthenticationIntercept)
 
-	privateAppRouter.Handle(constants.TransactionsPath + "{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
+	privateAppRouter.Handle(constants.TransactionsPath+"{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
 	mainRouter.Use(log.Handler)
 }

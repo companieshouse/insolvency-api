@@ -35,6 +35,8 @@ func serveHandleCreateResolution(body []byte, service dao.Service, helperService
 }
 
 func TestUnitHandleCreateResolution(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -447,6 +449,8 @@ func serveHandleGetResolution(service dao.Service, tranIDSet bool) *httptest.Res
 }
 
 func TestUnitHandleGetResolution(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -524,6 +528,8 @@ func serveHandleDeleteResolution(service dao.Service, tranIDSet bool) *httptest.
 }
 
 func TestUnitHandleDeleteResolution(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
