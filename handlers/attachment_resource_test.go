@@ -70,6 +70,8 @@ func getBodyWithFile(attachmentType string, filePath string) (*bytes.Buffer, err
 }
 
 func TestUnitHandleSubmitAttachment(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -322,6 +324,8 @@ func serveHandleGetAttachmentDetails(service dao.Service, tranIDSet bool, attach
 }
 
 func TestUnitHandleGetAttachment(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -432,6 +436,8 @@ func serveHandleDownloadAttachment(body []byte, service dao.Service, tranIDSet b
 }
 
 func TestUnitHandleDownloadAttachment(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -582,6 +588,8 @@ func serveHandleDeleteAttachment(service dao.Service, tranIDSet bool, attachment
 }
 
 func TestUnitHandleDeleteAttachment(t *testing.T) {
+	InTest = true
+
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))

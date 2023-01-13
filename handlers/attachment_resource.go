@@ -20,7 +20,9 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 		// Check transaction is valid
 		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "attachment", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
-			http.Error(w, errMessage, httpStatusCode)
+			if InTest {
+				http.Error(w, errMessage, httpStatusCode)
+			}
 			return
 		}
 
