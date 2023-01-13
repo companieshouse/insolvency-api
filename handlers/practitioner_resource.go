@@ -224,7 +224,9 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
 		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 		if !isValidTransactionId {
-			http.Error(w, "Bad request", httpStatusCode)
+			if InTest {
+				http.Error(w, "Bad request", httpStatusCode)
+			}
 			return
 		}
 
@@ -234,7 +236,9 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
 		if !isValidTransactionNotClosed {
-			http.Error(w, "Transaction closed", httpStatusCode)
+			if InTest {
+				http.Error(w, "Transaction closed", httpStatusCode)
+			}
 			return
 		}
 
@@ -243,7 +247,9 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		err = json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			if InTest {
+				http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
+			}
 			return
 		}
 
@@ -251,7 +257,9 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		errs := utils.Validate(request)
 		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			http.Error(w, errs, httpStatusCode)
+			if InTest {
+				http.Error(w, errs, httpStatusCode)
+			}
 			return
 		}
 
