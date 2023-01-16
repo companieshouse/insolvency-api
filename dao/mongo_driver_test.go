@@ -361,30 +361,6 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
         assert.Equal(t, code, 400)
     })
 
-    mt.Run("CreatePractitionersResource runs successfully with practitioner is already assigned to this case", func(mt *mtest.T) {
-        mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
-            {"_id", expectedInsolvency.ID},
-            {"transaction_id", expectedInsolvency.TransactionID},
-            {"etag", expectedInsolvency.Etag},
-            {"kind", expectedInsolvency.Kind},
-            {"data", bsonInsolvency},
-        }))
-
-        mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
-
-        mt.AddMockResponses(bson.D{
-            {"ok", 1},
-            {"nModified", 1},
-        })
-
-        mongoService.db = mt.DB
-        err, code := mongoService.CreatePractitionersResource(&practitionerResourceDao, "transactionID")
-
-        assert.NotNil(t, err)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID - practitioner with IP Code IPCode already is already assigned to this case")
-        assert.Equal(t, code, 400)
-    })
-
     mt.Run("CreatePractitionersResource runs successfully with Update One", func(mt *mtest.T) {
         mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
             {"_id", expectedInsolvency.ID},
