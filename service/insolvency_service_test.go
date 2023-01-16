@@ -95,6 +95,13 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					"id",
 				},
 			},
+			ProgressReport: &models.ProgressReportResourceDao{
+				FromDate: "2021-04-14",
+				ToDate:  "2022-04-13",
+				Attachments: []string{
+					"id",
+				},
+			},
 		},
 		Links: models.InsolvencyResourceLinksDao{
 			Self:             "/transactions/123456789/insolvency",
