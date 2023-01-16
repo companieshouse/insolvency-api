@@ -9,7 +9,6 @@ import (
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -49,9 +48,9 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("getResolution"), ShouldNotBeNil)
 		So(router.GetRoute("deleteResolution"), ShouldNotBeNil)
 
-		So(router.GetRoute("createStatementOfAffairs"), ShouldNotBeNil)
-		So(router.GetRoute("getStatementOfAffairs"), ShouldNotBeNil)
-		So(router.GetRoute("deleteStatementOfAffairs"), ShouldNotBeNil)
+		So(router.GetRoute("createStatementOfAffairs"), ShouldBeNil)
+		So(router.GetRoute("getStatementOfAffairs"), ShouldBeNil)
+		So(router.GetRoute("deleteStatementOfAffairs"), ShouldBeNil)
 
 		So(router.GetRoute("createProgressReport"), ShouldBeNil)
 	})
@@ -93,6 +92,10 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("createResolution"), ShouldNotBeNil)
 		So(router.GetRoute("getResolution"), ShouldNotBeNil)
 		So(router.GetRoute("deleteResolution"), ShouldNotBeNil)
+
+		So(router.GetRoute("createStatementOfAffairs"), ShouldNotBeNil)
+		So(router.GetRoute("getStatementOfAffairs"), ShouldNotBeNil)
+		So(router.GetRoute("deleteStatementOfAffairs"), ShouldNotBeNil)
 
 		So(router.GetRoute("createProgressReport"), ShouldNotBeNil)
 	})

@@ -58,5 +58,5 @@ type StatementOfAffairs struct {
 type ProgressReport struct {
 	FromDate    string   `json:"from_date"`
 	ToDate      string   `json:"to_date"`
-	Attachments []string `json:"attachments"`
+	Attachments []string `json:"attachments" validate:"required"`
 }

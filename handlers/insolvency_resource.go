@@ -20,35 +20,30 @@ import (
 func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		// Check for a transaction id in request
-		vars := mux.Vars(req)
-		transactionID := utils.GetTransactionIDFromVars(vars)
-		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
-			m := models.NewMessageResponse("transaction id is not in the url path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		// Check transaction id exists in path
+		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
+		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		if !isValidTransactionId {
+			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start POST request for insolvency resource with transaction id: %s", transactionID))
 
-		// Decode the incoming request to create an insolvency resource
+		// Decode the incoming request to create a list of practitioners
 		var request models.InsolvencyRequest
 		err := json.NewDecoder(req.Body).Decode(&request)
-
-		// Request body failed to get decoded
-		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		if !isValidDecoded {
+			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
 		// Validate all mandatory fields
-		if errs := utils.Validate(request); errs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-			m := models.NewMessageResponse("invalid request body: " + errs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+		errs := utils.Validate(request)
+		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		if !isValidMarshallToDB {
+			http.Error(w, errs, httpStatusCode)
 			return
 		}
 

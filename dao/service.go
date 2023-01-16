@@ -13,7 +13,7 @@ type Service interface {
 	// GetInsolvencyResource will retrieve an Insolvency Resource
 	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)
 
-	// CreatePractitionerResource will persist a newly created practitioner resource
+	// CreatePractitionersResource will persist a newly created practitioner resource
 	CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int)
 
 	// GetPractitionerResources will retrieve a list of persisted practitioners

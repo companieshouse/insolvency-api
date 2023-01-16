@@ -34,7 +34,7 @@ func CheckTransactionID(transactionID string, req *http.Request) (error, int) {
 	return nil, transactionProfile.HTTPStatusCode
 }
 
-// PatchTransactionWithInsolvency will patch the provided transaction with the created insolvency resource
+// PatchTransactionWithInsolvencyResource will patch the provided transaction with the created insolvency resource
 func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyResource *models.InsolvencyResourceDao, req *http.Request) (error, int) {
 
 	// Create Private SDK session
@@ -71,7 +71,7 @@ func CheckIfTransactionClosed(transactionID string, req *http.Request) (bool, er
 
 	// Call transaction api to retrieve details of the transaction
 	transactionProfile, err := api.Transaction.Get(transactionID).Do()
-	
+
 	if err != nil {
 		// If 404 then return the transaction not found
 		if transactionProfile.HTTPStatusCode == http.StatusNotFound {
