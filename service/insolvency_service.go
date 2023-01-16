@@ -339,6 +339,16 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 		filings = append(filings, *filingLIQ02)
 	}
 
+	if _, hasProgressReport := attachmentTypes["progress-report"]; hasProgressReport {
+		// Add a generated filing to the array of filings if it's a LIQ03
+		filingLIQ03 := models.NewFiling(
+			generateDataBlockForFiling(&insolvencyResource, "LIQ03"),
+			fmt.Sprintf("LIQ03 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
+			"LIQ03",
+			"insolvency#LIQ03")
+			filings = append(filings, *filingLIQ03)
+	}
+
 	return filings, nil
 }
 
@@ -350,6 +360,8 @@ func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao
 		"case_type":      &insolvencyResource.Data.CaseType,
 		"case_date":      "",
 		"soa_date":       "",
+		"from_date":      "",
+		"to_date":        "",
 		"company_name":   &insolvencyResource.Data.CompanyName,
 		"practitioners":  &insolvencyResource.Data.Practitioners,
 		"attachments":    &insolvencyResource.Data.Attachments,
@@ -359,6 +371,10 @@ func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao
 	}
 	if insolvencyResource.Data.StatementOfAffairs != nil {
 		dataBlock["soa_date"] = &insolvencyResource.Data.StatementOfAffairs.StatementDate
+	}
+	if insolvencyResource.Data.ProgressReport != nil {
+		dataBlock["from_date"] = &insolvencyResource.Data.ProgressReport.FromDate
+		dataBlock["to_date"] = &insolvencyResource.Data.ProgressReport.ToDate
 	}
 	return dataBlock
 }
