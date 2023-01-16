@@ -84,13 +84,30 @@ type AttachmentLinksResource struct {
 
 // ResolutionResource contains the details of the resolution resource
 type ResolutionResource struct {
-	DateOfResolution string `json:"date_of_resolution"`
+	DateOfResolution string                  `json:"date_of_resolution"`
+	Attachments      []string                `json:"attachments"`
+	Etag             string                  `json:"etag"`
+	Kind             string                  `json:"kind"`
+	Links            ResolutionResourceLinks `json:"links"`
+}
+
+// ResolutionResourceLinks contains the links details for a resolution
+type ResolutionResourceLinks struct {
+	Self string `json:"self"`
 }
 
 // StatementOfAffairsResource contains the details of the statement of affairs resource
 
 type StatementOfAffairsResource struct {
 	StatementDate string `json:"statement_date"`
+}
+
+type ProgressReportResource struct {
+	FromDate    string   `json:"from_date"`
+	ToDate      string   `json:"to_date"`
+	Attachments []string `json:"attachments"`
+	Etag        string   `json:"etag"`
+	Kind        string   `json:"kind"`
 }
 
 // ValidationStatusResponse is the object returned when checking the validation of a case
@@ -104,7 +121,7 @@ func NewValidationStatusResponse(isValid bool, errors *[]ValidationErrorResponse
 	return &ValidationStatusResponse{IsValid: isValid, Errors: *errors}
 }
 
-// ValidationResponseResource contains the details of an error when checking the validation for closing a case - as expected by transaction api
+// ValidationErrorResponseResource contains the details of an error when checking the validation for closing a case - as expected by transaction api
 type ValidationErrorResponseResource struct {
 	Error        string `json:"error"`
 	Location     string `json:"location"`

@@ -9,4 +9,3 @@ services:
       - "./apispec:/apispec"
     environment:
       - SWAGGER_JSON=/apispec/schema.yml
-    

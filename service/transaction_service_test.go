@@ -5,17 +5,22 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/constants"
+	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/transformers"
+	"github.com/companieshouse/insolvency-api/utils"
+	"github.com/golang/mock/gomock"
 
 	"github.com/jarcoal/httpmock"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func incomingInsolvencyResourceDao() *models.InsolvencyResourceDao {
+func incomingInsolvencyResourceDao(helperService utils.HelperService) *models.InsolvencyResourceDao {
 	request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
-	return transformers.InsolvencyResourceRequestToDB(request, "87654321")
+
+	res := transformers.InsolvencyResourceRequestToDB(request, "87654321", helperService)
+	return res
 }
 
 func transactionProfileResponse(status string) string {
@@ -74,6 +79,10 @@ func TestUnitCheckTransactionID(t *testing.T) {
 }
 
 func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
 
 	Convey("PatchTransactionWithInsolvencyResourceOnTransactionAPI", t, func() {
 
@@ -87,7 +96,9 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusNotFound, "Message: Transaction not found"))
 
-			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(), &http.Request{})
+			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusNotFound)
 			So(err.Error(), ShouldEqual, `transaction not found`)
@@ -98,7 +109,9 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
-			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(), &http.Request{})
+			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusTeapot)
 			So(err.Error(), ShouldEqual, `error communication with the transaction api`)
@@ -109,7 +122,9 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse("open")))
 
-			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(), &http.Request{})
+			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 
 			So(err, ShouldBeNil)
 			So(statusCode, ShouldEqual, http.StatusOK)

@@ -13,13 +13,14 @@ import (
 	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func serveHandleCreateResolution(body []byte, service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleCreateResolution(body []byte, service dao.Service, helperService utils.HelperService, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/resolution"
 	req := httptest.NewRequest(http.MethodPost, path, bytes.NewReader(body))
 	if tranIDSet {
@@ -27,7 +28,7 @@ func serveHandleCreateResolution(body []byte, service dao.Service, tranIDSet boo
 	}
 	res := httptest.NewRecorder()
 
-	handler := HandleCreateResolution(service)
+	handler := HandleCreateResolution(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -40,65 +41,73 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
+		mockService, mockHelperService := utils.CreateTestServices(t)
+		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), false)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return("", false, http.StatusBadRequest).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError, nil).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusForbidden, nil).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
 	Convey("Failed to read request body", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"first_name":error`)
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Incoming request has date of resolution missing", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -106,17 +115,22 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution := generateResolution()
 		resolution.DateOfResolution = ""
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusBadRequest).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "date_of_resolution is a required field")
 	})
 
 	Convey("Incoming request has invalid date format", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -124,17 +138,22 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution := generateResolution()
 		resolution.DateOfResolution = "21-01-01"
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusBadRequest).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "date_of_resolution does not match the 2006-01-02 format")
 	})
 
 	Convey("Incoming request has attachments missing", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -142,49 +161,50 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution := generateResolution()
 		resolution.Attachments = nil
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mock_dao.NewMockService(mockCtrl), true)
+
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusBadRequest).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "attachments is a required field")
 	})
 
 	Convey("Attachment is not associated with transaction", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := generateResolution()
 
+		body, _ := json.Marshal(resolution)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError).AnyTimes()
 
-		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mockService, true)
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 		So(res.Body.String(), ShouldContainSubstring, "attachment not found on transaction")
 	})
 
 	Convey("Failed to validate resolution", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -192,23 +212,24 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution := generateResolution()
 
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mockService, true)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID")
 	})
 
 	Convey("Validation errors are present", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -217,19 +238,22 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution.DateOfResolution = "1999-01-01"
 
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mockService, true)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("date_of_resolution [%s] should not be in the future or before the company was incorporated", resolution.DateOfResolution))
 	})
 
 	Convey("Validation errors are present", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -241,19 +265,21 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mockService, true)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Validation errors are present", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -262,122 +288,120 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution.Attachments = []string{}
 
 		body, _ := json.Marshal(resolution)
-		res := serveHandleCreateResolution(body, mockService, true)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Attachment is not of type resolution", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		defer httpmock.DeactivateAndReset()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := generateResolution()
 
-		body, _ := json.Marshal(resolution)
-
 		attachment := generateAttachment()
 		attachment.Type = "not-resolution"
 
+		body, _ := json.Marshal(resolution)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 
-		res := serveHandleCreateResolution(body, mockService, true)
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "attachment is not a resolution")
 	})
 
 	Convey("Generic error when adding resolution resource to mongo", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
-
-		attachment := generateAttachment()
-
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
-		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
-
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(generateAttachment(), nil)
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusInternalServerError).AnyTimes()
 		// Expect CreateResolutionResource to be called once and return an error
 		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError).AnyTimes()
 
-		res := serveHandleCreateResolution(body, mockService, true)
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Error adding resolution resource to mongo - insolvency case not found", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
-
-		attachment := generateAttachment()
-
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
-		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
-
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(generateAttachment(), nil)
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusOK).AnyTimes()
 		// Expect CreateResolutionResource to be called once and return an error
 		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)).Times(1)
+		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusNotFound).AnyTimes()
 
-		res := serveHandleCreateResolution(body, mockService, true)
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
+		mockService, mockHelperService := utils.CreateTestServices(t)
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
-		defer mockCtrl.Finish()
-		defer httpmock.DeactivateAndReset()
-
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
-		insolvencyDao := generateInsolvencyResource()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		resolution := generateResolution()
-		body, _ := json.Marshal(resolution)
 
 		attachment := models.AttachmentResourceDao{
 			ID:     "1111",
@@ -386,15 +410,25 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 			Links:  models.AttachmentResourceLinksDao{},
 		}
 
+		body, _ := json.Marshal(resolution)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
-
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusOK).AnyTimes()
 		// Expect CreateResolutionResource to be called once and return an error
 		mockService.EXPECT().CreateResolutionResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
+		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK).AnyTimes()
 
-		res := serveHandleCreateResolution(body, mockService, true)
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, "\"date_of_resolution\":\"2021-06-06\"")
 	})
 }
 
@@ -418,21 +452,23 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleGetResolution(mock_dao.NewMockService(mockCtrl), false)
+		res := serveHandleGetResolution(mockService, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Failed to get resolution from Insolvency resource", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetResolutionResource to be called once and return an error
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, fmt.Errorf("failed to get resolution from insolvency resource in db for transaction [%s]: %v", transactionID, err))
@@ -444,10 +480,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 
 	Convey("Resolution was not found on supplied transaction", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetResolutionResource to be called once and return nil
 		mockService.EXPECT().GetResolutionResource(transactionID).Return(models.ResolutionResourceDao{}, nil)
@@ -459,10 +492,7 @@ func TestUnitHandleGetResolution(t *testing.T) {
 
 	Convey("Success - Resolution was retrieved from insolvency resource", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		resolution := models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
@@ -499,49 +529,47 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockService := mock_dao.NewMockService(mockCtrl)
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), false)
+		res := serveHandleDeleteResolution(mockService, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleDeleteResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		res := serveHandleDeleteResolution(mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleDeleteResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
 	Convey("Failed to delete resolution from Insolvency resource", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -556,10 +584,7 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 
 	Convey("Resolution was not found on supplied transaction", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -574,10 +599,7 @@ func TestUnitHandleDeleteResolution(t *testing.T) {
 
 	Convey("Success - Resolution was deleted from insolvency resource", t, func() {
 		httpmock.Activate()
-		mockCtrl := gomock.NewController(t)
 		defer httpmock.DeactivateAndReset()
-		defer mockCtrl.Finish()
-		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))

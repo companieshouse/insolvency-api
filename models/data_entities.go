@@ -89,12 +89,28 @@ type AttachmentResourceLinksDao struct {
 
 // ResolutionResourceDao contains the data for the resolution DB resource
 type ResolutionResourceDao struct {
-	DateOfResolution string   `bson:"date_of_resolution"`
-	Attachments      []string `bson:"attachments"`
+	Etag             string                     `bson:"etag"`
+	Kind             string                     `bson:"kind"`
+	DateOfResolution string                     `bson:"date_of_resolution"`
+	Attachments      []string                   `bson:"attachments"`
+	Links            ResolutionResourceLinksDao `bson:"links"`
+}
+
+// ResolutionResourceLinksDao contains the Links data for a resolution
+type ResolutionResourceLinksDao struct {
+	Self string `bson:"self,omitempty"`
 }
 
 // StatementOfAffairsResourceDao contains the data for the statement of affairs DB resource
 type StatementOfAffairsResourceDao struct {
 	StatementDate string   `bson:"statement_date"`
 	Attachments   []string `bson:"attachments"`
+}
+
+type ProgressReportResourceDao struct {
+	FromDate    string   `bson:"from_date"`
+	ToDate      string   `bson:"to_date"`
+	Attachments []string `bson:"attachments"`
+	Etag        string   `bson:"etag"`
+	Kind        string   `bson:"kind"`
 }

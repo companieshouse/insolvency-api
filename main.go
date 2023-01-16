@@ -10,10 +10,12 @@ import (
 	"time"
 
 	"github.com/companieshouse/insolvency-api/dao"
+	"github.com/companieshouse/insolvency-api/utils"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/config"
 	"github.com/companieshouse/insolvency-api/handlers"
+
 	"github.com/gorilla/mux"
 )
 
@@ -34,7 +36,10 @@ func main() {
 	// Create DAO service with database information
 	svc := dao.NewDAOService(cfg)
 
-	handlers.Register(mainRouter, svc)
+	// Create helper service with common log handler
+	helperSvc := utils.NewHelperService()
+
+	handlers.Register(mainRouter, svc, helperSvc)
 
 	log.Info("Starting " + namespace)
 

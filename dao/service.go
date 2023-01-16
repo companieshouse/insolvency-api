@@ -13,7 +13,7 @@ type Service interface {
 	// GetInsolvencyResource will retrieve an Insolvency Resource
 	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)
 
-	// CreatePractitionerResource will persist a newly created practitioner resource
+	// CreatePractitionersResource will persist a newly created practitioner resource
 	CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int)
 
 	// GetPractitionerResources will retrieve a list of persisted practitioners
@@ -48,6 +48,9 @@ type Service interface {
 
 	// CreateStatementOfAffairsResource creates the statement of affairs resource for an Insolvency Case
 	CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error)
+
+	// CreateProgressReportResource creates the progress report resource for an Insolvency Case
+	CreateProgressReportResource(dao *models.ProgressReportResourceDao, transactionID string) (int, error)
 
 	// DeleteStatementOfAffairsResource deletes the statement of affairs filed for an insolvency case
 	DeleteStatementOfAffairsResource(transactionID string) (int, error)
