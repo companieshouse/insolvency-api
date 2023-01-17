@@ -69,8 +69,8 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		var companyProfile *companieshouseapi.CompanyProfile
 		err, httpStatus, companyProfile = service.CheckCompanyExists(&request, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
-			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			log.ErrorR(req, fmt.Errorf(constants.MsgCompanyInvalidProfileAPI, err))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCompanyInvalidForInsolvency, request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
@@ -78,8 +78,8 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		// Check with alphakey service if company name valid
 		err, httpStatus = service.CheckCompanyNameAlphaKey(companyProfile.CompanyName, &request, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
-			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			log.ErrorR(req, fmt.Errorf(constants.MsgCompanyInvalidProfileAPI, err))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCompanyInvalidForInsolvency, request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
@@ -87,8 +87,8 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		// Check with company profile API if other details are valid
 		err = service.CheckCompanyDetailsAreValid(companyProfile)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("company was not found valid when checking company profile API [%v]", err))
-			m := models.NewMessageResponse(fmt.Sprintf("company [%s] was not found valid for insolvency: %v", request.CompanyNumber, err))
+			log.ErrorR(req, fmt.Errorf(constants.MsgCompanyInvalidProfileAPI, err))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCompanyInvalidForInsolvency, request.CompanyNumber, err))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

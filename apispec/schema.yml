@@ -944,5 +944,3 @@ components:
           authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
           scopes:
             submit_insolvency_data: Submit data
-
-

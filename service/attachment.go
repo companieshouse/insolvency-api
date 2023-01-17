@@ -27,7 +27,7 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 
 	uploadedFileResponse, err := api.FileTransfer.UploadFile(file, header).Do()
 	if err != nil {
-		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		err = fmt.Errorf(constants.MsgErrorCommsFileTransferAPI, err)
 		log.ErrorR(req, err)
 		return "", Error, err
 	}
@@ -98,7 +98,7 @@ func GetAttachmentDetails(id string, req *http.Request) (*models.AttachmentFile,
 	response, err := api.FileTransfer.GetFile(id).Do()
 
 	if err != nil {
-		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		err = fmt.Errorf(constants.MsgErrorCommsFileTransferAPI, err)
 		log.ErrorR(req, err)
 		return nil, Error, err
 	}
@@ -132,7 +132,7 @@ func DownloadAttachment(attachmentID string, req *http.Request, w http.ResponseW
 
 	downloadedFileResponse, err := api.FileTransfer.DownloadFile(attachmentID, w).Do()
 	if err != nil {
-		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		err = fmt.Errorf(constants.MsgErrorCommsFileTransferAPI, err)
 		log.ErrorR(req, err)
 		return Error, err
 	}
@@ -158,7 +158,7 @@ func DeleteAttachment(id string, req *http.Request) (ResponseType, error) {
 	response, err := api.FileTransfer.DeleteFile(id).Do()
 
 	if err != nil {
-		err = fmt.Errorf("error communicating with the File Transfer API: [%v]", err)
+		err = fmt.Errorf(constants.MsgErrorCommsFileTransferAPI, err)
 		log.ErrorR(req, err)
 		return Error, err
 	}
