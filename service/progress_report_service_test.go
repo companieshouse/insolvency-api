@@ -15,7 +15,7 @@ func TestValidProgressReport(t *testing.T) {
 	apiURL := "https://api.companieshouse.gov.uk"
 
 	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
-		mockService, _ := utils.CreateTestServices(t)
+		mockService, _, _ := utils.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -33,7 +33,7 @@ func TestValidProgressReport(t *testing.T) {
 	})
 
 	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
-		mockService, _ := utils.CreateTestServices(t)
+		mockService, _, _ := utils.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()

@@ -21,32 +21,23 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		// Check transaction is valid
-		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "practitioners", service.CheckIfTransactionClosed)
+		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "practitioners", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
-			if InTest {
-				http.Error(w, errMessage, httpStatusCode)
-			}
 			return
 		}
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerRequest
 		err := json.NewDecoder(req.Body).Decode(&request)
-		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			if InTest {
-				http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
-			}
 			return
 		}
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
-		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		isValidMarshallToDB := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			if InTest {
-				http.Error(w, errs, httpStatusCode)
-			}
 			return
 		}
 
@@ -222,11 +213,8 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 
 		// Check transaction id exists in path
 		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
-		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 		if !isValidTransactionId {
-			if InTest {
-				http.Error(w, "Bad request", httpStatusCode)
-			}
 			return
 		}
 
@@ -234,32 +222,23 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
-		isValidTransactionNotClosed, httpStatusCode, _ := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
+		isValidTransactionNotClosed := helperService.HandleTransactionNotClosedValidation(w, req, transactionID, isTransactionClosed, httpStatus, err)
 		if !isValidTransactionNotClosed {
-			if InTest {
-				http.Error(w, "Transaction closed", httpStatusCode)
-			}
 			return
 		}
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerAppointment
 		err = json.NewDecoder(req.Body).Decode(&request)
-		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			if InTest {
-				http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
-			}
 			return
 		}
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
-		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		isValidMarshallToDB := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			if InTest {
-				http.Error(w, errs, httpStatusCode)
-			}
 			return
 		}
 

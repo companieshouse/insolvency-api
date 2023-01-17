@@ -14,9 +14,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Introduced to allow testing on response failures, by default "false" and ignored outside unit tests
-var InTest bool = false
-
 // Register defines the endpoints for the API
 func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.HelperService) {
 
