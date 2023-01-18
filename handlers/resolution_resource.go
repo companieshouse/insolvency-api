@@ -19,18 +19,16 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		// Check transaction is valid
-		transactionID, isValidTransaction, httpStatusCode, errMessage := utils.ValidateTransaction(helperService, req, w, "resolution", service.CheckIfTransactionClosed)
+		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "resolution", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
-			http.Error(w, errMessage, httpStatusCode)
 			return
 		}
 
 		// Decode Request body
 		var request models.Resolution
 		err := json.NewDecoder(req.Body).Decode(&request)
-		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
@@ -38,9 +36,8 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
-		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		isValidMarshallToDB := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			http.Error(w, errs, httpStatusCode)
 			return
 		}
 
@@ -69,9 +66,8 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 
 		// Validate if supplied attachment matches attachments associated with supplied transactionID in mongo db
 		attachment, err := svc.GetAttachmentFromInsolvencyResource(transactionID, resolutionDao.Attachments[0])
-		isValidAttachment, httpStatusCode := helperService.HandleAttachmentValidation(w, req, transactionID, attachment, err)
+		isValidAttachment := helperService.HandleAttachmentValidation(w, req, transactionID, attachment, err)
 		if !isValidAttachment {
-			http.Error(w, "attachment not found on transaction", httpStatusCode)
 			return
 		}
 
@@ -87,9 +83,8 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 
 		// Creates the statement of affairs resource in mongo if all previous checks pass
 		statusCode, err := svc.CreateResolutionResource(resolutionDao, transactionID)
-		isValidCreateResource, httpStatusCode := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
+		isValidCreateResource := helperService.HandleCreateResourceValidation(w, req, statusCode, err)
 		if !isValidCreateResource {
-			http.Error(w, "Server error", httpStatusCode)
 			return
 		}
 
