@@ -77,7 +77,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
 	privateAppRouter.Use(privateUserAuthInterceptor.UserAuthenticationIntercept)
 
-	privateAppRouter.Handle(constants.TransactionsPath + "{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
+	privateAppRouter.Handle(constants.TransactionsPath+"{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
 	mainRouter.Use(log.Handler)
 }

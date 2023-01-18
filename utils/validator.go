@@ -53,23 +53,23 @@ func extractJson(fld reflect.StructField) string {
 	return name
 }
 
-func ValidateTransaction(helperService HelperService, req *http.Request, res http.ResponseWriter, startMessage string, checkIfTransactionClosedFn func(transactionID string, req *http.Request) (bool, error, int)) (string, bool, int, string) {
+func ValidateTransaction(helperService HelperService, req *http.Request, res http.ResponseWriter, startMessage string, checkIfTransactionClosedFn func(transactionID string, req *http.Request) (bool, error, int)) (string, bool) {
 
 	// Check transaction id exists in path
 	incomingTransactionId := GetTransactionIDFromVars(mux.Vars(req))
-	transactionID, isValidTransaction, httpStatusCode := helperService.HandleTransactionIdExistsValidation(res, req, incomingTransactionId)
+	isValidTransaction, transactionID := helperService.HandleTransactionIdExistsValidation(res, req, incomingTransactionId)
 	if !isValidTransaction {
-		return transactionID, isValidTransaction, httpStatusCode, "Bad request"
+		return transactionID, isValidTransaction
 	}
 
 	log.InfoR(req, fmt.Sprintf("start POST request for submit "+startMessage+"with transaction id: %s", transactionID))
 
 	// Check if transaction is checkIfTransactionClosedFn
 	var isTransactionClosed, err, httpStatus = checkIfTransactionClosedFn(transactionID, req)
-	isValidTransaction, httpStatusCode, _ = helperService.HandleTransactionNotClosedValidation(res, req, transactionID, isTransactionClosed, httpStatus, err)
+	isValidTransaction = helperService.HandleTransactionNotClosedValidation(res, req, transactionID, isTransactionClosed, httpStatus, err)
 	if !isValidTransaction {
-		return transactionID, isValidTransaction, httpStatusCode, "Transaction checkIfTransactionClosedFn"
+		return transactionID, isValidTransaction
 	}
 
-	return transactionID, isValidTransaction, 0, ""
+	return transactionID, isValidTransaction
 }

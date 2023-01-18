@@ -22,9 +22,8 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 
 		// Check transaction id exists in path
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
-		transactionID, isValidTransactionId, httpStatusCode := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
+		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 		if !isValidTransactionId {
-			http.Error(w, "Bad request", httpStatusCode)
 			return
 		}
 
@@ -33,17 +32,15 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		// Decode the incoming request to create a list of practitioners
 		var request models.InsolvencyRequest
 		err := json.NewDecoder(req.Body).Decode(&request)
-		isValidDecoded, httpStatusCode := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
+		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
-			http.Error(w, fmt.Sprintf("failed to read request body for transaction %s", transactionID), httpStatusCode)
 			return
 		}
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
-		isValidMarshallToDB, httpStatusCode := helperService.HandleMandatoryFieldValidation(w, req, errs)
+		isValidMarshallToDB := helperService.HandleMandatoryFieldValidation(w, req, errs)
 		if !isValidMarshallToDB {
-			http.Error(w, errs, httpStatusCode)
 			return
 		}
 
