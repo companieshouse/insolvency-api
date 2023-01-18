@@ -56,8 +56,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
-		}
-		if validationErrs != "" {
+		} else if validationErrs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
 			m := models.NewMessageResponse("invalid request body: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
@@ -116,8 +115,7 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 			m := models.NewMessageResponse("there was a problem handling your request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
-		}
-		if resolution.DateOfResolution == "" {
+		} else if resolution.DateOfResolution == "" {
 			m := models.NewMessageResponse("resolution not found on transaction")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
@@ -153,9 +151,7 @@ func HandleDeleteResolution(svc dao.Service) http.Handler {
 			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
-		}
-
-		if isTransactionClosed {
+		} else if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
