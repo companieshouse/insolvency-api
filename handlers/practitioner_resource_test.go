@@ -43,7 +43,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -56,7 +56,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -73,7 +73,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -90,7 +90,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -108,7 +108,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has IP code missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -130,7 +130,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - not a number", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -152,7 +152,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -174,7 +174,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has first name missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -196,7 +196,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has last name missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -218,7 +218,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -240,7 +240,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address premises missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -264,7 +264,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address line 1 missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -288,7 +288,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has locality missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -312,7 +312,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has address postcode missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -336,7 +336,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has role missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -358,7 +358,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has an invalid role", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -381,7 +381,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has an invalid role - not final-liquidator for a CVL case", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -407,7 +407,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error retrieving insolvency case when validating practitioner", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -430,7 +430,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -454,7 +454,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid first name", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -478,7 +478,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has telephone number and email missing and an invalid last name", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -506,7 +506,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Generic error when adding practitioners resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -530,7 +530,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - insolvency case not found", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -554,7 +554,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - 5 practitioners already exist", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -578,7 +578,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Error adding practitioners resource to mongo - the limit of practitioners will exceed", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -602,7 +602,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -997,7 +997,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	apiURL := "https://api.companieshouse.gov.uk"
 
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -1010,7 +1010,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
@@ -1023,7 +1023,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -1040,7 +1040,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -1057,7 +1057,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1075,7 +1075,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("mandatory fields not supplied", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1095,7 +1095,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("invalid made_by field supplied", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1118,7 +1118,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1141,7 +1141,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("practitioner already appointed", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.Activate()
@@ -1187,7 +1187,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error checking practitioner details for appointment date", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1213,7 +1213,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("appointment date invalid - date differs", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -1260,7 +1260,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error storing appointment in DB", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -1297,7 +1297,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("error getting practitioner for response", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -1335,7 +1335,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("empty practitioner returned", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -1373,7 +1373,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	})
 
 	Convey("successful appointment", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()

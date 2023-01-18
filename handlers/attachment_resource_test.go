@@ -78,7 +78,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -92,7 +92,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -109,7 +109,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -126,7 +126,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -142,7 +142,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - invalid attachment type", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -163,7 +163,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - invalid attachment file format", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -184,7 +184,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Validation failed - attachment with type has already been filed", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -211,7 +211,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Error uploading attachment", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -232,7 +232,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Error updating DB", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -255,7 +255,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Error when retrieving existing attachments from DB", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -277,7 +277,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	})
 
 	Convey("Success", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction

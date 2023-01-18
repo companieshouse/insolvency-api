@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/companieshouse/insolvency-api/mocks"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -39,7 +40,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -53,7 +54,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -71,7 +72,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -89,7 +90,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -109,7 +110,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Incoming request has attachments missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -134,7 +135,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Attachment is not associated with transaction", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -164,7 +165,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Validation errors are present - multiple attachments", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -193,7 +194,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Validation errors are present - no attachment is present", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -219,7 +220,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Attachment is not of type progress-report", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -252,7 +253,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Generic error when adding progress report resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -284,7 +285,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Error adding progress report resource to mongo - insolvency case not found", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -317,7 +318,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))

@@ -2,16 +2,9 @@ package utils
 
 import (
 	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
-
-	mock_dao "github.com/companieshouse/insolvency-api/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/jarcoal/httpmock"
-
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
+	"net/http"
 )
 
 // HelperService interface declares
@@ -126,9 +119,3 @@ func NewHelperService() HelperService {
 	return &helperService{}
 }
 
-func CreateTestObjects(t *testing.T) (*mock_dao.MockService, *mock_dao.MockHelperService, *httptest.ResponseRecorder) {
-	defer httpmock.DeactivateAndReset()
-	mockCtrl := gomock.NewController(t)
-	defer mockCtrl.Finish()
-	return mock_dao.NewMockService(mockCtrl), mock_dao.NewHelperMockHelperService(mockCtrl), httptest.NewRecorder()
-}

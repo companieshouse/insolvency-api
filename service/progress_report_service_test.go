@@ -1,11 +1,11 @@
 package service
 
 import (
+	"github.com/companieshouse/insolvency-api/mocks"
 	"net/http"
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -15,7 +15,7 @@ func TestValidProgressReport(t *testing.T) {
 	apiURL := "https://api.companieshouse.gov.uk"
 
 	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
-		mockService, _, _ := utils.CreateTestObjects(t)
+		mockService, _, _ := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()
@@ -33,7 +33,7 @@ func TestValidProgressReport(t *testing.T) {
 	})
 
 	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
-		mockService, _, _ := utils.CreateTestObjects(t)
+		mockService, _, _ := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		defer httpmock.Reset()

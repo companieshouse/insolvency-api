@@ -90,7 +90,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -103,7 +103,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body := []byte(`{"company_name":error`)
@@ -118,7 +118,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has company number missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -138,7 +138,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has company name missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -158,7 +158,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming request has case type missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -178,7 +178,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Incoming case type is not CVL", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
@@ -198,7 +198,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Error calling transaction-api when checking transaction exists", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -223,7 +223,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Transaction marked for insolvency isn't found", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -245,7 +245,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Error calling company-profile-api for company details", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -270,7 +270,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Company marked for insolvency isn't found", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -295,7 +295,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Insolvency case already exists for transaction ID", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -326,7 +326,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Error adding insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -357,7 +357,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Error calling transaction api when patching transaction with new insolvency resource", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -391,7 +391,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Transaction not found when calling transaction api to patch transaction with new insolvency resource", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction
@@ -425,7 +425,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return a valid transaction

@@ -40,7 +40,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	}
 
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
@@ -54,7 +54,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -72,7 +72,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -90,7 +90,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -109,7 +109,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Incoming request has date of resolution missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -133,7 +133,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Incoming request has invalid date format", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -157,7 +157,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Incoming request has attachments missing", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -181,7 +181,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Attachment is not associated with transaction", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -210,7 +210,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Failed to validate resolution", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -233,7 +233,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Validation errors are present - date is in the past", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -259,7 +259,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Validation errors are present - multiple attachments", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -285,7 +285,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Validation errors are present - no attachment is present", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -308,7 +308,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Attachment is not of type resolution", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -340,7 +340,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Generic error when adding resolution resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -371,7 +371,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Error adding resolution resource to mongo - insolvency case not found", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -402,7 +402,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := utils.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))

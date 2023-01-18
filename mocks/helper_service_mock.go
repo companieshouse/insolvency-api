@@ -1,7 +1,10 @@
 package mocks
 
 import (
+	"github.com/jarcoal/httpmock"
 	"net/http"
+	"net/http/httptest"
+	"testing"
 
 	reflect "reflect"
 
@@ -141,4 +144,11 @@ func (m *MockHelperService) HandleCreateResourceValidation(w http.ResponseWriter
 	ret := m.ctrl.Call(m, "HandleCreateResourceValidation", w, req, err, httpStatus)
 	ret0, _ := ret[0].(bool)
 	return ret0
+}
+
+func CreateTestObjects(t *testing.T) (*MockService, *MockHelperService, *httptest.ResponseRecorder) {
+	defer httpmock.DeactivateAndReset()
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	return NewMockService(mockCtrl), NewHelperMockHelperService(mockCtrl), httptest.NewRecorder()
 }
