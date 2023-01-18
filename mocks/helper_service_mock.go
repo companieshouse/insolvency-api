@@ -1,7 +1,10 @@
 package mocks
 
 import (
+	"github.com/jarcoal/httpmock"
 	"net/http"
+	"net/http/httptest"
+	"testing"
 
 	reflect "reflect"
 
@@ -47,12 +50,11 @@ func (mr *MockHelperServiceMockRecorder) GenerateEtag() *gomock.Call {
 }
 
 // HandleTransactionIdExistsValidation mocks base method
-func (m *MockHelperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (string, bool, int) {
+func (m *MockHelperService) HandleTransactionIdExistsValidation(w http.ResponseWriter, req *http.Request, transactionID string) (bool, string) {
 	ret := m.ctrl.Call(m, "HandleTransactionIdExistsValidation", w, req, transactionID)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	ret2, _ := ret[2].(int)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(string)
+	return ret0, ret1
 }
 
 // HandleTransactionIdExistsValidation indicates an expected call of HandleTransactionIdExistsValidation
@@ -61,12 +63,10 @@ func (mr *MockHelperServiceMockRecorder) HandleTransactionIdExistsValidation(w, 
 }
 
 // HandleTransactionNotClosedValidation mocks base method
-func (m *MockHelperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, httpStatus int, err error) (bool, int, error) {
+func (m *MockHelperService) HandleTransactionNotClosedValidation(w http.ResponseWriter, req *http.Request, transactionID string, isTransactionClosed bool, httpStatus int, err error) bool {
 	ret := m.ctrl.Call(m, "HandleTransactionNotClosedValidation", w, req, transactionID, isTransactionClosed, err, httpStatus)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(int)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	return ret0
 }
 
 // HandleTransactionNotClosedValidation indicates an expected call of HandleTransactionNotClosedValidation
@@ -80,11 +80,10 @@ func (mr *MockHelperServiceMockRecorder) HandleBodyDecodedValidation(http, req, 
 }
 
 // HandleBodyDecodedValidation mocks base method
-func (m *MockHelperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) (bool, int) {
+func (m *MockHelperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *http.Request, transactionID string, err error) bool {
 	ret := m.ctrl.Call(m, "HandleBodyDecodedValidation", w, req, transactionID, err)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(int)
-	return ret0, ret1
+	return ret0
 }
 
 // HandleAttachmentTypeValidation indicates an expected call of HandleAttachmentTypeValidation
@@ -105,11 +104,10 @@ func (mr *MockHelperServiceMockRecorder) HandleMandatoryFieldValidation(http, re
 }
 
 // HandleMandatoryFieldValidation mocks base method
-func (m *MockHelperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string) (bool, int) {
+func (m *MockHelperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string) bool {
 	ret := m.ctrl.Call(m, "HandleMandatoryFieldValidation", w, req, errs)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(int)
-	return ret0, ret1
+	return ret0
 }
 
 // HandleAttachmentValidation indicates an expected call of HandleAttachmentValidation
@@ -118,11 +116,10 @@ func (mr *MockHelperServiceMockRecorder) HandleAttachmentValidation(http, req, t
 }
 
 // HandleAttachmentValidation mocks base method
-func (m *MockHelperService) HandleAttachmentValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) (bool, int) {
+func (m *MockHelperService) HandleAttachmentValidation(w http.ResponseWriter, req *http.Request, transactionID string, attachment models.AttachmentResourceDao, err error) bool {
 	ret := m.ctrl.Call(m, "HandleAttachmentValidation", w, req, transactionID, attachment, err)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(int)
-	return ret0, ret1
+	return ret0
 }
 
 // HandleEtagGenerationValidation mocks base method
@@ -143,9 +140,15 @@ func (mr *MockHelperServiceMockRecorder) HandleCreateResourceValidation(w, req, 
 }
 
 // HandleCreateResourceValidation mocks base method
-func (m *MockHelperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, httpStatus int, err error) (bool, int) {
+func (m *MockHelperService) HandleCreateResourceValidation(w http.ResponseWriter, req *http.Request, httpStatus int, err error) bool {
 	ret := m.ctrl.Call(m, "HandleCreateResourceValidation", w, req, err, httpStatus)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(int)
-	return ret0, ret1
+	return ret0
+}
+
+func CreateTestObjects(t *testing.T) (*MockService, *MockHelperService, *httptest.ResponseRecorder) {
+	defer httpmock.DeactivateAndReset()
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+	return NewMockService(mockCtrl), NewHelperMockHelperService(mockCtrl), httptest.NewRecorder()
 }

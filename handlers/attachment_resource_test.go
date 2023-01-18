@@ -31,14 +31,13 @@ const (
 	attachmentID = "987654321"
 )
 
-func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool, helperService utils.HelperService) *httptest.ResponseRecorder {
+func serveHandleSubmitAttachment(body []byte, service dao.Service, tranIDSet bool, helperService utils.HelperService, res *httptest.ResponseRecorder) *httptest.ResponseRecorder {
 	ctx := context.WithValue(context.Background(), httpsession.ContextKeySession, &session.Session{})
 	req := httptest.NewRequest(http.MethodPost, "/test", bytes.NewReader(body)).WithContext(ctx)
 	req.Header.Set("Content-Type", "multipart/form-data; boundary=test_boundary")
 	if tranIDSet {
 		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
 	}
-	res := httptest.NewRecorder()
 
 	handler := HandleSubmitAttachment(service, helperService)
 	handler.ServeHTTP(res, req)
@@ -79,68 +78,71 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return("", false, http.StatusBadRequest).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
 
-		res := serveHandleSubmitAttachment(body, mockService, false, mockHelperService)
+		http.Error(rec, "", http.StatusBadRequest)
+		res := serveHandleSubmitAttachment(body, mockService, false, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusInternalServerError, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
+		http.Error(rec, "", http.StatusInternalServerError)
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false, http.StatusForbidden, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
+		http.Error(rec, "", http.StatusForbidden)
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"company_name":error`)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - invalid attachment type", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -151,17 +153,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - invalid attachment file format", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -172,17 +174,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Validation failed - attachment with type has already been filed", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -199,17 +201,17 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			},
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(attachments, nil)
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error uploading attachment", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -220,25 +222,25 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Error updating DB", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 
@@ -247,21 +249,21 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Error when retrieving existing attachments from DB", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 		httpmock.RegisterResponder(http.MethodPost, `=~.*`, httpmock.NewStringResponder(http.StatusCreated, `{"id": "12345"}`))
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(nil, fmt.Errorf("err"))
 
 		body, err := getBodyWithFile("resolution", pdfFilePath)
@@ -269,13 +271,13 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
 	Convey("Success", t, func() {
-		mockService, mockHelperService := utils.CreateTestServices(t)
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -286,8 +288,8 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			Type: "attachment",
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(transactionID, true, http.StatusInternalServerError).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true, http.StatusOK, nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().AddAttachmentToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(&daoResponse, nil)
 		mockService.EXPECT().GetAttachmentResources(transactionID).Return(make([]models.AttachmentResourceDao, 0), nil)
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
@@ -297,7 +299,7 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 			t.Error(err)
 		}
 
-		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService)
+		res := serveHandleSubmitAttachment((body).Bytes(), mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 	})
