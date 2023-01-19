@@ -36,6 +36,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		return "", err
 	}
 
+	// Check if from date is not in the future or before date of incorporation
 	ok, err := utils.IsValidDate(progressReportStatementDao.FromDate, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
@@ -46,6 +47,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		errs = append(errs, fmt.Sprintf("from_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
 	}
 
+	// Check if to date is not in the future or before date of incorporation
 	ok, err = utils.IsValidDate(progressReportStatementDao.ToDate, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
@@ -56,6 +58,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.ToDate))
 	}
 
+	// Check if from date is before to date
 	ok, err = utils.IsValidDate(progressReportStatementDao.ToDate, progressReportStatementDao.FromDate)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
@@ -65,8 +68,6 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 	if !ok {
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be before or after from_date [%s]", progressReportStatementDao.ToDate, progressReportStatementDao.FromDate))
 	}
-
-	//todo resolution tests here
 
 	return strings.Join(errs, ", "), nil
 }
