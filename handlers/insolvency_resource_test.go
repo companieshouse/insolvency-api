@@ -191,10 +191,11 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "", http.StatusBadRequest)
+		http.Error(rec, "case type is not creditors-voluntary-liquidation", http.StatusBadRequest)
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "case type is not creditors-voluntary-liquidation")
 	})
 
 	Convey("Error calling transaction-api when checking transaction exists", t, func() {
