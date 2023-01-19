@@ -30,7 +30,8 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 		err = fmt.Errorf(constants.MsgErrorCommsFileTransferAPI, err)
 		log.ErrorR(req, err)
 		return "", Error, err
-	} else if uploadedFileResponse == nil {
+	}
+	if uploadedFileResponse == nil {
 		err = fmt.Errorf("error uploading file: [%v]", err)
 		log.ErrorR(req, err)
 		return "", Error, err
@@ -51,7 +52,8 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 	attachments, err := svc.GetAttachmentResources(transactionID)
 	if err != nil {
 		return "", err
-	} else if len(attachments) > 0 {
+	}
+	if len(attachments) > 0 {
 		if attachmentType == constants.StatementOfAffairsLiquidator.String() {
 			errs = append(errs, fmt.Sprintf("attachment of type [%s] cannot be filed for insolvency case with transaction ID [%s] - other attachments have already been filed for this case", attachmentType, transactionID))
 		} else {

@@ -41,7 +41,8 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
-		} else if validationErrs != "" {
+		}
+		if validationErrs != "" {
 			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
 			m := models.NewMessageResponse("invalid request: " + validationErrs)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
@@ -59,7 +60,8 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 			}
 			w.WriteHeader(status)
 			return
-		} else if responseType != service.Success {
+		}
+		if responseType != service.Success {
 			log.ErrorR(req, fmt.Errorf("file upload was unsuccessful"))
 			status, err := utils.ResponseTypeToStatus(responseType.String())
 			if err != nil {
@@ -124,7 +126,8 @@ func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperServi
 			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
-		} else if attachmentDao == (models.AttachmentResourceDao{}) {
+		}
+		if attachmentDao == (models.AttachmentResourceDao{}) {
 			m := models.NewMessageResponse("attachment id is not valid")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
@@ -187,7 +190,8 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
-		} else if attachmentResource == (models.AttachmentResourceDao{}) {
+		}
+		if attachmentResource == (models.AttachmentResourceDao{}) {
 			m := models.NewMessageResponse(fmt.Sprintf("attachment id [%s] is not found", attachmentID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
@@ -206,7 +210,8 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			}
 			w.WriteHeader(status)
 			return
-		} else if attachmentDetails.AVStatus != "clean" {
+		}
+		if attachmentDetails.AVStatus != "clean" {
 			log.ErrorR(req, fmt.Errorf("antivirus status not clean for attachment ID [%s]", attachmentID))
 			m := models.NewMessageResponse("attachment unavailable for download")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusForbidden)
@@ -224,7 +229,8 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 			}
 			w.WriteHeader(status)
 			return
-		} else if responseType != service.Success {
+		}
+		if responseType != service.Success {
 			log.ErrorR(req, fmt.Errorf("file download was unsuccessful"))
 			status, err := utils.ResponseTypeToStatus(responseType.String())
 			if err != nil {
@@ -267,7 +273,8 @@ func HandleDeleteAttachment(svc dao.Service) http.Handler {
 			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
-		} else if isTransactionClosed {
+		}
+		if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
