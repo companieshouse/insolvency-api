@@ -181,6 +181,24 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		}
 	}
 
+	// If a Progress Report has been submitted then check that the from/to dates have been submitted
+	_, hasProgressReport := attachmentTypes[constants.ProgressReport.String()]
+	if hasProgressReport {
+		if insolvencyResource.Data.ProgressReport.FromDate == "" && insolvencyResource.Data.ProgressReport.ToDate == "" {
+			validationError := fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			log.Info(validationError)
+			validationErrors = addValidationError(validationErrors, validationError, "no dates for progress report")
+		} else if insolvencyResource.Data.ProgressReport.FromDate == "" {
+			validationError := fmt.Sprintf("error - from date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			log.Info(validationError)
+			validationErrors = addValidationError(validationErrors, validationError, "no from date for progress report")
+		} else if insolvencyResource.Data.ProgressReport.ToDate == "" {
+			validationError := fmt.Sprintf("error - to date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+			log.Info(validationError)
+			validationErrors = addValidationError(validationErrors, validationError, "no to date for progress report")
+		}
+	}
+
 	return &validationErrors
 }
 

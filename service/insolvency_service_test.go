@@ -82,6 +82,15 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 						Download: "download",
 					},
 				},
+				{
+					ID:     "id",
+					Type:   "progress-report",
+					Status: "status",
+					Links: models.AttachmentResourceLinksDao{
+						Self:     "self",
+						Download: "download",
+					},
+				},
 			},
 			Resolution: &models.ResolutionResourceDao{
 				DateOfResolution: "2021-06-06",
@@ -657,6 +666,68 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
+
+	Convey("Validate progress report from and to dates", t, func() {
+		httpmock.Activate()
+		defer httpmock.DeactivateAndReset()
+		
+		Convey("valid submission of progress-report", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
+				FromDate: "2021-04-14",
+				ToDate:  "2022-04-13",
+				Attachments: []string{
+					"id",
+				},
+			}
+
+			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(validationErrors, ShouldHaveLength, 0)
+		})
+
+		Convey("progress-report attachment present and from date blank", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
+				FromDate: "",
+				ToDate:  "2022-04-13",
+				Attachments: []string{
+					"id",
+				},
+			}
+			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - from date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+			So((*validationErrors)[0].Location, ShouldContainSubstring, "no from date for progress report")
+		})
+
+		Convey("progress-report attachment present and to date blank", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
+				FromDate: "2021-04-14",
+				ToDate:  "",
+				Attachments: []string{
+					"id",
+				},
+			}
+			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - to date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+			So((*validationErrors)[0].Location, ShouldContainSubstring, "no to date for progress report")
+		})
+
+		Convey("progress-report attachment present and dates blank", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
+				FromDate: "",
+				ToDate:  "",
+				Attachments: []string{
+					"id",
+				},
+			}
+			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
+		})
+	})
+
 }
 
 func TestUnitValidateAntivirus(t *testing.T) {
@@ -681,7 +752,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
-		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
 		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 
@@ -707,7 +778,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
-		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(2)
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
 		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 
@@ -733,7 +804,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 		// Expect GetAttachmentDetails to be called once and return the attachment
 		httpmock.RegisterResponder(http.MethodGet, `=~.*`, httpmock.NewStringResponder(http.StatusOK, attachment))
 
-		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(2)
+		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(3)
 
 		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
 		So(validationErrors, ShouldHaveLength, 0)
