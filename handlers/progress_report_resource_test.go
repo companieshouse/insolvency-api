@@ -236,7 +236,6 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "from_date is a required field", http.StatusBadRequest)
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -266,7 +265,6 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "from_date is a required field", http.StatusBadRequest)
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -296,7 +294,6 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "from_date is a required field", http.StatusBadRequest)
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -344,8 +341,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		progressReport := generateProgressReport()
-		progressReport.FromDate = "2021-06-26"
-		progressReport.ToDate = "2021-05-26"
+		progressReport.FromDate = "2021-06-27"
+		progressReport.ToDate = "2021-06-26"
 
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
