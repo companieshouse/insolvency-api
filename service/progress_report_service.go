@@ -36,33 +36,29 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		return "", err
 	}
 
-	// Check if from date is in the future
-	failed, err := utils.IsDateInFuture(progressReportStatementDao.FromDate)
-	if failed {
+	ok, err := utils.IsDateNotInFutureAndAfterIncorporation(progressReportStatementDao.FromDate, incorporatedOn)
+	if err != nil {
+		err = fmt.Errorf("error parsing date: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
+	}
+	if !ok {
 		errs = append(errs, fmt.Sprintf("from_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
 	}
 
-	// Check if from date is before incorporation date
-	failed, err = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, incorporatedOn)
-	if failed {
-		errs = append(errs, fmt.Sprintf("from_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
+	ok, err = utils.IsDateNotInFutureAndAfterIncorporation(progressReportStatementDao.ToDate, incorporatedOn)
+	if err != nil {
+		err = fmt.Errorf("error parsing date: [%s]", err)
+		log.ErrorR(req, err)
+		return "", err
 	}
-
-	// Check if to date is in the future
-	failed, err = utils.IsDateInFuture(progressReportStatementDao.ToDate)
-	if failed {
-		errs = append(errs, fmt.Sprintf("to_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
-	}
-
-	// Check if to date is before incorporation date
-	failed, err = utils.IsDateBeforeDate(progressReportStatementDao.ToDate, incorporatedOn)
-	if failed {
+	if !ok {
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
 	}
 
 	// Check if from date is before to date
-	failed, err = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
-	if !failed {
+	ok, err = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
+	if !ok {
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be before or after from_date [%s]", progressReportStatementDao.ToDate, progressReportStatementDao.FromDate))
 	}
 
