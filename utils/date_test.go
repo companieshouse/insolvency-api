@@ -95,7 +95,7 @@ func TestUnitIsValidDate(t *testing.T) {
 		date := "20-20-20"
 		incorporatedOn := "2020-06-06"
 
-		isDateValid, err := IsDateNotInFutureAndAfterIncorporation(date, incorporatedOn)
+		isDateValid, err := IsDateBetweenIncorporationAndNow(date, incorporatedOn)
 		So(isDateValid, ShouldEqual, false)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldContainSubstring, fmt.Sprintf("parsing time \"%s\" as \"2006-01-02\": cannot parse", date))
@@ -105,7 +105,7 @@ func TestUnitIsValidDate(t *testing.T) {
 		date := "2020-06-20"
 		incorporatedOn := "20-20-20"
 
-		isDateValid, err := IsDateNotInFutureAndAfterIncorporation(date, incorporatedOn)
+		isDateValid, err := IsDateBetweenIncorporationAndNow(date, incorporatedOn)
 		So(isDateValid, ShouldEqual, false)
 		So(err, ShouldNotBeNil)
 		So(err.Error(), ShouldContainSubstring, fmt.Sprintf("parsing time \"%s\" as \"2006-01-02\": cannot parse", incorporatedOn))
@@ -115,7 +115,7 @@ func TestUnitIsValidDate(t *testing.T) {
 		date := "9999-09-09"
 		incorporatedOn := "2020-06-06"
 
-		isDateValid, err := IsDateNotInFutureAndAfterIncorporation(date, incorporatedOn)
+		isDateValid, err := IsDateBetweenIncorporationAndNow(date, incorporatedOn)
 		So(isDateValid, ShouldEqual, false)
 		So(err, ShouldEqual, nil)
 	})
@@ -124,16 +124,16 @@ func TestUnitIsValidDate(t *testing.T) {
 		date := "2020-06-05"
 		incorporatedOn := "2020-06-06"
 
-		isDateValid, err := IsDateNotInFutureAndAfterIncorporation(date, incorporatedOn)
+		isDateValid, err := IsDateBetweenIncorporationAndNow(date, incorporatedOn)
 		So(isDateValid, ShouldEqual, false)
 		So(err, ShouldEqual, nil)
 	})
 
-	Convey("valid date", t, func() {
+	Convey("Date is between Incorporation date and Now", t, func() {
 		date := "2021-06-06"
 		incorporatedOn := "2020-06-06"
 
-		isDateValid, err := IsDateNotInFutureAndAfterIncorporation(date, incorporatedOn)
+		isDateValid, err := IsDateBetweenIncorporationAndNow(date, incorporatedOn)
 		So(isDateValid, ShouldEqual, true)
 		So(err, ShouldEqual, nil)
 	})

@@ -104,7 +104,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		return "", err
 	}
 
-	ok, err := utils.IsDateNotInFutureAndAfterIncorporation(appointment.AppointedOn, incorporatedOn)
+	ok, err := utils.IsDateBetweenIncorporationAndNow(appointment.AppointedOn, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
 		log.ErrorR(req, err)

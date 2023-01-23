@@ -8,9 +8,9 @@ import (
 	"github.com/companieshouse/chs.go/log"
 )
 
-// IsDateNotInFutureAndAfterIncorporation is a helper function to check if the date supplied
+// IsDateBetweenIncorporationAndNow is a helper function to check if the date supplied
 // is in the future or before the incorporation date
-func IsDateNotInFutureAndAfterIncorporation(dateToTest string, incorporationDate string) (bool, error) {
+func IsDateBetweenIncorporationAndNow(dateToTest string, incorporationDate string) (bool, error) {
 	validDateToTest, err := ValidateDate(dateToTest)
 	if err != nil {
 		return false, err
