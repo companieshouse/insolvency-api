@@ -695,8 +695,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				},
 			}
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - from date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-			So((*validationErrors)[0].Location, ShouldContainSubstring, "no from date for progress report")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
 		})
 
 		Convey("progress-report attachment present and to date blank", func() {
@@ -709,11 +709,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				},
 			}
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - to date must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-			So((*validationErrors)[0].Location, ShouldContainSubstring, "no to date for progress report")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
 		})
 
-		Convey("progress-report attachment present and dates blank", func() {
+		Convey("progress-report attachment present and all dates blank", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "",
