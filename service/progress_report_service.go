@@ -53,7 +53,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		return "", err
 	}
 	if !ok {
-		errs = append(errs, fmt.Sprintf("to_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.FromDate))
+		errs = append(errs, fmt.Sprintf("to_date [%s] should not be in the future or before the company was incorporated", progressReportStatementDao.ToDate))
 	}
 
 	// Check if from date is after to date

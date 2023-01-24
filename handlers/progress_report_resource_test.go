@@ -357,7 +357,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "to_date")
-		So(res.Body.String(), ShouldContainSubstring, "should not be before or after from_date")
+		So(res.Body.String(), ShouldContainSubstring, "should not be before from_date")
 	})
 
 	Convey("Incoming request has attachments missing", t, func() {
