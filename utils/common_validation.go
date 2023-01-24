@@ -68,7 +68,7 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 func (*helperService) HandleMandatoryFieldValidation(w http.ResponseWriter, req *http.Request, errs string) bool {
 	if errs != "" {
 		log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", errs))
-		m := models.NewMessageResponse(errs)
+		m := models.NewMessageResponse("invalid request body: " + errs)
 		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 		return false
 	}
@@ -118,4 +118,3 @@ func (*helperService) HandleEtagGenerationValidation(err error) bool {
 func NewHelperService() HelperService {
 	return &helperService{}
 }
-
