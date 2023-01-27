@@ -16,7 +16,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: createInsolvencyResource
       summary: Create an insolvency data change resource
       requestBody:
@@ -440,7 +440,6 @@ paths:
           description: Forbidden
         500:
           description: "attachment not found on transaction"
-        }
     get:
       tags:
         - "Resolution"
