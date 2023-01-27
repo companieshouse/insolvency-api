@@ -16,16 +16,15 @@ func IsDateBetweenIncorporationAndNow(dateToTest string, incorporationDate strin
 		return false, err
 	}
 
+	// Check if date is in the future
+	dateInFuture, _ := IsDateInFuture(dateToTest)
+	if dateInFuture {
+		return false, nil
+	}
+
 	validIncorporationDate, err := ValidateDate(incorporationDate)
 	if err != nil {
 		return false, err
-	}
-
-	today := time.Now()
-
-	// Check if date is in the future
-	if today.Before(validDateToTest) {
-		return false, nil
 	}
 
 	// Check if date is before company was incorporated
