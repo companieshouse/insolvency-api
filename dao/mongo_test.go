@@ -65,7 +65,7 @@ func TestUnitCreatePractitionersResource(t *testing.T) {
 
 		practitionerResource := models.PractitionerResourceDao{}
 
-		_, err := mongoService.CreatePractitionersResource(&practitionerResource, "transactionID")
+		_, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResource, "transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -79,7 +79,7 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 
 		practitionerResource := models.PractitionerResourceDao{}
 
-		_, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResource, "transactionID")
+		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
 	})

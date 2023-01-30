@@ -131,9 +131,9 @@ func (m *MongoService) GetInsolvencyResource(transactionID string) (models.Insol
 	return insolvencyResource, nil
 }
 
-// CreatePractitionerResourceForInsolvencyCase stores an incoming practitioner to the practitioners collection
+// CreatePractitionerResource stores an incoming practitioner to the practitioners collection
 // with the specified transactionID
-func (m *MongoService) CreatePractitionerResourceForInsolvencyCase(practitionerResourceDao *models.PractitionerResourceDao, transactionID string) (int, error) {
+func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *models.PractitionerResourceDao, transactionID string) (int, error) {
 	var practitionerData models.PractitionerResourceDto
 
 	collection := m.db.Collection(PractitionerCollectionName)
@@ -151,9 +151,9 @@ func (m *MongoService) CreatePractitionerResourceForInsolvencyCase(practitionerR
 	return http.StatusCreated, nil
 }
 
-// CreatePractitionersResource stores an incoming practitioner to the list of practitioners for the insolvency case
+// CreatePractitionerResourceForInsolvencyCase stores an incoming practitioner to the list of practitioners for the insolvency case
 // with the specified transactionID
-func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (int, error) {
+func (m *MongoService) CreatePractitionerResourceForInsolvencyCase(dao *models.PractitionerResourceDao, transactionID string) (int, error) {
 	var insolvencyResource models.InsolvencyResourceDao
 
 	collection := m.db.Collection(m.CollectionName)
@@ -196,7 +196,7 @@ func (m *MongoService) CreatePractitionersResource(dao *models.PractitionerResou
 		}
 	}
 
-	_, err = m.CreatePractitionerResourceForInsolvencyCase(dao, transactionID)
+	_, err = m.CreatePractitionerResource(dao, transactionID)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
