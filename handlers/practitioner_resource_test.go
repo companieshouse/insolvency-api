@@ -518,8 +518,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect CreatePractitionersResource to be called once and return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		// Expect CreatePractitionerResourceForInsolvencyCase to be called once and return an error
+		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -542,8 +542,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect CreatePractitionersResource to be called once and return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)).Times(1)
+		// Expect CreatePractitionerResourceForInsolvencyCase to be called once and return an error
+		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -566,8 +566,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect CreatePractitionersResource to be called once and return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
+		// Expect CreatePractitionerResourceForInsolvencyCase to be called once and return an error
+		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -591,7 +591,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect CreatePractitioners to be called once and return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)).Times(1)
+		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -617,8 +617,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect CreatePractitionersResource to be called once and not return an error
-		mockService.EXPECT().CreatePractitionersResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
+		// Expect CreatePractitionerResourceForInsolvencyCase to be called once and not return an error
+		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
 

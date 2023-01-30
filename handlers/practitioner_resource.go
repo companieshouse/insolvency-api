@@ -63,11 +63,11 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
-		
+
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, transactionID)
 
 		// Store practitioners resource in Mongo
-		statusCode, err := svc.CreatePractitionersResource(practitionerDao, transactionID)
+		statusCode, err := svc.CreatePractitionerResourceForInsolvencyCase(practitionerDao, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
