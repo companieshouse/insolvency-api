@@ -285,20 +285,20 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
- 
+
 	practitionerResourceDao := models.PractitionerResourceDao{}
 
-	mt.Run("CreatePractitionerResource runs with error", func(mt *mtest.T) {
+	mt.Run("CreatePractitionerResourceForInsolvencyCase runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		code, err := mongoService.CreatePractitionerResource(&practitionerResourceDao, "transactionID")
+		code, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResourceDao, "transactionID")
 
 		assert.Equal(t, code, 500)
 		assert.Equal(t, err.Error(), "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
 	})
 
-    mt.Run("CreatePractitionerResource runs with error on duplicate key insert", func(mt *mtest.T) {
+	mt.Run("CreatePractitionerResourceForInsolvencyCase runs with error on duplicate key insert", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateWriteErrorsResponse(mtest.WriteError{
 			Index:   1,
 			Code:    11000,
@@ -306,20 +306,20 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		code, err := mongoService.CreatePractitionerResource(&practitionerResourceDao, "transactionID")
+		code, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResourceDao, "transactionID")
 
 		assert.Equal(t, code, 500)
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
 	})
 
-	mt.Run("CreatePractitionerResource runs successfully with a Practitioner", func(mt *mtest.T) {
+	mt.Run("CreatePractitionerResourceForInsolvencyCase runs successfully with a Practitioner", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		practitionerResourceDao = models.PractitionerResourceDao{IPCode: "IPCode"}
 
 		mongoService.db = mt.DB
-		code, err := mongoService.CreatePractitionerResource(&practitionerResourceDao, "transactionID")
+		code, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResourceDao, "transactionID")
 
 		assert.Nil(t, err)
 		assert.Equal(t, code, 201)
