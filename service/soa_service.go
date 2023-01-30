@@ -35,7 +35,7 @@ func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfA
 		return "", err
 	}
 
-	ok, err := utils.IsValidDate(statementDao.StatementDate, incorporatedOn)
+	ok, err := utils.IsDateBetweenIncorporationAndNow(statementDao.StatementDate, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
 		log.ErrorR(req, err)

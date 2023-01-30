@@ -41,7 +41,7 @@ func ValidateResolutionDate(svc dao.Service, resolution *models.ResolutionResour
 		return "", err
 	}
 
-	ok, err := utils.IsValidDate(resolution.DateOfResolution, incorporatedOn)
+	ok, err := utils.IsDateBetweenIncorporationAndNow(resolution.DateOfResolution, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
 		log.ErrorR(req, err)
