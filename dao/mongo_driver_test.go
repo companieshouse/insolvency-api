@@ -295,7 +295,7 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 		code, err := mongoService.CreatePractitionerResource(&practitionerResourceDao, "transactionID")
 
 		assert.Equal(t, code, 500)
-		assert.Equal(t, err.Error(), "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID (insert practitioner to collection)")
 	})
 
 	mt.Run("CreatePractitionerResource runs with error on duplicate key insert", func(mt *mtest.T) {
@@ -310,7 +310,7 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 
 		assert.Equal(t, code, 500)
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID (insert practitioner to collection)")
 	})
 
 	mt.Run("CreatePractitionerResource runs successfully with a Practitioner", func(mt *mtest.T) {

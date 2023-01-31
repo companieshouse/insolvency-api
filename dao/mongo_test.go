@@ -81,7 +81,7 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 
 		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling (insert practitioner to collection) your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID (insert practitioner to collection)")
 	})
 }
 
