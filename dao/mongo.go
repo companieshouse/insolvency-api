@@ -138,14 +138,11 @@ func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *model
 
 	collection := m.db.Collection(PractitionerCollectionName)
 
-	practitionerData.TransactionID = transactionID
 	practitionerData.Data = practitionerResourceDao
-
 	_, err := collection.InsertOne(context.Background(), practitionerData)
-
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling (insert practitioner to collection) your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s (insert practitioner to collection)", transactionID)
 	}
 
 	return http.StatusCreated, nil
