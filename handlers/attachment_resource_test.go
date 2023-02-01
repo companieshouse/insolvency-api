@@ -78,51 +78,47 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
+		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleSubmitAttachment(body, mockService, false, mockHelperService, rec)
+		res := serveHandleSubmitAttachment(body, mockService, false, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
+		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "", http.StatusInternalServerError)
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
+		res := serveHandleSubmitAttachment(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error checking transaction status")
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
+		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "", http.StatusForbidden)
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
+		res := serveHandleSubmitAttachment(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
+		So(res.Body.String(), ShouldContainSubstring, "already closed and cannot be updated")
 	})
 
 	Convey("Failed to read request body", t, func() {
