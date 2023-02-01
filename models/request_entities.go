@@ -56,7 +56,7 @@ type StatementOfAffairs struct {
 
 // ProgressReport is the model to represent a progress report for an insolvency case
 type ProgressReport struct {
-	FromDate    string   `json:"from_date"`
-	ToDate      string   `json:"to_date"`
+	FromDate    string   `json:"from_date" validate:"required,datetime=2006-01-02"`
+	ToDate      string   `json:"to_date" validate:"required,datetime=2006-01-02"`
 	Attachments []string `json:"attachments" validate:"required"`
 }

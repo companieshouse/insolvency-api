@@ -441,7 +441,6 @@ paths:
           description: Forbidden
         500:
           description: "attachment not found on transaction"
-
     get:
       tags:
         - "Resolution"
