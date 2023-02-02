@@ -223,7 +223,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, _ := mongoService.CreateInsolvencyResource(&expectedInsolvency)
+		_, err := mongoService.CreateInsolvencyResource(&expectedInsolvency)
 
 		assert.NotNil(t, err.Error())
 		assert.Equal(t, err.Error(), "there was a problem creating an insolvency case for this transaction id: (Name) Message")
@@ -237,7 +237,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		err, _ := mongoService.CreateInsolvencyResource(&expectedInsolvency)
+		_, err := mongoService.CreateInsolvencyResource(&expectedInsolvency)
 
 		assert.Equal(t, err.Error(), "an insolvency case already exists for this transaction id")
 	})
@@ -610,7 +610,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, _ := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
 	})
@@ -632,7 +632,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		})
 
 		mongoService.db = mt.DB
-		err, code := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID - practitioner with id practitionerID not found")
@@ -657,7 +657,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		})
 
 		mongoService.db = mt.DB
-		err, code := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		assert.Nil(t, err)
 		assert.Equal(t, code, 204)
@@ -697,14 +697,22 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("AppointPractitioner runs with error", func(mt *mtest.T) {
+	mt.Run("AppointPractitioner runs with error on insert into appointment collection", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
+		_, err := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
 
-		err, _ := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID and practitioner practitionerID")
+	})
 
-		assert.Equal(t, err.Error(), "could not update practitioner appointment for practitionerID practitionerID: (Name) Message")
+	mt.Run("AppointPractitioner runs with error on updatePractitioner after insert into appointment collection", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
+		mongoService.db = mt.DB
+		_, err := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
+
+		assert.Equal(t, err.Error(), "could not update practitioner appointment for practitionerID practitionerID: no responses remaining")
 	})
 
 	mt.Run("AppointPractitioner runs with zero MatchedCount", func(mt *mtest.T) {
@@ -716,6 +724,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mt.AddMockResponses(bson.D{
@@ -724,7 +734,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		})
 
 		mongoService.db = mt.DB
-		err, code := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
+		code, err := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "item with transaction id practitionerID or practitioner id transactionID does not exist")
@@ -733,6 +743,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	})
 
 	mt.Run("AppointPractitioner runs with zero ModifiedCount", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
@@ -750,7 +762,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, code := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
+		code, err := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "item with transaction id practitionerID or practitioner id transactionID not updated")
@@ -759,6 +771,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	})
 
 	mt.Run("AppointPractitioner runs successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
@@ -776,7 +790,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, code := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
+		code, err := mongoService.AppointPractitioner(&appointmentResource, "practitionerID", "transactionID")
 
 		assert.Nil(t, err)
 		assert.Equal(t, code, 204)
@@ -815,7 +829,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 
 		mongoService.db = mt.DB
 
-		err, _ := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
+		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
 		assert.Equal(t, err.Error(), "could not update practitioner appointment for practitionerID practitionerID: (Name) Message")
 	})
@@ -837,7 +851,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		})
 
 		mongoService.db = mt.DB
-		err, code := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "item with transaction id practitionerID or practitioner id transactionID does not exist")
@@ -863,7 +877,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, code := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
 		assert.Equal(t, err.Error(), "item with transaction id practitionerID or practitioner id transactionID not updated")
@@ -889,7 +903,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		err, code := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
 
 		assert.Nil(t, err)
 		assert.Equal(t, code, 204)

@@ -43,6 +43,8 @@ type PractitionerResourceDao struct {
 	Role            string                       `bson:"role"`
 	Links           PractitionerResourceLinksDao `bson:"links"`
 	Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
+	Etag            string                       `bson:"etag"`
+	Kind            string                       `bson:"kind"`
 }
 
 // PractitionerResourceDto contains the data for the practitioner resource in Mongo
@@ -50,11 +52,18 @@ type PractitionerResourceDto struct {
 	Data *PractitionerResourceDao `bson:"data"`
 }
 
+// AppointmentResourceDto contains the data for the appointment resource in Mongo
+type AppointmentResourceDto struct {
+	Data *AppointmentResourceDao `bson:"data"`
+}
+
 // AppointmentResourceDao contains the appointment data for a practitioner
 type AppointmentResourceDao struct {
 	AppointedOn string                      `bson:"appointed_on,omitempty"`
 	MadeBy      string                      `bson:"made_by,omitempty"`
 	Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
+	Etag        string                      `bson:"etag"`
+	Kind        string                      `bson:"kind"`
 }
 
 // AppointmentResourceLinksDao contains the Links data for an appointment

@@ -19,6 +19,7 @@ import (
 
 const (
 	PractitionerCollectionName = "practitioners"
+	AppointmentCollectionName  = "appointments"
 )
 
 var client *mongo.Client
@@ -70,7 +71,7 @@ func getMongoDatabase(mongoDBURL, databaseName string) MongoDatabaseInterface {
 }
 
 // CreateInsolvencyResource will store the insolvency request into the database
-func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (error, int) {
+func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error) {
 
 	dao.ID = primitive.NewObjectID()
 
@@ -87,20 +88,20 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 			_, err = collection.InsertOne(context.Background(), dao)
 			if err != nil {
 				log.Error(err)
-				return fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err), http.StatusInternalServerError
+				return http.StatusInternalServerError, fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err)
 			}
 
-			return nil, http.StatusCreated
+			return http.StatusCreated, nil
 		}
 
 		// If there is an error but it is not ErrNoDocuments then an error happened checking the existence of the insolvency case
 		log.Error(err)
-		return fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err), http.StatusInternalServerError
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem creating an insolvency case for this transaction id: %v", err)
 	}
 
 	// If there is no error retrieving the insolvency case, then it already exists
 	log.Info("an insolvency case already exists for this transaction id")
-	return fmt.Errorf("an insolvency case already exists for this transaction id"), http.StatusConflict
+	return http.StatusConflict, fmt.Errorf("an insolvency case already exists for this transaction id")
 }
 
 // GetInsolvencyResource retrieves all the data for an insolvency case with the specified transactionID
@@ -132,7 +133,6 @@ func (m *MongoService) GetInsolvencyResource(transactionID string) (models.Insol
 }
 
 // CreatePractitionerResource stores an incoming practitioner to the practitioners collection
-// with the specified transactionID
 func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *models.PractitionerResourceDao, transactionID string) (int, error) {
 	var practitionerData models.PractitionerResourceDto
 
@@ -143,6 +143,22 @@ func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *model
 	if err != nil {
 		log.Error(err)
 		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s (insert practitioner to collection)", transactionID)
+	}
+
+	return http.StatusCreated, nil
+}
+
+// CreateAppointmentResourceForPractitioners stores a practitioner's appointment in appointment collection
+func (m *MongoService) CreateAppointmentResourceForPractitioners(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
+	var appointmentData models.AppointmentResourceDto
+
+	collection := m.db.Collection(AppointmentCollectionName)
+
+	appointmentData.Data = appointmentResourceDao
+	_, err := collection.InsertOne(context.Background(), appointmentData)
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s and practitioner %s", transactionID, practitionerID)
 	}
 
 	return http.StatusCreated, nil
@@ -284,7 +300,7 @@ func (m *MongoService) GetPractitionerResource(practitionerID string, transactio
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
-func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
+func (m *MongoService) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific transaction for insolvency case with practitioner to be removed
@@ -296,10 +312,10 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Error(err)
-			return fmt.Errorf("there was a problem handling your request for transaction id %s - insolvency case not found", transactionID), http.StatusNotFound
+			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s - insolvency case not found", transactionID)
 		}
 		log.Error(err)
-		return fmt.Errorf("there was a problem handling your request for transaction id %s", transactionID), http.StatusInternalServerError
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s", transactionID)
 	}
 
 	// Choose specific practitioner to delete
@@ -308,36 +324,42 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$pull": pullQuery})
 	if err != nil {
 		log.Error(err)
-		return fmt.Errorf("there was a problem handling your request for transaction id %s - could not delete practitioner with id %s", transactionID, practitionerID), http.StatusInternalServerError
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s - could not delete practitioner with id %s", transactionID, practitionerID)
 	}
 
 	// Return error if Mongo could not update the document
 	if update.ModifiedCount == 0 {
 		err = fmt.Errorf("there was a problem handling your request for transaction id %s - practitioner with id %s not found", transactionID, practitionerID)
 		log.Error(err)
-		return err, http.StatusNotFound
+		return http.StatusNotFound, err
 	}
 
-	return nil, http.StatusNoContent
+	return http.StatusNoContent, nil
 }
 
 // AppointPractitioner adds appointment details insolvency case with the specified transactionID and practitionerID
-func (m *MongoService) AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int) {
+func (m *MongoService) AppointPractitioner(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
 
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific practitioner to update
 	filter := bson.M{"transaction_id": transactionID, "data.practitioners.id": practitionerID}
 
-	updateDocument := bson.M{"$set": bson.M{"data.practitioners.$.appointment": dao}}
+	updateDocument := bson.M{"$set": bson.M{"data.practitioners.$.appointment": appointmentResourceDao}}
 
-	err, status := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
+	// Store appointment in appointment resource collection
+	_, err := m.CreateAppointmentResourceForPractitioners(appointmentResourceDao, transactionID, practitionerID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	return err, status
+	status, err := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
+
+	return status, err
 }
 
 // DeletePractitionerAppointment deletes an appointment for the specified transactionID and practitionerID
-func (m *MongoService) DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int) {
+func (m *MongoService) DeletePractitionerAppointment(transactionID string, practitionerID string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific practitioner to update
@@ -345,32 +367,32 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 
 	updateDocument := bson.M{"$unset": bson.M{"data.practitioners.$.appointment": ""}}
 
-	err, status := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
+	status, err := updatePractitioner(transactionID, practitionerID, filter, updateDocument, collection)
 
-	return err, status
+	return status, err
 }
 
-func updatePractitioner(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (error, int) {
+func updatePractitioner(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (int, error) {
 	update, err := collection.UpdateOne(context.Background(), filter, updateDocument)
 	if err != nil {
 		errMsg := fmt.Errorf("could not update practitioner appointment for practitionerID %s: %s", practitionerID, err)
 		log.Error(errMsg)
-		return errMsg, http.StatusInternalServerError
+		return http.StatusInternalServerError, errMsg
 	}
 	// Check if a match was found
 	if update.MatchedCount == 0 {
 		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
 		log.Error(err)
-		return err, http.StatusNotFound
+		return http.StatusNotFound, err
 	}
 	// Check if Mongo updated the collection
 	if update.ModifiedCount == 0 {
 		err = fmt.Errorf("item with transaction id %s or practitioner id %s not updated", transactionID, practitionerID)
 		log.Error(err)
-		return err, http.StatusNotFound
+		return http.StatusNotFound, err
 	}
 
-	return nil, http.StatusNoContent
+	return http.StatusNoContent, nil
 }
 
 func (m *MongoService) AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error) {

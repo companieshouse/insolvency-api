@@ -930,7 +930,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return an error
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), http.StatusBadRequest).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 
@@ -948,7 +948,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return nil, 404
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(nil, http.StatusNotFound).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNotFound, nil).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 
@@ -966,7 +966,7 @@ func TestUnitHandleDeletePractitioner(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		// Expect DeletePractitioner to be called once and return http status NoContent, nil
-		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(nil, http.StatusNoContent).Times(1)
+		mockService.EXPECT().DeletePractitioner(practitionerID, transactionID).Return(http.StatusNoContent, nil).Times(1)
 
 		res := serveDeletePractitionerRequest(mockService, true, true)
 
@@ -1001,6 +1001,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
 
 		http.Error(rec, "", http.StatusBadRequest)
@@ -1014,6 +1016,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.Activate()
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, "").AnyTimes()
 
 		http.Error(rec, "", http.StatusBadRequest)
@@ -1030,6 +1034,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
@@ -1047,6 +1053,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
@@ -1064,6 +1072,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"appointed_on":error`)
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
@@ -1082,6 +1092,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, _ := json.Marshal(models.PractitionerAppointment{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1105,6 +1117,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "invalid",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1128,6 +1142,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1173,6 +1189,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1194,6 +1212,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1247,6 +1267,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1283,13 +1305,15 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
-		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("err"), http.StatusInternalServerError)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusInternalServerError, fmt.Errorf("err"))
 
 		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
 
@@ -1320,13 +1344,15 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
-		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, nil)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, fmt.Errorf("error"))
 
 		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
@@ -1358,13 +1384,15 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
-		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, nil)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
@@ -1407,13 +1435,15 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			AppointedOn: "2012-02-23",
 			MadeBy:      "company",
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetPractitionerResources(transactionID).Return(practitionersDao, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
-		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil, 0)
+		mockService.EXPECT().AppointPractitioner(gomock.Any(), gomock.Any(), gomock.Any()).Return(0, nil)
 		mockService.EXPECT().GetPractitionerResource(gomock.Any(), gomock.Any()).Return(practitionersDao[0], nil)
 
 		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
@@ -1635,7 +1665,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(fmt.Errorf("err"), http.StatusBadRequest)
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(http.StatusBadRequest, fmt.Errorf("err"))
 
 		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
 
@@ -1652,7 +1682,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(nil, http.StatusNoContent)
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(http.StatusNoContent, nil)
 
 		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
 

@@ -34,11 +34,11 @@ func (m *MockDAO) EXPECT() *MockDAOMockRecorder {
 }
 
 // CreateInsolvencyResource mocks base method.
-func (m *MockDAO) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (error, int) {
+func (m *MockDAO) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateInsolvencyResource", dao)
-	ret0, _ := ret[0].(error)
-	ret1, _ := ret[1].(int)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
 	return ret0,ret1
 }
 
@@ -64,11 +64,11 @@ func (mr *MockDAOMockRecorder) GetInsolvencyResource(transactionID interface{}) 
 }
 
 // CreatePractitionerResourceForInsolvencyCase mocks base method.
-func (m *MockDAO) CreatePractitionerResourceForInsolvencyCase(dao *models.PractitionerResourceDao, transactionID string) (error, int) {
+func (m *MockDAO) CreatePractitionerResourceForInsolvencyCase(dao *models.PractitionerResourceDao, transactionID string) (int,error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePractitionerResourceForInsolvencyCase", transactionID)
-	ret0, _ := ret[0].(error)
-	ret1, _ := ret[1].(int)
+	ret := m.ctrl.Call(m, "CreatePractitionerResourceForInsolvencyCase", dao, transactionID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
 	return ret0,ret1
 }
 
@@ -76,6 +76,21 @@ func (m *MockDAO) CreatePractitionerResourceForInsolvencyCase(dao *models.Practi
 func (mr *MockDAOMockRecorder) CreatePractitionerResourceForInsolvencyCase(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePractitionerResourceForInsolvencyCase", reflect.TypeOf((*MockDAO)(nil).CreatePractitionerResourceForInsolvencyCase), transactionID)
+}
+
+// CreatePractitionerResourceForInsolvencyCase mocks base method.
+func (m *MockDAO) CreateAppointmentResourceForPractitioners(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateAppointmentResourceForPractitioners", dao, transactionID, practitionerID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0,ret1
+}
+
+// CreateAppointmentResourceForPractitioners indicates an expected call of CreateAppointmentResourceForPractitioners.
+func (mr *MockDAOMockRecorder) CreateAppointmentResourceForPractitioners(transactionInterface interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppointmentResourceForPractitioners", reflect.TypeOf((*MockDAO)(nil).CreateAppointmentResourceForPractitioners), transactionInterface)
 }
 
 // GetPractitionerResources mocks base method.
@@ -109,11 +124,11 @@ func (mr *MockDAOMockRecorder) GetPractitionerResource(practitionerID,transactio
 }
 
 // DeletePractitioner mocks base method.
-func (m *MockDAO) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
+func (m *MockDAO) DeletePractitioner(practitionerID string, transactionID string) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeletePractitioner", practitionerID,transactionID)
-	ret0, _ := ret[0].(error)
-	ret1, _ := ret[1].(int)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
 	return ret0,ret1
 }
 

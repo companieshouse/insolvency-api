@@ -317,7 +317,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("insolvency case already exists"), http.StatusConflict).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusConflict, errors.New("insolvency case already exists")).Times(1)
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
@@ -349,7 +349,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("error when creating mongo resource"), http.StatusInternalServerError).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusInternalServerError, errors.New("error when creating mongo resource")).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -383,7 +383,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -417,7 +417,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -451,7 +451,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 

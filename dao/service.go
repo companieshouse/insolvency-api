@@ -8,7 +8,7 @@ import (
 // Service interface declares how to interact with the persistence layer regardless of underlying technology
 type Service interface {
 	// CreateInsolvencyResource will persist a newly created resource
-	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (error, int)
+	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error)
 
 	// GetInsolvencyResource will retrieve an Insolvency Resource
 	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)
@@ -26,13 +26,14 @@ type Service interface {
 	GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
-	DeletePractitioner(practitionerID, transactionID string) (error, int)
+	DeletePractitioner(practitionerID, transactionID string) (int, error)
 
+	CreateAppointmentResourceForPractitioners(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
 	// AppointPractitioner will appoint add appointment details to a practitioner resource
-	AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int)
+	AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
 
 	// DeletePractitionerAppointment will delete the appointment for a practitioner
-	DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int)
+	DeletePractitionerAppointment(transactionID string, practitionerID string) (int, error)
 
 	// AddAttachmentToInsolvencyResource will add an attachment to an insolvency resource
 	AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error)

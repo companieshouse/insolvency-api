@@ -39,7 +39,7 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.CreateInsolvencyResource(&expectedInsolvency)
+		_, err := mongoService.CreateInsolvencyResource(&expectedInsolvency)
 
 		So(err.Error(), ShouldEqual, "there was a problem creating an insolvency case for this transaction id: the Find operation must have a Deployment set before Execute can be called")
 	})
@@ -115,7 +115,7 @@ func TestUnitDeletePractitioner(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
@@ -129,9 +129,9 @@ func TestUnitAppointPractitioner(t *testing.T) {
 
 		appointmentResource := models.AppointmentResourceDao{}
 
-		err, _ := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
+		_, err := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID and practitioner practitionerID")
 	})
 }
 
@@ -141,7 +141,7 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
+		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
 	})

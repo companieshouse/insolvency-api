@@ -66,7 +66,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, transactionID)
 
-		// Store practitioners resource in Mongo
+		// Store practitioners resource in practitioners collection
 		statusCode, err := svc.CreatePractitionerResourceForInsolvencyCase(practitionerDao, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
@@ -192,7 +192,7 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		}
 
 		// Delete practitioner from Mongo
-		err, statusCode := svc.DeletePractitioner(practitionerID, transactionID)
+		statusCode, err := svc.DeletePractitioner(practitionerID, transactionID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
@@ -211,8 +211,20 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			return
+		}
+
 		// Check transaction id exists in path
 		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
 		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 		if !isValidTransactionId {
 			return
@@ -266,9 +278,11 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		}
 
 		practitionerAppointmentDao := transformers.PractitionerAppointmentRequestToDB(&request, transactionID, practitionerID)
+		practitionerAppointmentDao.Etag = etag
+		practitionerAppointmentDao.Kind = "insolvency#appointment"
 
 		// Store appointment in DB
-		err, statusCode := svc.AppointPractitioner(practitionerAppointmentDao, transactionID, practitionerID)
+		statusCode, err := svc.AppointPractitioner(practitionerAppointmentDao, transactionID, practitionerID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
@@ -379,7 +393,7 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 			return
 		}
 
-		err, statusCode := svc.DeletePractitionerAppointment(transactionID, practitionerID)
+		statusCode, err := svc.DeletePractitionerAppointment(transactionID, practitionerID)
 		if err != nil {
 			log.ErrorR(req, err)
 			m := models.NewMessageResponse(err.Error())
@@ -395,14 +409,14 @@ func getTransactionIDAndPractitionerIDFromVars(vars map[string]string) (transact
 	transactionID = utils.GetTransactionIDFromVars(vars)
 	if transactionID == "" {
 		err = fmt.Errorf("there is no Transaction ID in the URL path")
-		return
+		return "", "", err
 	}
 
 	// Check for a practitioner ID in request
 	practitionerID = utils.GetPractitionerIDFromVars(vars)
 	if practitionerID == "" {
 		err = fmt.Errorf("there is no Practitioner ID in the URL path")
-		return
+		return "", "", err
 	}
 	return transactionID, practitionerID, nil
 }

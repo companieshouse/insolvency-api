@@ -98,7 +98,7 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		err, httpStatus = svc.CreateInsolvencyResource(model)
+		httpStatus, err = svc.CreateInsolvencyResource(model)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database for transaction [%s]: %v", transactionID, err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction [%s]: %v", transactionID, err))
