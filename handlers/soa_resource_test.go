@@ -39,9 +39,10 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
@@ -53,7 +54,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -69,7 +69,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -85,7 +84,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Failed to read request body", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -101,7 +99,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Incoming request has statement date missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -119,7 +116,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Incoming request has invalid date format", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -137,7 +133,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Incoming request has attachments missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -155,7 +150,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Attachment is not associated with transaction", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -311,7 +305,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Generic error when adding statement of affairs resource to mongo", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -339,7 +332,6 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 	Convey("Error adding statement of affairs resource to mongo - insolvency case not found", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))

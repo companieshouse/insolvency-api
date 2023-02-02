@@ -89,9 +89,10 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
@@ -103,7 +104,6 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Failed to read request body", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body := []byte(`{"company_name":error`)
 
@@ -115,7 +115,6 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Incoming request has company number missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:    constants.MVL.String(),
@@ -130,7 +129,6 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Incoming request has company name missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.MVL.String(),
@@ -145,7 +143,6 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Incoming request has case type missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
-		helperService := utils.NewHelperService()
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CompanyNumber: companyNumber,
