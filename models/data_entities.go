@@ -41,10 +41,10 @@ type PractitionerResourceDao struct {
 	Email           string                       `bson:"email,omitempty"`
 	Address         AddressResourceDao           `bson:"address"`
 	Role            string                       `bson:"role"`
-	Links           PractitionerResourceLinksDao `bson:"links"`
-	Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
 	Etag            string                       `bson:"etag"`
 	Kind            string                       `bson:"kind"`
+	Links           PractitionerResourceLinksDao `bson:"links"`
+	Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
 }
 
 // PractitionerResourceDto contains the data for the practitioner resource in Mongo
@@ -85,7 +85,7 @@ type AddressResourceDao struct {
 
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
-	Self string `bson:"self"`
+	Self        string `bson:"self"`
 }
 
 // AttachmentResourceDao contains the data for the attachment DB resource

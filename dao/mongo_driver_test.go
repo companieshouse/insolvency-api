@@ -706,7 +706,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID and practitioner practitionerID")
 	})
 
-	mt.Run("AppointPractitioner runs with error on updatePractitioner after insert into appointment collection", func(mt *mtest.T) {
+	mt.Run("AppointPractitioner runs with error on updateCollection after insert into appointment collection", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
 		mongoService.db = mt.DB
@@ -771,13 +771,15 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	})
 
 	mt.Run("AppointPractitioner runs successfully", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		mt.AddMockResponses(mtest.CreateSuccessResponse(
+		firstSuccess := mtest.CreateSuccessResponse()
+		secondSuccess := mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
 			bson.E{Key: "upserted", Value: 1},
-		))
+		)
+		thirdSuccess := secondSuccess
+
+		mt.AddMockResponses(firstSuccess, secondSuccess, thirdSuccess)
 
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},

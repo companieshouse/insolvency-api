@@ -20,6 +20,13 @@ import (
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			return
+		}
+
 		// Check transaction is valid
 		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "practitioners", service.CheckIfTransactionClosed)
 		if !isValidTransaction {
@@ -28,7 +35,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerRequest
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
 			return
@@ -65,6 +72,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		}
 
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, transactionID)
+		practitionerDao.Etag = etag
+		practitionerDao.Kind = "insolvency#practitioner"
 
 		// Store practitioners resource in practitioners collection
 		statusCode, err := svc.CreatePractitionerResourceForInsolvencyCase(practitionerDao, transactionID)

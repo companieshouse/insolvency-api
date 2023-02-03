@@ -28,7 +28,7 @@ type Service interface {
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
 	DeletePractitioner(practitionerID, transactionID string) (int, error)
 
-	CreateAppointmentResourceForPractitioners(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
+	CreateAppointmentResource(dao *models.AppointmentResourceDao) (int, error)
 	// AppointPractitioner will appoint add appointment details to a practitioner resource
 	AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
 
