@@ -120,20 +120,19 @@ func TestUnitHandleSubmitAttachment(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "already closed and cannot be updated")
 	})
 
-	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+	Convey("Failed to read form from request body", t, func() {
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body := []byte(`{"company_name":error`)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		res := serveHandleSubmitAttachment(body, mockService, true, mockHelperService, rec)
+		res := serveHandleSubmitAttachment(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "error reading form from request")
 	})
 
 	Convey("Validation failed - invalid attachment type", t, func() {

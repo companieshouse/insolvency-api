@@ -93,7 +93,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, fmt.Sprintf("failed to read request body for transaction %s", transactionID))
 	})
 

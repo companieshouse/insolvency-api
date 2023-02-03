@@ -109,7 +109,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
