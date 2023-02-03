@@ -96,7 +96,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
@@ -952,7 +952,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		res := serveHandleAppointPractitioner(body, mockService, helperService, true, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
