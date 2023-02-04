@@ -2,6 +2,28 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+// InsolvencyResourceDto contains the meta-data for the insolvency resource in Mongo with links rather than real data
+type InsolvencyResourceDto struct {
+	ID            primitive.ObjectID         `bson:"_id"`
+	TransactionID string                     `bson:"transaction_id"`
+	Data          InsolvencyResourceDaoDataDto  `bson:"data"`
+	Links         InsolvencyResourceLinksDao `bson:"links"`
+}
+
+// InsolvencyResourceDaoDataDto contains the data for the insolvency resource in Mongo with links rather than real data
+type InsolvencyResourceDaoDataDto struct {
+	CompanyNumber      string                         `bson:"company_number"`
+	CaseType           string                         `bson:"case_type"`
+	CompanyName        string                         `bson:"company_name"`
+	Etag               string                         `bson:"etag"`
+	Kind               string                         `bson:"kind"`
+	Practitioners      map[string]string              `bson:"practitioners,omitempty"`
+	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
+	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
+	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
+	ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
+}
+
 // InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
 	ID            primitive.ObjectID         `bson:"_id"`
@@ -85,7 +107,7 @@ type AddressResourceDao struct {
 
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
-	Self        string `bson:"self"`
+	Self string `bson:"self"`
 }
 
 // AttachmentResourceDao contains the data for the attachment DB resource

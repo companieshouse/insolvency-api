@@ -228,7 +228,7 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 		}
 
 		// Check transaction id exists in path
-		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
+		incomingTransactionId, practitionerID, _ := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
 		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
 		if !isValidTransactionId {
 			return

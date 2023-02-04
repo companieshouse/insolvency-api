@@ -33,7 +33,7 @@ func (m *MockService) EXPECT() *MockServiceMockRecorder {
 }
 
 // CreateInsolvencyResource mocks base method
-func (m *MockService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error) {
+func (m *MockService) CreateInsolvencyResource(dao *models.InsolvencyResourceDto) (int, error) {
 	ret := m.ctrl.Call(m, "CreateInsolvencyResource", dao)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)

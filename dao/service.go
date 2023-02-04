@@ -8,7 +8,7 @@ import (
 // Service interface declares how to interact with the persistence layer regardless of underlying technology
 type Service interface {
 	// CreateInsolvencyResource will persist a newly created resource
-	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error)
+	CreateInsolvencyResource(dao *models.InsolvencyResourceDto) (int, error)
 
 	// GetInsolvencyResource will retrieve an Insolvency Resource
 	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)

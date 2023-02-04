@@ -71,7 +71,7 @@ func getMongoDatabase(mongoDBURL, databaseName string) MongoDatabaseInterface {
 }
 
 // CreateInsolvencyResource will store the insolvency request into the database
-func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error) {
+func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDto) (int, error) {
 
 	dao.ID = primitive.NewObjectID()
 
@@ -584,7 +584,7 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 // CreateResolutionResource stores the resolution for the insolvency case
 // with the specified transactionID
 func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
-	var insolvencyResource models.InsolvencyResourceDao
+	var insolvencyResource models.InsolvencyResourceDto
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
@@ -633,7 +633,7 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 // CreateStatementOfAffairsResource stores the statement of affairs resource for the insolvency case
 // with the specified transactionID
 func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error) {
-	var insolvencyResource models.InsolvencyResourceDao
+	var insolvencyResource models.InsolvencyResourceDto
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}

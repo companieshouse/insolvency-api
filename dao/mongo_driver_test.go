@@ -14,7 +14,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
-func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceDao, *mtest.Options, []models.PractitionerResourceDao) {
+func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceDto, *mtest.Options, []models.PractitionerResourceDao) {
 	client = &mongo.Client{}
 	cfg, _ := config.Get()
 	dataBase := NewGetMongoDatabase("mongoDBURL", "databaseName")
@@ -46,21 +46,22 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 
 	practitioners := []models.PractitionerResourceDao{}
 
-	dataInsolvency := models.InsolvencyResourceDaoData{
-		CompanyNumber:      "CompanyNumber",
-		CaseType:           "CaseType",
-		CompanyName:        "CompanyName",
-		Practitioners:      append(practitioners, practitionerResourceDao),
+	dataInsolvency := models.InsolvencyResourceDaoDataDto{
+		CompanyNumber: "CompanyNumber",
+		CaseType:      "CaseType",
+		CompanyName:   "CompanyName",
+		Practitioners: map[string]string{
+			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+			"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
+		},
 		Attachments:        []models.AttachmentResourceDao{},
 		Resolution:         &models.ResolutionResourceDao{},
 		StatementOfAffairs: &models.StatementOfAffairsResourceDao{},
 	}
 
-	expectedInsolvency := models.InsolvencyResourceDao{
+	expectedInsolvency := models.InsolvencyResourceDto{
 		ID:            primitive.NewObjectID(),
 		TransactionID: "TransactionID",
-		Etag:          "Etag",
-		Kind:          "Kind",
 		Data:          dataInsolvency,
 		Links:         models.InsolvencyResourceLinksDao{},
 	}
@@ -111,8 +112,8 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -146,8 +147,8 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -171,8 +172,8 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -189,8 +190,8 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -233,7 +234,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
+			{"etag", expectedInsolvency.Data.Etag},
 		}))
 
 		mongoService.db = mt.DB
@@ -264,8 +265,8 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 		}))
 
 		mongoService.db = mt.DB
@@ -273,8 +274,8 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
-		assert.Equal(t, insolvencyResource.Etag, expectedInsolvency.Etag)
-		assert.Equal(t, insolvencyResource.Kind, expectedInsolvency.Kind)
+		assert.Equal(t, insolvencyResource.Etag, expectedInsolvency.Data.Etag)
+		assert.Equal(t, insolvencyResource.Kind, expectedInsolvency.Data.Kind)
 	})
 }
 
@@ -365,11 +366,13 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 	})
 
 	mt.Run("CreatePractitionerResourceForInsolvencyCase runs with error decode", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateSuccessResponse())
+
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data.Practitioners},
 		}))
 
@@ -394,8 +397,8 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvencyPratitioners},
 		}))
 
@@ -413,8 +416,8 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -478,8 +481,8 @@ func TestUnitGetPractitionerResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -537,8 +540,8 @@ func TestUnitGetPractitionerResourcesDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -560,8 +563,8 @@ func TestUnitGetPractitionerResourcesDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -619,8 +622,8 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -644,8 +647,8 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -719,8 +722,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -754,8 +757,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -784,8 +787,8 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -840,8 +843,8 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -871,8 +874,8 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -897,8 +900,8 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -931,8 +934,8 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data.Practitioners},
 		}))
 
@@ -959,8 +962,8 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data.Practitioners},
 		}))
 
@@ -1025,8 +1028,8 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1053,8 +1056,8 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1125,8 +1128,8 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1172,8 +1175,8 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1207,8 +1210,8 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1227,8 +1230,8 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1237,8 +1240,8 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 			{"value", bson.D{
 				{"_id", expectedInsolvency.ID},
 				{"transaction_id", expectedInsolvency.TransactionID},
-				{"etag", expectedInsolvency.Etag},
-				{"kind", expectedInsolvency.Kind},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
 				{"data", bsonInsolvency},
 			}},
 		})
@@ -1284,8 +1287,8 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1301,8 +1304,8 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1320,8 +1323,6 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1354,8 +1355,8 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1364,8 +1365,8 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 			{"value", bson.D{
 				{"_id", expectedInsolvency.ID},
 				{"transaction_id", expectedInsolvency.TransactionID},
-				{"etag", expectedInsolvency.Etag},
-				{"kind", expectedInsolvency.Kind},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
 				{"data", expectedInsolvency.Data},
 			}},
 		})
@@ -1396,8 +1397,8 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1415,8 +1416,8 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", expectedInsolvency.Data},
 		}))
 
@@ -1493,8 +1494,8 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1547,8 +1548,8 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1567,8 +1568,8 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1593,8 +1594,8 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1639,7 +1640,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
+			{"etag", expectedInsolvency.Data.Etag},
 		}))
 
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1723,8 +1724,8 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1784,8 +1785,8 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1804,8 +1805,8 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 
@@ -1830,8 +1831,8 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
-			{"etag", expectedInsolvency.Etag},
-			{"kind", expectedInsolvency.Kind},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
 			{"data", bsonInsolvency},
 		}))
 

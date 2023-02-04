@@ -35,7 +35,7 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Create Insolvency Resource", t, func() {
 
-		expectedInsolvency := models.InsolvencyResourceDao{}
+		expectedInsolvency := models.InsolvencyResourceDto{}
 
 		mongoService := setUp(t)
 
