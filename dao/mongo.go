@@ -358,13 +358,13 @@ func (m *MongoService) AppointPractitioner(appointmentResourceDao *models.Appoin
 	}
 
 	//update practitioner collection with appointment link
-	status, err := updateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
+	status, err := UpdateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
 	if err != nil {
 		return status, err
 	}
 
 	//update insolvency collection with practitioner
-	status, err = updateCollection(transactionID, practitionerID, insolvencyPractitionerToUpdate, insolvencyDocumentToUpdate, collection)
+	status, err = UpdateCollection(transactionID, practitionerID, insolvencyPractitionerToUpdate, insolvencyDocumentToUpdate, collection)
 
 	if err != nil {
 		return status, err
@@ -382,7 +382,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 
 	updateDocument := bson.M{"$unset": bson.M{"data.practitioners.$.appointment": ""}}
 
-	status, err := updateCollection(transactionID, practitionerID, filter, updateDocument, collection)
+	status, err := UpdateCollection(transactionID, practitionerID, filter, updateDocument, collection)
 
 	return status, err
 }
