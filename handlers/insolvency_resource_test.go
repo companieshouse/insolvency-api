@@ -89,89 +89,68 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
 
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreateInsolvencyResource(body, mockService, false, mockHelperService, rec)
+		res := serveHandleCreateInsolvencyResource(body, mockService, false, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body := []byte(`{"company_name":error`)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, fmt.Sprintf("failed to read request body for transaction %s", transactionID), http.StatusBadRequest)
-		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
+		//	mockService.EXPECT().
+		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
 	Convey("Incoming request has company number missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:    constants.MVL.String(),
 			CompanyName: companyName,
 		})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "company_number is a required field", http.StatusBadRequest)
-		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
+		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "company_number is a required field")
 	})
 
 	Convey("Incoming request has company name missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CaseType:      constants.MVL.String(),
 			CompanyNumber: companyNumber,
 		})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "company_name is a required field", http.StatusBadRequest)
-		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
+		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "company_name is a required field")
 	})
 
 	Convey("Incoming request has case type missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{
 			CompanyNumber: companyNumber,
 			CompanyName:   companyName,
 		})
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 
-		http.Error(rec, "case_type is a required field", http.StatusBadRequest)
-		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
+		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "case_type is a required field")
@@ -189,12 +168,12 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		http.Error(rec, "", http.StatusBadRequest)
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "case type is not creditors-voluntary-liquidation")
 	})
 
 	Convey("Error calling transaction-api when checking transaction exists", t, func() {
@@ -349,7 +328,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusInternalServerError, errors.New("error when creating mongo resource")).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusInternalServerError,errors.New("error when creating mongo resource")).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -383,7 +362,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated,nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -417,7 +396,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated,nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -451,7 +430,7 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated,nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 

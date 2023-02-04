@@ -42,23 +42,21 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must need a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, false, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -66,18 +64,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "", http.StatusInternalServerError)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error checking transaction status")
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -85,18 +79,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		body, _ := json.Marshal(&models.InsolvencyRequest{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "", http.StatusForbidden)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
+		So(res.Body.String(), ShouldContainSubstring, "already closed and cannot be updated")
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -104,19 +94,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		body := []byte(`{"first_name":error`)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
 	Convey("Incoming request has IP code missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -126,21 +111,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.IPCode = ""
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "ip_code is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "ip_code is a required field")
 	})
 
 	Convey("Incoming request has invalid IP code - not a number", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -149,22 +127,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.IPCode = "+1234"
 		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "ip_code must be a valid number", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a valid number")
 	})
 
 	Convey("Incoming request has invalid IP code - more than 8 characters in length", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -174,21 +144,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.IPCode = "123456789"
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "ip_code must be a maximum of 8 characters in length", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "ip_code must be a maximum of 8 characters in length")
 	})
 
 	Convey("Incoming request has first name missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -198,21 +161,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.FirstName = ""
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "first_name is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "first_name is a required field")
 	})
 
 	Convey("Incoming request has last name missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -222,21 +178,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.LastName = ""
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "last_name is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "last_name is a required field")
 	})
 
 	Convey("Incoming request has address missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -246,21 +195,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Address = models.Address{}
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "address_line_1 is a required field, locality is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "address_line_1 is a required field, locality is a required field")
 	})
 
 	Convey("Incoming request has address premises missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -272,21 +214,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		}
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "premises is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "premises is a required field")
 	})
 
 	Convey("Incoming request has address line 1 missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -298,21 +233,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		}
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "address_line_1 is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "address_line_1 is a required field")
 	})
 
 	Convey("Incoming request has locality missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -324,21 +252,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		}
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "locality is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "locality is a required field")
 	})
 
 	Convey("Incoming request has address postcode missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -350,21 +271,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		}
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "postal_code is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "postal_code is a required field")
 	})
 
 	Convey("Incoming request has role missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -374,21 +288,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Role = ""
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "role is a required field", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "role is a required field")
 	})
 
 	Convey("Incoming request has an invalid role", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -397,23 +304,17 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.Role = "error-role"
 		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "the practitioner role supplied is not valid")
 	})
 
 	Convey("Incoming request has an invalid role - not final-liquidator for a CVL case", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -428,20 +329,14 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Role = constants.Receiver.String()
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "invalid request body: the practitioner role must be final-liquidator")
 	})
 
 	Convey("Error retrieving insolvency case when validating practitioner", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -450,23 +345,17 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.Role = constants.Receiver.String()
 		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect GetInsolvencyResource to return an error
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
 
-		http.Error(rec, "", http.StatusInternalServerError)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "failed to validate the practitioner request supplied")
 	})
 
 	Convey("Incoming request has telephone number and email missing", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -476,23 +365,17 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.TelephoneNumber = ""
 		practitioner.Email = ""
 		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "invalid request body: either telephone_number or email are required")
 	})
 
 	Convey("Incoming request has invalid first name", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -501,29 +384,22 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "J4ck"
 		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "the first name contains a character which is not allowed", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "the first name contains a character which is not allowed")
 	})
 
 	Convey("Incoming request has telephone number and email missing and an invalid last name", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
+		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
@@ -532,15 +408,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Email = ""
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect GetInsolvencyResource to return a valid insolvency case
-
-		http.Error(rec, "invalid request body: either telephone_number or email are required, the last name contains a character which is not allowed", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "invalid request body: either telephone_number or email are required")
@@ -557,7 +425,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -567,10 +435,10 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "Server error", http.StatusInternalServerError)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request")
 	})
 
 	Convey("Error adding practitioners resource to mongo - insolvency case not found", t, func() {
@@ -583,7 +451,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -593,10 +461,11 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "Server error", http.StatusNotFound)
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request")
+		So(res.Body.String(), ShouldContainSubstring, "not found")
 	})
 
 	Convey("Error adding practitioners resource to mongo - 5 practitioners already exist", t, func() {
@@ -609,7 +478,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -619,36 +488,11 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
-		http.Error(rec, "", http.StatusBadRequest)
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-	})
-
-	Convey("Error adding practitioners resource to mongo - the limit of practitioners will exceed", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
-
-		// Expect the transaction api to be called and return an open transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
-		practitioner := generatePractitioner()
-		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		// Expect CreatePractitioners to be called once and return an error
-		mockService.EXPECT().CreatePractitionerResourceForInsolvencyCase(gomock.Any(), transactionID).Return(http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction %s will have more than 5 practitioners", transactionID)).Times(1)
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
-
-		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request")
+		So(res.Body.String(), ShouldContainSubstring, "already has 5 practitioners")
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
@@ -664,7 +508,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1048,38 +892,35 @@ func serveHandleAppointPractitioner(body []byte, service dao.Service, helperServ
 func TestUnitHandleAppointPractitioner(t *testing.T) {
 	apiURL := "https://api.companieshouse.gov.uk"
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must have a transaction ID in the url", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), "").Return(false, "").AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, false, false, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, false, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), gomock.Any()).Return(false, "").AnyTimes()
-
-		http.Error(rec, "", http.StatusBadRequest)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, false, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, true, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an error
@@ -1087,18 +928,14 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "", http.StatusInternalServerError)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, true, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error checking transaction status")
 	})
 
 	Convey("Transaction is already closed and cannot be updated", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an already closed transaction
@@ -1106,18 +943,14 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		body, _ := json.Marshal(&models.PractitionerAppointment{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "", http.StatusForbidden)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, true, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
+		So(res.Body.String(), ShouldContainSubstring, "is already closed and cannot be updated")
 	})
 
 	Convey("Failed to read request body", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1125,19 +958,14 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		body := []byte(`{"appointed_on":error`)
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, fmt.Sprintf("failed to read request body for transaction %s", transactionID), http.StatusBadRequest)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, true, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "failed to read request body for transaction")
 	})
 
 	Convey("mandatory fields not supplied", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		// Expect the transaction api to be called and return an open transaction
@@ -1145,14 +973,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		body, _ := json.Marshal(models.PractitionerAppointment{})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-
-		http.Error(rec, "made_by is a required field", http.StatusBadRequest)
-		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
+		res := serveHandleAppointPractitioner(body, mockService, helperService, true, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "made_by is a required field")
@@ -1170,13 +991,12 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "invalid",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		http.Error(rec, "made_by supplied is not valid", http.StatusBadRequest)
 		res := serveHandleAppointPractitioner(body, mockService, mockHelperService, true, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
@@ -1195,7 +1015,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1242,7 +1062,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1265,7 +1085,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1320,7 +1140,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1358,7 +1178,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1397,7 +1217,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1437,7 +1257,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -1488,7 +1308,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 			MadeBy:      "company",
 		})
 
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etags", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
