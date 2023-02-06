@@ -460,6 +460,11 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		res := serveHandleGetResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, "etag")
+		So(res.Body.String(), ShouldContainSubstring, "kind")
+		So(res.Body.String(), ShouldContainSubstring, "links")
+		So(res.Body.String(), ShouldContainSubstring, "date_of_resolution")
+		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }
 

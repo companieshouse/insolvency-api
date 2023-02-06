@@ -125,7 +125,7 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("successfully retrieved resolution resource with transaction ID: %s, from mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, resolution, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(&resolution), http.StatusOK)
 	})
 }
 
