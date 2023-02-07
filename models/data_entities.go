@@ -104,8 +104,16 @@ type ResolutionResourceLinksDao struct {
 
 // StatementOfAffairsResourceDao contains the data for the statement of affairs DB resource
 type StatementOfAffairsResourceDao struct {
-	StatementDate string   `bson:"statement_date"`
-	Attachments   []string `bson:"attachments"`
+	Etag          string                             `bson:"etag"`
+	Kind          string                             `bson:"kind"`
+	StatementDate string                             `bson:"statement_date"`
+	Attachments   []string                           `bson:"attachments"`
+	Links         StatementOfAffairsResourceLinksDao `bson:"links"`
+}
+
+// StatementOfAffairsResourceLinksDao contains the Links data for a statement of affairs
+type StatementOfAffairsResourceLinksDao struct {
+	Self string `bson:"self,omitempty"`
 }
 
 type ProgressReportResourceDao struct {

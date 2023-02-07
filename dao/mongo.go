@@ -600,6 +600,9 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	statementDao := models.StatementOfAffairsResourceDao{
 		StatementDate: dao.StatementDate,
 		Attachments:   dao.Attachments,
+		Kind:          dao.Kind,
+		Etag:          dao.Etag,
+		Links:         dao.Links,
 	}
 
 	// Retrieve insolvency case from Mongo

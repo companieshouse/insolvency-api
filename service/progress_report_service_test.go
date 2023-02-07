@@ -2,10 +2,11 @@ package service
 
 import (
 	"fmt"
-	"github.com/companieshouse/insolvency-api/mocks"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/companieshouse/insolvency-api/mocks"
 
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/jarcoal/httpmock"
@@ -197,6 +198,18 @@ func TestValidProgressReport(t *testing.T) {
 		So(validationErr, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})
+
+	Convey("nil dao", t, func() {
+		mockService, _, _ := mocks.CreateTestObjects(t)
+		httpmock.Activate()
+
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		validationErr, err := ValidateProgressReportDetails(mockService, nil, transactionID, req)
+		So(validationErr, ShouldBeEmpty)
+		So(err.Error(), ShouldContainSubstring, "nil DAO passed to service for validation")
+	})
+
 }
 
 func generateProgressReport() models.ProgressReportResourceDao {
