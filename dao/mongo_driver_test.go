@@ -1,17 +1,17 @@
 package dao
 
 import (
-    "testing"
+	"testing"
 
-    "github.com/companieshouse/insolvency-api/config"
-    "github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/config"
+	"github.com/companieshouse/insolvency-api/models"
 
-    "github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 
-    "go.mongodb.org/mongo-driver/bson"
-    "go.mongodb.org/mongo-driver/bson/primitive"
-    "go.mongodb.org/mongo-driver/mongo"
-    "go.mongodb.org/mongo-driver/mongo/integration/mtest"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
 func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceDao, *mtest.Options, []models.PractitionerResourceDao) {
@@ -139,7 +139,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 
         _, err := mongoService.UpdateAttachmentStatus("transactionID", "attachmentID", "avStatus")
 
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID]")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("UpdateAttachmentStatus runs successfully with status not processed", func(mt *mtest.T) {
@@ -313,7 +313,7 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
         err, code := mongoService.CreatePractitionersResource(&practitionerResourceDao, "transactionID")
 
         assert.Equal(t, code, 500)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("CreatePractitionersResource runs with error decode", func(mt *mtest.T) {
@@ -329,7 +329,7 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
         err, code := mongoService.CreatePractitionersResource(&practitionerResourceDao, "transactionID")
 
         assert.NotNil(t, err)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
         assert.Equal(t, code, 500)
     })
 
@@ -1134,7 +1134,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 
         _, err := mongoService.DeleteAttachmentResource("transactionID", "attachmentID")
 
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID]")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("DeleteAttachmentResource runs with error on UpdateOne", func(mt *mtest.T) {
@@ -1211,7 +1211,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
         code, err := mongoService.CreateResolutionResource(&resolutionResourceDao, "transactionID")
 
         assert.Equal(t, code, 500)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("CreateResolutionResource runs successfully with findone", func(mt *mtest.T) {
@@ -1227,7 +1227,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
         code, err := mongoService.CreateResolutionResource(&resolutionResourceDao, "transactionID")
 
         assert.NotNil(t, err)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
         assert.Equal(t, code, 500)
     })
 
@@ -1246,7 +1246,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
         code, err := mongoService.CreateResolutionResource(&resolutionResourceDao, "transactionID")
 
         assert.NotNil(t, err)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
         assert.Equal(t, code, 500)
     })
 
@@ -1323,7 +1323,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
         code, err := mongoService.CreateStatementOfAffairsResource(&statementOfAffairsResourceDao, "transactionID")
 
         assert.Equal(t, code, 500)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("CreateStatementOfAffairsResource runs with error on UpdateOne", func(mt *mtest.T) {
@@ -1341,7 +1341,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
         code, err := mongoService.CreateStatementOfAffairsResource(&statementOfAffairsResourceDao, "transactionID")
 
         assert.NotNil(t, err)
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
         assert.Equal(t, code, 500)
     })
 
@@ -1474,7 +1474,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 
         _, err := mongoService.DeleteStatementOfAffairsResource("transactionID")
 
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID]")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("DeleteStatementOfAffairsResource runs with error on UpdateOne", func(mt *mtest.T) {
@@ -1566,7 +1566,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
         _, err := mongoService.CreateProgressReportResource(&progressReportResourceDao, "transactionID")
 
         assert.NotNil(t, err.Error())
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("CreateProgressReportResource with successful created one", func(mt *mtest.T) {
@@ -1711,7 +1711,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 
         _, err := mongoService.DeleteResolutionResource("transactionID")
 
-        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID]")
+        assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
     })
 
     mt.Run("DeleteResolutionResource runs with error on UpdateOne", func(mt *mtest.T) {

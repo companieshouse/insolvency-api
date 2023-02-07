@@ -179,14 +179,14 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			log.ErrorR(req, fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			log.ErrorR(req, fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgNoUpdateTransactionClosed, transactionID))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
@@ -367,14 +367,14 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error checking transaction status for [%v]: [%s]", transactionID, err))
+			log.ErrorR(req, fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
+			log.ErrorR(req, fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgNoUpdateTransactionClosed, transactionID))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}

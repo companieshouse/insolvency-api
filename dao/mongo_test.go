@@ -67,7 +67,7 @@ func TestUnitCreatePractitionersResource(t *testing.T) {
 
 		err, _ := mongoService.CreatePractitionersResource(&practitionerResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -177,7 +177,7 @@ func TestUnitDeleteAttachmentResource(t *testing.T) {
 
 		_, err := mongoService.DeleteAttachmentResource("transactionID", "attachmentID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -189,7 +189,7 @@ func TestUnitUpdateAttachmentStatus(t *testing.T) {
 
 		_, err := mongoService.UpdateAttachmentStatus("transactionID", "attachmentID", "avStatus")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -203,7 +203,7 @@ func TestUnitCreateResolutionResource(t *testing.T) {
 
 		_, err := mongoService.CreateResolutionResource(&resolutionResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -217,7 +217,7 @@ func TestUnitCreateStatementOfAffairsResource(t *testing.T) {
 
 		_, err := mongoService.CreateStatementOfAffairsResource(&statementResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -241,7 +241,7 @@ func TestUnitDeleteStatementOfAffairsResource(t *testing.T) {
 
 		_, err := mongoService.DeleteStatementOfAffairsResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -255,7 +255,7 @@ func TestUnitCreateProgressReportResource(t *testing.T) {
 
 		_, err := mongoService.CreateProgressReportResource(&progressReport, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -278,6 +278,6 @@ func TestUnitDeleteResolutionResource(t *testing.T) {
 
 		_, err := mongoService.DeleteResolutionResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }

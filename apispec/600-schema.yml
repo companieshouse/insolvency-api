@@ -1,7 +1,12 @@
+---
 openapi: 3.0.0
 info:
   title: Insolvency API
-  description: "API specification for submiting insolvency data. <br><br> **IMPORTANT NOTE:** This API can only be used in conjunction with Transactions API (more information about the filing model [here](https://developer-specs.company-information.service.gov.uk/manipulate-company-data-api-filing/guides/overview))"
+  description: "API specification for submiting insolvency data.
+                **IMPORTANT NOTE:**
+                This API can only be used in conjunction with Transactions API
+                (more information about the filing model [here]
+                (https://developer-specs.company-information.service.gov.uk/manipulate-company-data-api-filing/guides/overview))"
   version: 1.1.0-dev
 paths:
   /transactions/{transaction_id}/insolvency:
@@ -39,7 +44,7 @@ paths:
           description: Not found.
         409:
           description: Conflict.
-          
+
   /transactions/{transaction_id}/insolvency/validation-status:
     get:
       tags:
@@ -125,7 +130,6 @@ paths:
           description: Unauthorised.
         404:
           description: Not found.
-
 
   /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}:
     get:
@@ -250,7 +254,7 @@ paths:
           description: Forbidden.
         404:
           description: Not found.
-          
+
     get:
       tags:
         - "Practitioner (Appointment)"
@@ -372,7 +376,7 @@ components:
               type: string
               format: uri
               example: /transactions/{transaction_id}/insolvency/validation-status
-              
+
     ValidationStatusResource:
       type: object
       properties:
@@ -396,7 +400,6 @@ components:
               is_valid:
                 type: boolean
                 example: false
-  
 
     Address:
       type: object
@@ -428,7 +431,6 @@ components:
           type: string
           example: "TD1 TDD"
 
-    
     PractitionerWritable:
       type: object
       required:
@@ -470,7 +472,6 @@ components:
           type: string
           example: "07567192375"
 
-          
     PractitionerResource:
       type: object
       properties:
@@ -523,8 +524,7 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/PractitionerResource'
-        
-    
+
     PractitionerAppointment:
       type: object
       properties:
@@ -544,7 +544,6 @@ components:
               format: uri
               example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
-    
   securitySchemes:
     oauth2:
       type: oauth2

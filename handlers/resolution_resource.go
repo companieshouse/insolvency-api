@@ -154,7 +154,6 @@ func HandleDeleteResolution(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
-
 		if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))
