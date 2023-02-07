@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
-	"net/http"
 )
 
 // HelperService interface declares
@@ -58,7 +59,7 @@ func (*helperService) HandleBodyDecodedValidation(w http.ResponseWriter, req *ht
 	if err != nil {
 		log.ErrorR(req, fmt.Errorf("invalid request"))
 		m := models.NewMessageResponse(fmt.Sprintf("failed to read request body for transaction %s", transactionID))
-		WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+		WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 		return false
 	}
 	return true
