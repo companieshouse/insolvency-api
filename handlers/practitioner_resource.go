@@ -211,10 +211,12 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		// Check transaction id exists in path
-		incomingTransactionId, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
-		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
-		if !isValidTransactionId {
+		// Check transaction id & practitioner id exist in path
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 

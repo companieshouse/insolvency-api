@@ -894,7 +894,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, helperService, false, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
+		So(res.Body.String(), ShouldContainSubstring, "there is no Transaction ID in the URL path")
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
@@ -909,6 +909,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, helperService, true, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "there is no Practitioner ID in the URL path")
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
