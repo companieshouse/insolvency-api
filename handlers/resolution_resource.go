@@ -76,8 +76,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a resolution"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 

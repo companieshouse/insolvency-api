@@ -68,8 +68,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
