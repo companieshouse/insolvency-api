@@ -374,7 +374,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
 		So(res.Body.String(), ShouldContainSubstring, "\"date_of_resolution\":\"2021-06-06\"")
 	})
 }

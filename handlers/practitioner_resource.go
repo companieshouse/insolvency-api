@@ -332,16 +332,16 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
 			log.InfoR(req, msg)
 			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
 
 		// Check if practitioner has an appointment
 		if practitioner.Appointment == nil {
-			msg := fmt.Sprintf("No appointment found for practitionerID [%s] an transactionID [%s]", practitionerID, transactionID)
+			msg := fmt.Sprintf("No appointment found for practitionerID [%s] and transactionID [%s]", practitionerID, transactionID)
 			log.InfoR(req, msg)
 			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
 

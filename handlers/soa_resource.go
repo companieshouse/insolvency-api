@@ -83,7 +83,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		log.InfoR(req, fmt.Sprintf("successfully added statement of affairs resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
 

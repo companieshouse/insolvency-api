@@ -1388,7 +1388,8 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		})
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "not found")
 	})
 
 	Convey("empty appointment returned", t, func() {
@@ -1404,7 +1405,8 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		})
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "No appointment found")
 	})
 
 	Convey("success - appointment returned", t, func() {

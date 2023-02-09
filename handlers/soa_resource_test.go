@@ -362,11 +362,11 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
 		So(res.Body.String(), ShouldContainSubstring, "etag")
 		So(res.Body.String(), ShouldContainSubstring, "kind")
 		So(res.Body.String(), ShouldContainSubstring, "links")
-		So(res.Body.String(), ShouldContainSubstring, "statement_date")
+		So(res.Body.String(), ShouldContainSubstring, "\"statement_date\":\"2021-06-06\"")
 		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }

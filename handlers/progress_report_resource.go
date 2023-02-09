@@ -83,6 +83,6 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		log.InfoR(req, fmt.Sprintf("successfully added statement of progress report with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
