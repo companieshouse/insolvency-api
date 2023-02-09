@@ -32,7 +32,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request)
+		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request, transactionID, helperService)
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
@@ -116,7 +116,7 @@ func HandleGetStatementOfAffairs(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("successfully retrieved statement of affairs resource with transaction ID: %s, from mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, statementOfAffairs, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.StatementOfAffairsDaoToResponse(&statementOfAffairs), http.StatusOK)
 	})
 }
 

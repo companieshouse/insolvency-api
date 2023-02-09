@@ -99,7 +99,16 @@ type ResolutionResourceLinks struct {
 // StatementOfAffairsResource contains the details of the statement of affairs resource
 
 type StatementOfAffairsResource struct {
-	StatementDate string `json:"statement_date"`
+	StatementDate string                          `json:"statement_date"`
+	Attachments   []string                        `json:"attachments"`
+	Etag          string                          `json:"etag"`
+	Kind          string                          `json:"kind"`
+	Links         StatementOfAffairsResourceLinks `json:"links"`
+}
+
+// StatementOfAffairsResourceLinks contains the links details for a statement of affairs
+type StatementOfAffairsResourceLinks struct {
+	Self string `json:"self"`
 }
 
 type ProgressReportResource struct {
