@@ -55,7 +55,7 @@ paths:
             schema:
               $ref: '#/components/schemas/AttachmentWritable'
       responses:
-        200:
+        201:
           description: The file was accepted for processing.
           content:
             application/json:
@@ -256,7 +256,7 @@ paths:
                     - company
                     - creditors
       responses:
-        200:
+        201:
           description: Practitioner appointment
           content:
             application/json:
@@ -312,7 +312,7 @@ paths:
       operationId: deleteAppointment
       summary: Delete the appointment resource
       responses:
-        200:
+        204:
           description: The appointment was deleted from this transaction
 
   /transactions/{transaction_id}/insolvency/statement-of-affairs:
@@ -336,7 +336,7 @@ paths:
             schema:
               $ref: '#/components/schemas/StatementOfAffairsWritable'
       responses:
-        200:
+        201:
           description: Statement of affairs created
           content:
             application/json:
@@ -427,7 +427,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ResolutionResourceWritable'
       responses:
-        200:
+        201:
           description: The resolution details was sent successfully
           content:
             application/json:
@@ -452,7 +452,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: getResolution
       summary: Get the resolution resource
       responses:
@@ -515,7 +515,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ProgressReportWritable'
       responses:
-        200:
+        201:
           description: Progress report created
           content:
             application/json:
@@ -541,7 +541,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: getProgressReport
       summary: Get the progress report resource
       responses:
@@ -568,7 +568,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: deleteProgressReport
       summary: Delete the progress report resource
       responses:
@@ -936,7 +936,9 @@ components:
   securitySchemes:
     oauth2:
       type: oauth2
-      description: This API uses OAuth2 with the correct grants to allow insolvency data submission
+      description:
+        This API uses OAuth2 with the correct grants to allow insolvency data
+        submission
       flows:
         authorizationCode:
           tokenUrl: "https://api.companieshouse.gov.uk/oauth2/token"

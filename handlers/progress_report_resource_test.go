@@ -546,7 +546,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
+		So(res.Body.String(), ShouldContainSubstring, "\"kind\":\"insolvency-resource#progress-report\"")
 	})
 }
 
