@@ -68,8 +68,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", progressReportDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a progress-report"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
@@ -85,7 +84,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		log.InfoR(req, fmt.Sprintf("successfully added statement of progress report with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
 

@@ -311,7 +311,7 @@ paths:
       operationId: deleteAppointment
       summary: Delete the appointment resource
       responses:
-        200:
+        204:
           description: The appointment was deleted from this transaction
         400:
           description: Bad request.
@@ -375,7 +375,8 @@ components:
             validation_status:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/validation-status
+              example:
+                /transactions/{transaction_id}/insolvency/validation-status
 
     ValidationStatusResource:
       type: object
@@ -387,7 +388,9 @@ components:
             properties:
               error:
                 type: string
-                example: "error - if no practitioners are present then an attachment of the type resolution must be present"
+                example:
+                  "error - if no practitioners are present then an attachment of
+                  the type resolution must be present"
               location:
                 type: string
                 example: "no practitioners and no resolution"
@@ -518,7 +521,8 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
+              example:
+                /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
 
     AllPractitionerResources:
       type: array
@@ -542,16 +546,23 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
+              example:
+                /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
   securitySchemes:
     oauth2:
       type: oauth2
-      description: This API uses OAuth2 with the correct grants to allow insolvency data submission
+      description:
+        This API uses OAuth2 with the correct grants to allow insolvency data
+        submission
       flows:
         authorizationCode:
           tokenUrl: "https://api.companieshouse.gov.uk/oauth2/token"
           authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
           scopes:
-            https://identity.company-information.service.gov.uk/user/profile.read: User profile read permission required for Transaction API (not directly required for Insolvency API)
-            https://api.company-information.service.gov.uk/company/*/insolvency.write-full: Full Insolvency Practitioner permissions (all insolvency-related operations)
+            https://identity.company-information.service.gov.uk/user/profile.read:
+              User profile read permission required for Transaction API (not
+              directly required for Insolvency API)
+            https://api.company-information.service.gov.uk/company/*/insolvency.write-full:
+              Full Insolvency Practitioner permissions (all insolvency-related
+              operations)

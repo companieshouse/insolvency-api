@@ -32,7 +32,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			return
 		}
 
-		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request)
+		statementDao := transformers.StatementOfAffairsResourceRequestToDB(&request, transactionID, helperService)
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
@@ -68,8 +68,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
@@ -84,7 +83,7 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 
 		log.InfoR(req, fmt.Sprintf("successfully added statement of affairs resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
 
@@ -117,7 +116,7 @@ func HandleGetStatementOfAffairs(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("successfully retrieved statement of affairs resource with transaction ID: %s, from mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, statementOfAffairs, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.StatementOfAffairsDaoToResponse(&statementOfAffairs), http.StatusOK)
 	})
 }
 

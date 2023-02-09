@@ -15,6 +15,12 @@ import (
 func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfAffairsResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
+	if statementDao == nil {
+		err := fmt.Errorf("nil DAO passed to service for validation")
+		log.ErrorR(req, err)
+		return "", err
+	}
+
 	// Check that the attachment has been submitted correctly
 	if len(statementDao.Attachments) == 0 || len(statementDao.Attachments) > 1 {
 		errs = append(errs, "please supply only one attachment")

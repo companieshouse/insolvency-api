@@ -76,8 +76,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a resolution"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
@@ -92,7 +91,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 
 		log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
 

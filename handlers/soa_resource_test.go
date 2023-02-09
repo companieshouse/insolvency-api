@@ -171,7 +171,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	})
 
 	Convey("Failed to validate statement of affairs", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -182,20 +182,16 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement := generateStatement()
 
 		body, _ := json.Marshal(statement)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID")
 	})
 
 	Convey("Validation errors are present - date is in the past", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -207,20 +203,16 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement.StatementDate = "1999-01-01"
 
 		body, _ := json.Marshal(statement)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "statement_date [1999-01-01] should not be in the future or before the company was incorporated")
 	})
 
 	Convey("Validation errors are present - multiple attachments", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -235,20 +227,16 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(statement)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Validation errors are present - no attachment is present", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -260,20 +248,16 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement.Attachments = []string{}
 
 		body, _ := json.Marshal(statement)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
 	Convey("Attachment is not of type statement-of-affairs-director or liquidator", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -287,17 +271,11 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment.Type = "not-soa"
 
 		body, _ := json.Marshal(statement)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator")
@@ -358,7 +336,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -376,21 +354,20 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 			Links:  models.AttachmentResourceLinksDao{},
 		}
 
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
-		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
 		mockService.EXPECT().CreateStatementOfAffairsResource(gomock.Any(), transactionID).Return(http.StatusCreated, nil).Times(1)
-		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
+		So(res.Body.String(), ShouldContainSubstring, "etag")
+		So(res.Body.String(), ShouldContainSubstring, "kind")
+		So(res.Body.String(), ShouldContainSubstring, "links")
+		So(res.Body.String(), ShouldContainSubstring, "\"statement_date\":\"2021-06-06\"")
+		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }
 
@@ -461,17 +438,28 @@ func TestUnitHandleGetStatementOfAffairs(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		statementOfAffairs := models.StatementOfAffairsResourceDao{
+			Etag:          "6f143c1f8109d834263eb764c5f020a0ae3ff78ee1789477179cb80f",
+			Kind:          "insolvency-resource#statement-of-affairs",
 			StatementDate: "2021-06-06",
 			Attachments: []string{
 				"1223-3445-5667",
 			},
+			Links: models.StatementOfAffairsResourceLinksDao{
+				Self: "/transactions/12345678/insolvency/statement-of-affairs",
+			},
 		}
+
 		// Expect GetStatementOfAffairsResource to be called once and return statement of affairs
 		mockService.EXPECT().GetStatementOfAffairsResource(transactionID).Return(statementOfAffairs, nil)
 
 		res := serveHandleGetStatementOfAffairs(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, "etag")
+		So(res.Body.String(), ShouldContainSubstring, "kind")
+		So(res.Body.String(), ShouldContainSubstring, "links")
+		So(res.Body.String(), ShouldContainSubstring, "statement_date")
+		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }
 
