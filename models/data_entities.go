@@ -114,4 +114,9 @@ type ProgressReportResourceDao struct {
 	Attachments []string `bson:"attachments"`
 	Etag        string   `bson:"etag"`
 	Kind        string   `bson:"kind"`
+	Links       ProgressReportResourceLinksDao `bson:"links"`
+}
+
+type ProgressReportResourceLinksDao struct {
+	Self string `bson:"self,omitempty"`
 }

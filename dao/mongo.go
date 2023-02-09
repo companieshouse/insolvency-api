@@ -718,6 +718,7 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 		Attachments: dao.Attachments,
 		Etag:        dao.Etag,
 		Kind:        dao.Kind,
+		Links:       dao.Links,
 	}
 
 	// Retrieve insolvency case from Mongo
@@ -751,6 +752,38 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 	}
 
 	return http.StatusCreated, nil
+}
+
+// GetProgressReportResource retrieves the progress report filed for an Insolvency Case
+func (m *MongoService) GetProgressReportResource(transactionID string) (models.ProgressReportResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id": transactionID,
+	}
+
+	// Retrieve progress report from Mongo
+	storedProgressReport := collection.FindOne(context.Background(), filter)
+	err := storedProgressReport.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
+			return models.ProgressReportResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return models.ProgressReportResourceDao{}, err
+	}
+
+	err = storedProgressReport.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return models.ProgressReportResourceDao{}, err
+	}
+
+	return *insolvencyResource.Data.ProgressReport, nil
 }
 
 // GetResolutionResource retrieves the resolution filed for an Insolvency Case
