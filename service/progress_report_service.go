@@ -57,7 +57,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 	}
 
 	// Check if from date is after to date
-	ok, err = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
+	ok, _ = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
 	if !ok {
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be before from_date [%s]", progressReportStatementDao.ToDate, progressReportStatementDao.FromDate))
 	}

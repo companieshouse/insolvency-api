@@ -8,6 +8,31 @@ import (
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
+// InsolvencyResourceDaoToCreatedResponse will transform an insolvency resource dao that has successfully been created into
+// a http response entity
+func InsolvencyResourceDtoToInsolvencyResourceDao(insolvencyResourceDto models.InsolvencyResourceDto) models.InsolvencyResourceDao {
+	insolvencyResourceDtoData := insolvencyResourceDto.Data
+	insolvencyResourceDaoData := models.InsolvencyResourceDaoData{
+		CompanyNumber:      insolvencyResourceDtoData.CompanyNumber,
+		CaseType:           insolvencyResourceDtoData.CaseType,
+		CompanyName:        insolvencyResourceDtoData.CompanyNumber,
+		Attachments:        insolvencyResourceDtoData.Attachments,
+		Resolution:         insolvencyResourceDtoData.Resolution,
+		StatementOfAffairs: insolvencyResourceDtoData.StatementOfAffairs,
+		ProgressReport:     insolvencyResourceDtoData.ProgressReport,
+	}
+
+	insolvencyResourceDao := models.InsolvencyResourceDao{
+		ID:            insolvencyResourceDto.ID,
+		TransactionID: insolvencyResourceDto.TransactionID,
+		Etag:          insolvencyResourceDtoData.Etag,
+		Kind:          insolvencyResourceDtoData.Kind,
+		Data:          insolvencyResourceDaoData,
+	}
+
+	return insolvencyResourceDao
+}
+
 // InsolvencyResourceRequestToDB will take the input request from the REST call and transform it to a dao ready for
 // insertion into the database
 func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string) *models.InsolvencyResourceDto {
@@ -23,12 +48,11 @@ func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID 
 			CompanyNumber: req.CompanyNumber,
 			CaseType:      req.CaseType,
 			CompanyName:   req.CompanyName,
-		},
-
-		Links: models.InsolvencyResourceLinksDao{
-			Self:             selfLink,
-			Transaction:      transactionLink,
-			ValidationStatus: validationLink,
+			Links: models.InsolvencyResourceLinksDao{
+				Self:             selfLink,
+				Transaction:      transactionLink,
+				ValidationStatus: validationLink,
+			},
 		},
 	}
 
@@ -45,9 +69,9 @@ func InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDto *models.Insolv
 		Kind:          insolvencyResourceDto.Data.Kind,
 		CompanyName:   insolvencyResourceDto.Data.CompanyName,
 		Links: models.CreatedInsolvencyResourceLinks{
-			Self:             insolvencyResourceDto.Links.Self,
-			Transaction:      insolvencyResourceDto.Links.Transaction,
-			ValidationStatus: insolvencyResourceDto.Links.ValidationStatus,
+			Self:             insolvencyResourceDto.Data.Links.Self,
+			Transaction:      insolvencyResourceDto.Data.Links.Transaction,
+			ValidationStatus: insolvencyResourceDto.Data.Links.ValidationStatus,
 		},
 	}
 }
@@ -57,9 +81,7 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 	return &models.AppointedPractitionerResource{
 		AppointedOn: model.AppointedOn,
 		MadeBy:      model.MadeBy,
-		Links: models.AppointedPractitionerLinksResource{
-			Self: model.Links.Self,
-		},
+		Links:       model.Links,
 	}
 }
 

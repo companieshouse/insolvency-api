@@ -7,6 +7,7 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -33,9 +34,9 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 		So(response.Data.CompanyName, ShouldEqual, "companyName")
 		So(response.Data.Etag, ShouldNotBeNil)
 		So(response.Data.Kind, ShouldEqual, "insolvency-resource#insolvency-resource")
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+constants.InsolvencyPath))
-		So(response.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
-		So(response.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
+		So(response.Data.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+constants.InsolvencyPath))
+		So(response.Data.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
+		So(response.Data.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
 	})
 }
 
@@ -51,11 +52,11 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 				CompanyName:   "companyName",
 				CaseType:      constants.CVL.String(),
 				CompanyNumber: "123456789",
-			},
-			Links: models.InsolvencyResourceLinksDao{
-				Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
-				Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
-				ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
+				Links: models.InsolvencyResourceLinksDao{
+					Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
+					Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
+					ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
+				},
 			},
 		}
 
@@ -66,9 +67,9 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 		So(response.CompanyName, ShouldEqual, dao.Data.CompanyName)
 		So(response.Etag, ShouldEqual, dao.Data.Etag)
 		So(response.Kind, ShouldEqual, dao.Data.Kind)
-		So(response.Links.Self, ShouldEqual, dao.Links.Self)
-		So(response.Links.Transaction, ShouldEqual, dao.Links.Transaction)
-		So(response.Links.ValidationStatus, ShouldEqual, dao.Links.ValidationStatus)
+		So(response.Links.Self, ShouldEqual, dao.Data.Links.Self)
+		So(response.Links.Transaction, ShouldEqual, dao.Data.Links.Transaction)
+		So(response.Links.ValidationStatus, ShouldEqual, dao.Data.Links.ValidationStatus)
 	})
 }
 
@@ -86,5 +87,27 @@ func TestUnitAppointmentResourceDaoToAppointedResponse(t *testing.T) {
 		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
 		So(response.MadeBy, ShouldEqual, dao.MadeBy)
 		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+	})
+}
+
+func TestUnitInsolvencyResourceDtoToInsolvencyResourceDao(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+		insolvencyResourceDto := models.InsolvencyResourceDto{
+			ID:            primitive.NewObjectID(),
+			TransactionID: "transaction_id",
+			Data: models.InsolvencyResourceDaoDataDto{
+				CompanyNumber: "company_number",
+				CaseType:      "case_type",
+				CompanyName:   "company_name",
+				Etag:          "etag",
+				Kind:          "kind",
+				Practitioners: "practitioners,omitempty",
+			},
+		}
+
+		response := InsolvencyResourceDtoToInsolvencyResourceDao(insolvencyResourceDto)
+		So(response.ID, ShouldEqual, insolvencyResourceDto.ID)
+		So(response.TransactionID, ShouldEqual, insolvencyResourceDto.TransactionID)
+		So(response.Data.CompanyNumber, ShouldEqual, insolvencyResourceDto.Data.CompanyNumber)
 	})
 }

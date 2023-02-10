@@ -12,11 +12,11 @@ func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDt
 
 	// Generate insolvency resource for the transaction
 	transactionResource := make(map[string]*companieshouseapi.Resource)
-	transactionResource[req.Links.Self] = &companieshouseapi.Resource{
+	transactionResource[req.Data.Links.Self] = &companieshouseapi.Resource{
 		Kind: req.Data.Kind,
 		Links: companieshouseapi.Links{
-			Resource:         req.Links.Self,
-			ValidationStatus: req.Links.ValidationStatus,
+			Resource:         req.Data.Links.Self,
+			ValidationStatus: req.Data.Links.ValidationStatus,
 		},
 		Marshal: apicore.Marshal{},
 	}

@@ -22,7 +22,6 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 
 		// generate etag for request
 		etag, err := helperService.GenerateEtag()
-
 		if err != nil {
 			log.Error(fmt.Errorf("error generating etag: [%s]", err))
 			return
@@ -118,8 +117,8 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		// Patch transaction API with new insolvency resource
 		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, insolvencyResourceDto, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Links.Self, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Links.Self, err))
+			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}

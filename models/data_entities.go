@@ -4,10 +4,9 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 
 // InsolvencyResourceDto contains the meta-data for the insolvency resource in Mongo with links rather than real data
 type InsolvencyResourceDto struct {
-	ID            primitive.ObjectID         `bson:"_id"`
-	TransactionID string                     `bson:"transaction_id"`
-	Data          InsolvencyResourceDaoDataDto  `bson:"data"`
-	Links         InsolvencyResourceLinksDao `bson:"links"`
+	ID            primitive.ObjectID           `bson:"_id"`
+	TransactionID string                       `bson:"transaction_id"`
+	Data          InsolvencyResourceDaoDataDto `bson:"data"`
 }
 
 // InsolvencyResourceDaoDataDto contains the data for the insolvency resource in Mongo with links rather than real data
@@ -17,7 +16,8 @@ type InsolvencyResourceDaoDataDto struct {
 	CompanyName        string                         `bson:"company_name"`
 	Etag               string                         `bson:"etag"`
 	Kind               string                         `bson:"kind"`
-	Practitioners      map[string]string              `bson:"practitioners,omitempty"`
+	Practitioners      string                         `bson:"practitioners,omitempty"`
+	Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
 	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
 	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
 	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
@@ -71,21 +71,22 @@ type PractitionerResourceDao struct {
 
 // PractitionerResourceDto contains the data for the practitioner resource in Mongo
 type PractitionerResourceDto struct {
-	Data *PractitionerResourceDao `bson:"data"`
+	Data PractitionerResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDto contains the data for the appointment resource in Mongo
 type AppointmentResourceDto struct {
-	Data *AppointmentResourceDao `bson:"data"`
+	Data AppointmentResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDao contains the appointment data for a practitioner
 type AppointmentResourceDao struct {
-	AppointedOn string                      `bson:"appointed_on,omitempty"`
-	MadeBy      string                      `bson:"made_by,omitempty"`
-	Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
-	Etag        string                      `bson:"etag"`
-	Kind        string                      `bson:"kind"`
+	PractitionerID string                      `bson:"id"`
+	AppointedOn    string                      `bson:"appointed_on,omitempty"`
+	MadeBy         string                      `bson:"made_by,omitempty"`
+	Links          AppointmentResourceLinksDao `bson:"links,omitempty"`
+	Etag           string                      `bson:"etag"`
+	Kind           string                      `bson:"kind"`
 }
 
 // AppointmentResourceLinksDao contains the Links data for an appointment
@@ -107,7 +108,8 @@ type AddressResourceDao struct {
 
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
-	Self string `bson:"self"`
+	Self        string `bson:"self"`
+	Appointment string `bson:"appointment,omitempty"`
 }
 
 // AttachmentResourceDao contains the data for the attachment DB resource

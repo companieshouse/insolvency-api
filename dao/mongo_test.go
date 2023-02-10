@@ -63,9 +63,7 @@ func TestUnitCreatePractitionersResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		practitionerResource := models.PractitionerResourceDao{}
-
-		_, err := mongoService.CreatePractitionerResourceForInsolvencyCase(&practitionerResource, "transactionID")
+		_, _, err := mongoService.CreatePractitionerResourceForInsolvencyCase("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -85,25 +83,25 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetPractitionerResources(t *testing.T) {
+func TestUnitGetPractitionersByIdss(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerResources("transactionID")
+		_, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
 
 		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
 	})
 }
 
-func TestUnitGetPractitionerResource(t *testing.T) {
+func TestUnitGetPractitionersByIds(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerResource("practitionerID", "transactionID")
+		_, err := mongoService.GetPractitionersByIds([]string{"practionerID"}, "transactionID")
 
 		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
 	})
@@ -129,9 +127,9 @@ func TestUnitAppointPractitioner(t *testing.T) {
 
 		appointmentResource := models.AppointmentResourceDao{}
 
-		_, err := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
+		_, err := mongoService.UpdateInsolvencyPractitionerAppointment(&appointmentResource, "transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID and practitioner practitionerID")
+		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
 	})
 }
 

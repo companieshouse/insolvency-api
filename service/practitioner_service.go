@@ -71,17 +71,31 @@ func ValidatePractitionerDetails(svc dao.Service, transactionID string, practiti
 }
 
 // ValidateAppointmentDetails checks that the incoming appointment details are valid
-func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) (string, error) {
+func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) ([]string, error) {
 	var errs []string
+	var practitioners []models.PractitionerResourceDao
 
 	// Check if practitioner is already appointed
-	practitionerResources, err := svc.GetPractitionerResources(transactionID)
+	practitionerResources, err := svc.GetInsolvencyPractitionerByTransactionID(transactionID)
 	if err != nil {
 		err = fmt.Errorf("error getting pracititioner resources from DB: [%s]", err)
 		log.ErrorR(req, err)
-		return "", err
+		return errs, err
 	}
-	for _, practitioner := range practitionerResources {
+	
+	// convert string from insolvency collection to map array
+	_, practitionerIDs, _ := utils.ConvertStringToMap(practitionerResources)
+
+	practitionerResourceDtos, err := svc.GetPractitionersByIds(practitionerIDs, transactionID)
+	if err != nil {
+		errs = append(errs, err.Error())
+	}
+
+	for _, practitionerDto := range practitionerResourceDtos {
+		practitioners = append([]models.PractitionerResourceDao{}, practitionerDto.Data)
+	}
+
+	for _, practitioner := range practitioners {
 		if practitioner.ID == practitionerID && practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" {
 			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
 			log.Info(msg)
@@ -94,28 +108,29 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	if err != nil {
 		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
 		log.ErrorR(req, err)
-		return "", err
+		return errs, err
 	}
+
 	// Retrieve company incorporation date
 	incorporatedOn, err := GetCompanyIncorporatedOn(insolvencyResource.Data.CompanyNumber, req)
 	if err != nil {
 		err = fmt.Errorf("error getting company details from DB: [%s]", err)
 		log.ErrorR(req, err)
-		return "", err
+		return errs, err
 	}
 
 	ok, err := utils.IsDateBetweenIncorporationAndNow(appointment.AppointedOn, incorporatedOn)
 	if err != nil {
 		err = fmt.Errorf("error parsing date: [%s]", err)
 		log.ErrorR(req, err)
-		return "", err
+		return errs, err
 	}
 	if !ok {
 		errs = append(errs, fmt.Sprintf("appointed_on [%s] should not be in the future or before the company was incorporated", appointment.AppointedOn))
 	}
 
-	// Check if appointment date supplied is different from stored appointment dates in DB
-	for _, practitioner := range practitionerResources {
+	// // Check if appointment date supplied is different from stored appointment dates in DB
+	for _, practitioner := range practitioners {
 		if practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" && practitioner.Appointment.AppointedOn != appointment.AppointedOn {
 			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner ID [%s] who was appointed on [%s]", appointment.AppointedOn, practitioner.ID, practitioner.Appointment.AppointedOn))
 		}
@@ -128,5 +143,5 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		}
 	}
 
-	return strings.Join(errs, ", "), nil
+	return errs, nil
 }

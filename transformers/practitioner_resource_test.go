@@ -123,7 +123,7 @@ func TestUnitPractitionerAppointmentDaoToResponse(t *testing.T) {
 			},
 		}
 
-		response := PractitionerAppointmentDaoToResponse(dao)
+		response := PractitionerAppointmentDaoToResponse(&dao)
 
 		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
 		So(response.MadeBy, ShouldEqual, dao.MadeBy)
