@@ -110,7 +110,7 @@ func HandleGetProgressReport(svc dao.Service) http.Handler {
 			return
 		}
 		if progressReport.FromDate == "" || progressReport.ToDate == "" {
-			m := models.NewMessageResponse("progress report not found on transaction")
+			m := models.NewMessageResponse(fmt.Sprintf("progress report not found on transaction with ID: [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
