@@ -69,7 +69,6 @@ type Service interface {
 
 	//GetProgressReportResource retrieves the progress report resource from an Insolvency case
 	GetProgressReportResource(transactionID string) (models.ProgressReportResourceDao, error)
-	
 }
 
 // NewDAOService will create a new instance of the Service interface. All details about its implementation and the

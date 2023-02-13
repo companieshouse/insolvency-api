@@ -120,7 +120,8 @@ type ProgressReportResource struct {
 	Kind        string                      `json:"kind"`
 	Links       ProgressReportResourceLinks `json:"links"`
 }
-// ProgressReportResourceLinks contains the link details associated with a progress report 
+
+// ProgressReportResourceLinks contains the link details associated with a progress report
 type ProgressReportResourceLinks struct {
 	Self string `json:"self"`
 }

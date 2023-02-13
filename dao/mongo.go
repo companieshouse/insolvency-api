@@ -228,8 +228,8 @@ func (m *MongoService) GetPractitionerResource(practitionerID string, transactio
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{
-		"transaction_id":  transactionID,
-		"data.practitioners.id":   practitionerID,
+		"transaction_id":        transactionID,
+		"data.practitioners.id": practitionerID,
 	}
 
 	projection := bson.M{"_id": 0, "data.practitioners.$": 1}

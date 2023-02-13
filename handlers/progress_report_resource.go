@@ -88,7 +88,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 	})
 }
 
-// HandleGetResolution retrieves a resolution stored against the Insolvency Case
+// HandleGetProgressReport retrieves a progress report stored against the Insolvency Case
 func HandleGetProgressReport(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)

@@ -33,7 +33,7 @@ func ProgressReportResourceRequestToDB(req *models.ProgressReport, transactionID
 		Attachments: req.Attachments,
 		Etag:        etag,
 		Kind:        "insolvency-resource#progress-report",
-		Links:       models.ProgressReportResourceLinksDao{Self: selfLink,},
+		Links:       models.ProgressReportResourceLinksDao{Self: selfLink},
 	}
 
 	return dao
