@@ -21,3 +21,30 @@ func UpdateCollection(transactionID string, practitionerID string, filter bson.M
 
 	return http.StatusNoContent, nil
 }
+
+func Find(filter bson.M, collection *mongo.Collection, model interface{}, errs []error) (*mongo.SingleResult, interface{}, error) {
+	// Retrieve case from Mongo
+	storedCursor := collection.FindOne(context.Background(), filter)
+	err := storedCursor.Err()
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug(errs[0].Error())
+			return nil, nil, errs[1]
+		}
+		log.Error(err)
+		return nil, nil, errs[2]
+	}
+
+	if model == nil {
+		return storedCursor, nil, nil
+	}
+
+	err = storedCursor.Decode(&model)
+	if err != nil {
+		log.Error(err)
+		return nil, nil, errs[2]
+	}
+
+	return storedCursor, model, nil
+}
