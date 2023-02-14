@@ -83,7 +83,7 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetPractitionersByIdss(t *testing.T) {
+func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 

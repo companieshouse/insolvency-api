@@ -141,7 +141,7 @@ func (m *MongoService) GetPractitionerAppointment(practitionerID string, transac
 	var appointmentResourceDao models.AppointmentResourceDto
 
 	collection := m.db.Collection(AppointmentCollectionName)
-	fmt.Println(practitionerID)
+
 	filter := bson.M{"data.id": practitionerID}
 
 	// Retrieve insolvency case from Mongo
@@ -304,7 +304,7 @@ func (m *MongoService) GetPractitionersByIds(practitionerIDs []string, transacti
 	collection := m.db.Collection(PractitionerCollectionName)
 
 	filter := bson.M{
-		"data.id": bson.M{
+		"practitioner_id": bson.M{
 			"$in": bson.A{practitionerIDs},
 		},
 	}

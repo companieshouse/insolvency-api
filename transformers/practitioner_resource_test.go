@@ -27,14 +27,13 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 
 		response := PractitionerResourceRequestToDB(incomingRequest, transactionID)
 
-		So(response.ID, ShouldNotBeBlank)
 		So(response.IPCode, ShouldEqual, "00001111")
 		So(response.FirstName, ShouldEqual, incomingRequest.FirstName)
 		So(response.LastName, ShouldEqual, incomingRequest.LastName)
 		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
 		So(response.Role, ShouldEqual, incomingRequest.Role)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+response.ID))
+		So(response.Links.Self, ShouldNotBeEmpty)
 	})
 }
 
@@ -44,7 +43,6 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 
 	Convey("field mappings are correct", t, func() {
 		dao := &models.PractitionerResourceDao{
-			ID:        id,
 			IPCode:    "1111",
 			FirstName: "First",
 			LastName:  "Last",

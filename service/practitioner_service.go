@@ -73,7 +73,7 @@ func ValidatePractitionerDetails(svc dao.Service, transactionID string, practiti
 // ValidateAppointmentDetails checks that the incoming appointment details are valid
 func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) ([]string, error) {
 	var errs []string
-	var practitioners []models.PractitionerResourceDao
+	//var practitioners []models.PractitionerResourceDao
 
 	// Check if practitioner is already appointed
 	practitionerResources, err := svc.GetInsolvencyPractitionerByTransactionID(transactionID)
@@ -82,7 +82,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		log.ErrorR(req, err)
 		return errs, err
 	}
-	
+
 	// convert string from insolvency collection to map array
 	_, practitionerIDs, _ := utils.ConvertStringToMap(practitionerResources)
 
@@ -91,12 +91,12 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		errs = append(errs, err.Error())
 	}
 
-	for _, practitionerDto := range practitionerResourceDtos {
-		practitioners = append([]models.PractitionerResourceDao{}, practitionerDto.Data)
-	}
+	// for _, practitionerDto := range practitionerResourceDtos {
+	// 	practitioners = append([]models.PractitionerResourceDao{}, practitionerDto.Data)
+	// }
 
-	for _, practitioner := range practitioners {
-		if practitioner.ID == practitionerID && practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" {
+	for _, practitioner := range practitionerResourceDtos {
+		if practitioner.ID == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
 			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
 			log.Info(msg)
 			errs = append(errs, msg)
@@ -130,9 +130,9 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	// // Check if appointment date supplied is different from stored appointment dates in DB
-	for _, practitioner := range practitioners {
-		if practitioner.Appointment != nil && practitioner.Appointment.AppointedOn != "" && practitioner.Appointment.AppointedOn != appointment.AppointedOn {
-			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner ID [%s] who was appointed on [%s]", appointment.AppointedOn, practitioner.ID, practitioner.Appointment.AppointedOn))
+	for _, practitioner := range practitionerResourceDtos {
+		if practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" && practitioner.Data.Appointment.AppointedOn != appointment.AppointedOn {
+			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitioner.Data.Appointment.AppointedOn))
 		}
 	}
 

@@ -55,7 +55,6 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	ID              string                       `bson:"id"`
 	IPCode          string                       `bson:"ip_code"`
 	FirstName       string                       `bson:"first_name"`
 	LastName        string                       `bson:"last_name"`
@@ -71,22 +70,23 @@ type PractitionerResourceDao struct {
 
 // PractitionerResourceDto contains the data for the practitioner resource in Mongo
 type PractitionerResourceDto struct {
+	ID   string                  `bson:"practitioner_id"`
 	Data PractitionerResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDto contains the data for the appointment resource in Mongo
 type AppointmentResourceDto struct {
-	Data AppointmentResourceDao `bson:"data"`
+	PractitionerID string                 `bson:"practitioner_id"`
+	Data           AppointmentResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDao contains the appointment data for a practitioner
 type AppointmentResourceDao struct {
-	PractitionerID string                      `bson:"id"`
-	AppointedOn    string                      `bson:"appointed_on,omitempty"`
-	MadeBy         string                      `bson:"made_by,omitempty"`
-	Links          AppointmentResourceLinksDao `bson:"links,omitempty"`
-	Etag           string                      `bson:"etag"`
-	Kind           string                      `bson:"kind"`
+	AppointedOn string                      `bson:"appointed_on,omitempty"`
+	MadeBy      string                      `bson:"made_by,omitempty"`
+	Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
+	Etag        string                      `bson:"etag"`
+	Kind        string                      `bson:"kind"`
 }
 
 // AppointmentResourceLinksDao contains the Links data for an appointment

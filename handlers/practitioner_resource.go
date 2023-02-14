@@ -88,10 +88,10 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 				logError(w, req, statusCode, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDto.Data.IPCode)})
 				return
 			}
-		}
 
-		// Create new practitoner data to be stored
-		practionersResource[practitionerDao.ID] = fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerDao.ID))
+			// Create new practitoner data to be stored
+			practionersResource[practitionerResourceDto.ID] = fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerResourceDto.ID))
+		}
 
 		// Create new practitioner for the insolvency
 		statusCode, err = svc.CreatePractitionerResource(practitionerDao, transactionID)

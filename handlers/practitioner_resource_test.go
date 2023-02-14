@@ -48,7 +48,6 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 	practitionerResourceDto := models.PractitionerResourceDto{
 		Data: models.PractitionerResourceDao{
-			ID:              practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
@@ -595,7 +594,6 @@ func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
 }`
 	practitionerResourceDto := models.PractitionerResourceDto{
 		Data: models.PractitionerResourceDao{
-			ID:              practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
@@ -710,7 +708,6 @@ func TestUnitHandleGetPractitionersByIds(t *testing.T) {
 
 	practitionerResourceDto := models.PractitionerResourceDto{
 		Data: models.PractitionerResourceDao{
-			ID:              practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
@@ -945,8 +942,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	}`
 
 	practitionerResourceDto := models.PractitionerResourceDto{
+		ID: practitionerID,
 		Data: models.PractitionerResourceDao{
-			ID:              practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
@@ -1119,7 +1116,6 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		practitionersDao := []models.PractitionerResourceDao{
 			{
-				ID: practitionerID,
 				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-01-23",
 				},
@@ -1202,10 +1198,6 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		practitionersDao := []models.PractitionerResourceDao{
 			{
-				ID: practitionerID,
-			},
-			{
-				ID: "123",
 				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2033-01-01",
 				},
@@ -1254,7 +1246,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		practitionersDao := []models.PractitionerResourceDao{{ID: practitionerID}}
+		practitionersDao := []models.PractitionerResourceDao{}
 		insolvencyDao := models.InsolvencyResourceDao{
 			Data: models.InsolvencyResourceDaoData{
 				CompanyNumber: "1234",
@@ -1299,7 +1291,6 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 
 		practitionersDao := []models.PractitionerResourceDao{
 			{
-				ID: "321",
 				Appointment: &models.AppointmentResourceDao{
 					AppointedOn: "2012-02-23",
 					MadeBy:      "company",
@@ -1386,7 +1377,6 @@ func companyProfileDateResponse(dateOfCreation string) string {
 func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	practitionerResourceDto := models.PractitionerResourceDto{
 		Data: models.PractitionerResourceDao{
-			ID:              practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",

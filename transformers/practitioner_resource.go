@@ -18,7 +18,6 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactio
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
 
 	dao := &models.PractitionerResourceDao{
-		ID:              id,
 		IPCode:          req.IPCode,
 		FirstName:       req.FirstName,
 		LastName:        req.LastName,
@@ -84,7 +83,6 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
 	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
 	appointmentResourceDao := &models.AppointmentResourceDao{
-		PractitionerID: practitionerID,
 		AppointedOn:    req.AppointedOn,
 		MadeBy:         req.MadeBy,
 		Links: models.AppointmentResourceLinksDao{

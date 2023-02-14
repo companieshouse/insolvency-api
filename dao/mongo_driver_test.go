@@ -32,7 +32,6 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	}
 
 	practitionerResourceDao := models.PractitionerResourceDao{
-		ID:              "ID",
 		IPCode:          "IPCode",
 		FirstName:       "FirstName",
 		LastName:        "LastName",
