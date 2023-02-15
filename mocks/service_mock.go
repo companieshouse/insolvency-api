@@ -175,6 +175,19 @@ func (mr *MockServiceMockRecorder) GetAttachmentResources(transactionID interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentResources", reflect.TypeOf((*MockService)(nil).GetAttachmentResources), transactionID)
 }
 
+// GetProgressReportResource mocks base method
+func (m *MockService) GetProgressReportResource(transactionID string) (*models.ProgressReportResourceDao, error) {
+	ret := m.ctrl.Call(m, "GetProgressReportResource", transactionID)
+	ret0, _ := ret[0].(*models.ProgressReportResourceDao)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetProgressReportResource indicates an expected call of GetProgressReportResource
+func (mr *MockServiceMockRecorder) GetProgressReportResource(transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProgressReportResource", reflect.TypeOf((*MockService)(nil).GetProgressReportResource), transactionID)
+}
+
 // DeleteAttachmentResource mocks base method
 func (m *MockService) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
 	ret := m.ctrl.Call(m, "DeleteAttachmentResource", transactionID, attachmentID)

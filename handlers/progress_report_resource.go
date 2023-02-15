@@ -117,6 +117,6 @@ func HandleGetProgressReport(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("successfully retrieved progress report resource with transaction ID: %s, from mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(&progressReport), http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(progressReport), http.StatusOK)
 	})
 }

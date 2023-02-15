@@ -589,7 +589,7 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetProgressReportResource to be called once and return an error
-		mockService.EXPECT().GetProgressReportResource(transactionID).Return(models.ProgressReportResourceDao{}, fmt.Errorf("failed to get progress report from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&models.ProgressReportResourceDao{}, fmt.Errorf("failed to get progress report from insolvency resource in db for transaction [%s]: %v", transactionID, err))
 
 		res := serveHandleGetProgressReport(mockService, true)
 
@@ -604,7 +604,7 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetProgressReportResource to be called once and return nil
-		mockService.EXPECT().GetProgressReportResource(transactionID).Return(models.ProgressReportResourceDao{}, nil)
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&models.ProgressReportResourceDao{}, nil)
 
 		res := serveHandleGetProgressReport(mockService, true)
 
@@ -632,7 +632,7 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 		}
 
 		// Expect GetProgressReportResource to be called once and return statement of affairs
-		mockService.EXPECT().GetProgressReportResource(transactionID).Return(progressReport, nil)
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&progressReport, nil)
 
 		res := serveHandleGetProgressReport(mockService, true)
 
