@@ -57,25 +57,13 @@ func TestUnitGetInsolvencyResource(t *testing.T) {
 	})
 }
 
-func TestUnitCreatePractitionersResource(t *testing.T) {
-
-	Convey("Create practitioners resource", t, func() {
-
-		mongoService := setUp(t)
-
-		_, _, err := mongoService.CreatePractitionerResourceForInsolvencyCase("transactionID")
-
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
-	})
-}
-
 func TestUnitCreatePractitionerResource(t *testing.T) {
 
 	Convey("Create a practitioner resource", t, func() {
 
 		mongoService := setUp(t)
 
-		practitionerResource := models.PractitionerResourceDao{}
+		practitionerResource := models.PractitionerResourceDto{}
 
 		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
@@ -89,9 +77,9 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
 
-		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 
@@ -101,7 +89,7 @@ func TestUnitGetPractitionersByIds(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersByIds([]string{"practionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practionerID"}, "transactionID")
 
 		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
 	})
@@ -116,20 +104,6 @@ func TestUnitDeletePractitioner(t *testing.T) {
 		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
-	})
-}
-
-func TestUnitAppointPractitioner(t *testing.T) {
-
-	Convey("Appoint practitioner", t, func() {
-
-		mongoService := setUp(t)
-
-		appointmentResource := models.AppointmentResourceDao{}
-
-		_, err := mongoService.UpdateInsolvencyPractitionerAppointment(&appointmentResource, "transactionID", "practitionerID")
-
-		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
 	})
 }
 

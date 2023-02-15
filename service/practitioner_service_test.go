@@ -28,6 +28,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.Email = ""
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+		
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -45,6 +46,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = ""
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -61,6 +63,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.Email = ""
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -77,6 +80,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "07777777"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -94,6 +98,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "077777777777"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -111,6 +116,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "077777777OO"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -128,6 +134,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "07777OO"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -146,6 +153,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "0777777 7777"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -163,6 +171,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = "77777777777"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -180,6 +189,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.FirstName = "wr0ng"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -215,6 +225,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.LastName = "wr0ng"
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -272,6 +283,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.Role = constants.Receiver.String()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return an error
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
 
@@ -287,6 +299,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
+
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
@@ -303,10 +316,6 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
-
-	jsonPractitionersDao := `{
-		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
-	}`
 
 	practitionerResourceDto := models.PractitionerResourceDto{
 		ID: "practitionerID",
@@ -325,12 +334,14 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return("", fmt.Errorf("err"))
+
+		//	mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return("", fmt.Errorf("err"))
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
 		So(err.Error(), ShouldContainSubstring, "err")
-		So(validationErr, ShouldBeEmpty)
+		So(validationErr[0], ShouldEqual, "err")
 	})
 
 	Convey("practitioner already appointed", t, func() {
@@ -357,9 +368,8 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		}
 		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
 
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErrs, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -385,9 +395,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("err"))
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -403,9 +413,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+	
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -421,9 +431,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+	
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "2001/1/2"
@@ -454,9 +464,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+		
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -472,9 +482,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+		
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.AppointedOn = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -493,9 +503,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+		
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "1999-01-01"
@@ -537,9 +547,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+	
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "2012-01-24"
@@ -559,9 +569,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+	
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.MadeBy = "company"
@@ -580,9 +590,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionerByTransactionID(gomock.Any()).Return(jsonPractitionersDao, nil)
+	
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIds(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 
 		appointment := generateAppointment()
 		appointment.MadeBy = "creditors"

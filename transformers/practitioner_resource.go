@@ -5,14 +5,12 @@ import (
 
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // PractitionerResourceRequestToDB transforms practitioner request model to the dao model
-func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
+func PractitionerResourceRequestToDB(req *models.PractitionerRequest, practitionerID string, transactionID string) *models.PractitionerResourceDao {
 
-	id := utils.GenerateID()
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + id)
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID)
 
 	// Pad IP Code with leading zeros
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
@@ -80,17 +78,22 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 }
 
 // PractitionerAppointmentRequestToDB transforms an appointment request to a dao model
-func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
+func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) models.AppointmentResourceDto {
 	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
-	appointmentResourceDao := &models.AppointmentResourceDao{
-		AppointedOn:    req.AppointedOn,
-		MadeBy:         req.MadeBy,
+
+	appointmentResourceDto := models.AppointmentResourceDto{}
+	appointmentResourceDao := models.AppointmentResourceDao{
+		AppointedOn: req.AppointedOn,
+		MadeBy:      req.MadeBy,
 		Links: models.AppointmentResourceLinksDao{
 			Self: selfLink,
 		},
 	}
 	
-	return appointmentResourceDao
+	appointmentResourceDto.Data = appointmentResourceDao
+	appointmentResourceDto.PractitionerID = practitionerID
+	
+	return appointmentResourceDto
 }
 
 // PractitionerAppointmentDaoToResponse transforms an appointment dao model to a response

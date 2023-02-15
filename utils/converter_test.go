@@ -11,9 +11,9 @@ func TestUnitConverter(t *testing.T) {
 
 	stringMapArray := map[string]string{"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"}
 
-	Convey("ConvertStringToMap returns required objects", t, func() {
+	Convey("ConvertStringToMapObjectAndStringList returns required objects", t, func() {
 
-		mapObject, arrayString, err := ConvertStringToMap(jsonPractitionersDao)
+		mapObject, arrayString, err := ConvertStringToMapObjectAndStringList(jsonPractitionersDao)
 
 		So(mapObject, ShouldNotBeNil)
 		So(arrayString, ShouldNotBeNil)
@@ -36,7 +36,7 @@ func TestUnitConverter(t *testing.T) {
 
 		So(arrayString, ShouldNotBeNil)
 		So(arrayString, ShouldResemble, []string{"VM04221441"})
-	 
+
 	})
 
 }

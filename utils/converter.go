@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 )
 
-// ConvertToMap is a helper function to convert string to map object
-func ConvertStringToMap(mapString string) (map[string]string, []string, error) {
+// ConvertStringToMapObjectAndStringList is a helper function to convert string to map object
+func ConvertStringToMapObjectAndStringList(mapString string) (map[string]string, []string, error) {
 	var mapResource map[string]string
-	var stringPractitonerIdsArray []string
+	var stringPractitionerIdsArray []string
 
 	err := json.Unmarshal([]byte(mapString), &mapResource)
 	if err != nil {
@@ -15,10 +15,10 @@ func ConvertStringToMap(mapString string) (map[string]string, []string, error) {
 	}
 
 	for key := range mapResource {
-		stringPractitonerIdsArray = append(stringPractitonerIdsArray, key)
+		stringPractitionerIdsArray = append(stringPractitionerIdsArray, key)
 	}
 
-	return mapResource, stringPractitonerIdsArray, nil
+	return mapResource, stringPractitionerIdsArray, nil
 }
 
 // ConvertMapToString is a helper function to convert map[string]string to string

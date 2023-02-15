@@ -72,28 +72,16 @@ func ValidatePractitionerDetails(svc dao.Service, transactionID string, practiti
 
 // ValidateAppointmentDetails checks that the incoming appointment details are valid
 func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) ([]string, error) {
-	var errs []string
-	//var practitioners []models.PractitionerResourceDao
 
-	// Check if practitioner is already appointed
-	practitionerResources, err := svc.GetInsolvencyPractitionerByTransactionID(transactionID)
+	var errs []string
+
+	practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
 	if err != nil {
+		errs = append(errs, err.Error())
 		err = fmt.Errorf("error getting pracititioner resources from DB: [%s]", err)
 		log.ErrorR(req, err)
 		return errs, err
 	}
-
-	// convert string from insolvency collection to map array
-	_, practitionerIDs, _ := utils.ConvertStringToMap(practitionerResources)
-
-	practitionerResourceDtos, err := svc.GetPractitionersByIds(practitionerIDs, transactionID)
-	if err != nil {
-		errs = append(errs, err.Error())
-	}
-
-	// for _, practitionerDto := range practitionerResourceDtos {
-	// 	practitioners = append([]models.PractitionerResourceDao{}, practitionerDto.Data)
-	// }
 
 	for _, practitioner := range practitionerResourceDtos {
 		if practitioner.ID == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
@@ -102,7 +90,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 			errs = append(errs, msg)
 		}
 	}
-
+	
 	// Check if appointment date supplied is in the future or before company was incorporated
 	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
