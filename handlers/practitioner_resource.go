@@ -29,6 +29,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		etag, err := helperService.GenerateEtag()
 		if err != nil {
 			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("error generating etag: [%s]", err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 

@@ -91,6 +91,18 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	helperService := utils.NewHelperService()
 
+	Convey("error if etag not generated", t, func() {
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", fmt.Errorf("error generating etag: [%s]", "err")).AnyTimes()
+		res := serveHandleCreateInsolvencyResource(body, mockService, false, mockHelperService, rec)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error generating etag")
+	})
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
