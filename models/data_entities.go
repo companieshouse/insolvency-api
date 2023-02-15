@@ -76,8 +76,8 @@ type PractitionerResourceDto struct {
 
 // AppointmentResourceDto contains the data for the appointment resource in Mongo
 type AppointmentResourceDto struct {
-	PractitionerID string                 `bson:"practitioner_id"`
-	Data           AppointmentResourceDao `bson:"data"`
+	ID   string                 `bson:"practitioner_id"`
+	Data AppointmentResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDao contains the appointment data for a practitioner

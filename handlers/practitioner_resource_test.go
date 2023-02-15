@@ -711,7 +711,7 @@ func serveGetPractitionersByIdsRequest(service dao.Service, tranIDSet bool, prac
 	return res
 }
 
-func TestUnitHandleGetPractitionersByIds(t *testing.T) {
+func TestUnitHandleGetPractitionerResource(t *testing.T) {
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -1266,7 +1266,6 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		 
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(nil, nil)
 		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, nil)
 		mockService.EXPECT().GetPractitionerAppointment(gomock.Any(), gomock.Any()).Return(&models.AppointmentResourceDao{}, fmt.Errorf("error occured"))

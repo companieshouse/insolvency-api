@@ -555,7 +555,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	}
 
 	appointmentResourceDto.Data = appointmentResource
-	appointmentResourceDto.PractitionerID = "PractitionerID"
+	appointmentResourceDto.ID = "PractitionerID"
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()

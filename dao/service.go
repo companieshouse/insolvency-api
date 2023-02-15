@@ -26,7 +26,7 @@ type Service interface {
 	// GetPractitionerAppointment will retrieve a practitioner appointment
 	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)
 
-	// GetPractitionersByIdsFromPractitioner will retrieve a practitioner from the insolvency resource
+	// GetPractitionersByIdsFromPractitioner will retrieve practitioner(s) from the insolvency resource
 	GetPractitionersByIdsFromPractitioner(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDto, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
@@ -34,9 +34,6 @@ type Service interface {
 
 	// CreateAppointmentResource will create appointment resource
 	CreateAppointmentResource(dao *models.AppointmentResourceDto) (int, error)
-
-	// UpdateInsolvencyPractitionerAppointment will update insolvency with practitioner appointment
-	//UpdateInsolvencyPractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDto, transactionID string, practitionerID string) (int, error)
 
 	// UpdatePractitionerAppointment will update practitioner with appointment
 	UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDto, transactionID string, practitionerID string) (int, error)
