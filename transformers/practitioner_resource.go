@@ -91,7 +91,7 @@ func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, tra
 	}
 	
 	appointmentResourceDto.Data = appointmentResourceDao
-	appointmentResourceDto.ID = practitionerID
+	appointmentResourceDto.PractitionerId = practitionerID
 
 	return appointmentResourceDto
 }

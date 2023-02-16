@@ -285,8 +285,8 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 
 	practitionerResourceDao := models.PractitionerResourceDao{}
 	practitionerResourceDto := models.PractitionerResourceDto{
-		ID:   "practitionerID",
-		Data: practitionerResourceDao,
+		PractitionerId: "practitionerID",
+		Data:           practitionerResourceDao,
 	}
 
 	mt.Run("CreatePractitionerResource runs with error", func(mt *mtest.T) {
@@ -319,8 +319,8 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 
 		practitionerResourceDao = models.PractitionerResourceDao{IPCode: "IPCode"}
 		practitionerResourceDto := models.PractitionerResourceDto{
-			ID:   "practitionerID",
-			Data: practitionerResourceDao,
+			PractitionerId: "practitionerID",
+			Data:           practitionerResourceDao,
 		}
 
 		mongoService.db = mt.DB
@@ -397,16 +397,16 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("GetInsolvencyPractitionerByTransactionID runs with error", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyPractitionersByTransactionID runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		_, _, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
+		_, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
 
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
 	})
 
-	mt.Run("GetInsolvencyPractitionerByTransactionID runs Practitioners Nil", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyPractitionersByTransactionID runs Practitioners Nil", func(mt *mtest.T) {
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
@@ -423,13 +423,13 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		_, insolvencyResource, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
+		insolvencyResource, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
 	})
 
-	mt.Run("GetInsolvencyPractitionerByTransactionID runs successfully", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyPractitionersByTransactionID runs successfully", func(mt *mtest.T) {
 		jsonPractitionersDao := `{
 			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
 		}`
@@ -449,7 +449,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		_, insolvencyResource, err := mongoService.GetInsolvencyPractitionerByTransactionID("transactionID")
+		insolvencyResource, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
@@ -555,7 +555,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	}
 
 	appointmentResourceDto.Data = appointmentResource
-	appointmentResourceDto.ID = "PractitionerID"
+	appointmentResourceDto.PractitionerId = "PractitionerID"
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()

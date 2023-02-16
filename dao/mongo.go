@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -108,7 +107,7 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDt
 
 // GetInsolvencyResource retrieves all the data for an insolvency case with the specified transactionID
 func (m *MongoService) GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error) {
-	
+
 	var insolvencyResource models.InsolvencyResourceDto
 	collection := m.db.Collection(m.CollectionName)
 
@@ -168,11 +167,11 @@ func (m *MongoService) GetPractitionerAppointment(practitionerID string, transac
 }
 
 // CreatePractitionerResource stores an incoming practitioner to the practitioners collection
-func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *models.PractitionerResourceDto, transactionID string) (int, error) {
+func (m *MongoService) CreatePractitionerResource(practitionerResourceDto *models.PractitionerResourceDto, transactionID string) (int, error) {
 
 	collection := m.db.Collection(PractitionerCollectionName)
 
-	_, err := collection.InsertOne(context.Background(), practitionerResourceDao)
+	_, err := collection.InsertOne(context.Background(), practitionerResourceDto)
 	if err != nil {
 		log.Error(err)
 		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s (insert practitioner to collection)", transactionID)
@@ -213,15 +212,13 @@ func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource model
 
 	return http.StatusNoContent, nil
 }
- 
-// GetInsolvencyPractitionerByTransactionID gets a list of all practitioners for an insolvency case with the specified transactionID
-func (m *MongoService) GetInsolvencyPractitionerByTransactionID(transactionID string) (map[string]string, string, error) {
 
-	var insolvencyResource models.InsolvencyResourceDto
-	var practitionersData = make(map[string]string)
+// GetInsolvencyPractitionersByTransactionID gets a list of all practitioners for an insolvency case with the specified transactionID
+func (m *MongoService) GetInsolvencyPractitionersByTransactionID(transactionID string) (*models.InsolvencyResourceDaoDataDto, error) {
 
+	var insolvencyResourceDto models.InsolvencyResourceDto
+	 
 	collection := m.db.Collection(m.CollectionName)
-	maxPractitioners := 5
 
 	filter := bson.M{"transaction_id": transactionID}
 
@@ -231,35 +228,19 @@ func (m *MongoService) GetInsolvencyPractitionerByTransactionID(transactionID st
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return nil, "", fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+			return nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
 		}
 		log.Error(err)
-		return nil, "", fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	err = storedPractitioners.Decode(&insolvencyResource)
+	err = storedPractitioners.Decode(&insolvencyResourceDto)
 	if err != nil {
 		log.Error(err)
-		return nil, "", fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	//check to ensure it is not nil from the collection
-	if len(insolvencyResource.Data.Practitioners) > 0 {
-		err = json.Unmarshal([]byte(insolvencyResource.Data.Practitioners), &practitionersData)
-		if err != nil {
-			log.Error(err)
-			return nil, "", fmt.Errorf("there was a problem handling json Unmarshalling %s", transactionID)
-		}
-	}
-
-	// Check if there are already 5 practitioners in database
-	if len(practitionersData) >= maxPractitioners {
-		err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
-		log.Error(err)
-		return nil, "", err
-	}
-
-	return practitionersData, insolvencyResource.Data.Practitioners, nil
+	return &insolvencyResourceDto.Data, nil
 }
 
 // GetPractitionersByIdsFromPractitioner gets practitioner(s) for an practitioner collection by practitionerID(s)
