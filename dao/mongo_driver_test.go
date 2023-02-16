@@ -283,10 +283,9 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	practitionerResourceDao := models.PractitionerResourceDao{}
+	practitionerResourceDao := models.PractitionerResourceDao{PractitionerId: "practitionerID"}
 	practitionerResourceDto := models.PractitionerResourceDto{
-		PractitionerId: "practitionerID",
-		Data:           practitionerResourceDao,
+		Data: practitionerResourceDao,
 	}
 
 	mt.Run("CreatePractitionerResource runs with error", func(mt *mtest.T) {
@@ -317,10 +316,9 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 	mt.Run("CreatePractitionerResource runs successfully with a Practitioner", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse())
 
-		practitionerResourceDao = models.PractitionerResourceDao{IPCode: "IPCode"}
+		practitionerResourceDao = models.PractitionerResourceDao{PractitionerId: "practitionerID", IPCode: "IPCode"}
 		practitionerResourceDto := models.PractitionerResourceDto{
-			PractitionerId: "practitionerID",
-			Data:           practitionerResourceDao,
+			Data: practitionerResourceDao,
 		}
 
 		mongoService.db = mt.DB
@@ -343,7 +341,7 @@ func TestUnitGetPractitionersByIdsDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		practitioner, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practionerID"}, "transactionID")
+		practitioner, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practitionerID"}, "transactionID")
 
 		assert.Nil(t, practitioner)
 		assert.Equal(t, err.Error(), "(Name) Message")
@@ -370,7 +368,7 @@ func TestUnitGetPractitionersByIdsDriver(t *testing.T) {
 		mt.AddMockResponses(first, second, killCursors)
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practionerID"}, "transactionID")
+		insolvencyResource, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practitionerID"}, "transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
@@ -397,16 +395,16 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("GetInsolvencyPractitionersByTransactionID runs with error", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyResourceData runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		_, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
+		_, err := mongoService.GetInsolvencyResourceData("transactionID")
 
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
 	})
 
-	mt.Run("GetInsolvencyPractitionersByTransactionID runs Practitioners Nil", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyResourceData runs Practitioners Nil", func(mt *mtest.T) {
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
@@ -423,13 +421,13 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
+		insolvencyResource, err := mongoService.GetInsolvencyResourceData("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
 	})
 
-	mt.Run("GetInsolvencyPractitionersByTransactionID runs successfully", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyResourceData runs successfully", func(mt *mtest.T) {
 		jsonPractitionersDao := `{
 			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
 		}`
@@ -449,7 +447,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionIDDriver(t *testing.T) {
 		}))
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
+		insolvencyResource, err := mongoService.GetInsolvencyResourceData("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)

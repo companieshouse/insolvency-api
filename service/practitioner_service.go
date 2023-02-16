@@ -84,7 +84,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	for _, practitioner := range practitionerResourceDtos {
-		if practitioner.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
+		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
 			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
 			log.Info(msg)
 			errs = append(errs, msg)

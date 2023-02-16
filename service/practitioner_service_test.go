@@ -318,8 +318,8 @@ func TestUnitIsValidAppointment(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 
 	practitionerResourceDto := models.PractitionerResourceDto{
-		PractitionerId: "practitionerID",
 		Data: models.PractitionerResourceDao{
+			PractitionerId:  "practitionerID",
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
@@ -335,7 +335,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		mockService := mocks.NewMockService(mockCtrl)
 
-		//	mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return("", fmt.Errorf("err"))
+		//	mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return("", fmt.Errorf("err"))
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -354,8 +354,9 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		practitionerResourceDto = models.PractitionerResourceDto{
-			PractitionerId: practitionerID,
+
 			Data: models.PractitionerResourceDao{
+				PractitionerId:  practitionerID,
 				IPCode:          "ip_code",
 				FirstName:       "first_name",
 				LastName:        "last_name",
@@ -383,8 +384,8 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		practitionerResourceDto = models.PractitionerResourceDto{
-			PractitionerId: "practitionerID",
 			Data: models.PractitionerResourceDao{
+				PractitionerId:  "practitionerID",
 				IPCode:          "ip_code",
 				FirstName:       "first_name",
 				LastName:        "last_name",
@@ -452,8 +453,8 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("error")))
 
 		practitionerResourceDto = models.PractitionerResourceDto{
-			PractitionerId: "practitionerID",
 			Data: models.PractitionerResourceDao{
+				PractitionerId:  "practitionerID",
 				IPCode:          "ip_code",
 				FirstName:       "first_name",
 				LastName:        "last_name",
@@ -532,8 +533,8 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		}
 
 		practitionerResourceDto = models.PractitionerResourceDto{
-			PractitionerId: "practitionerID",
 			Data: models.PractitionerResourceDao{
+				PractitionerId:  "practitionerID",
 				IPCode:          "ip_code",
 				FirstName:       "first_name",
 				LastName:        "last_name",

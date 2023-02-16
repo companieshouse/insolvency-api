@@ -77,7 +77,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		 _, err := mongoService.GetInsolvencyPractitionersByTransactionID("transactionID")
+		_, err := mongoService.GetInsolvencyResourceData("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -89,7 +89,7 @@ func TestUnitGetPractitionersByIds(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practitionerID"}, "transactionID")
 
 		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
 	})

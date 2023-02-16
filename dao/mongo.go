@@ -213,11 +213,11 @@ func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource model
 	return http.StatusNoContent, nil
 }
 
-// GetInsolvencyPractitionersByTransactionID gets a list of all practitioners for an insolvency case with the specified transactionID
-func (m *MongoService) GetInsolvencyPractitionersByTransactionID(transactionID string) (*models.InsolvencyResourceDaoDataDto, error) {
+// // GetInsolvencyResourceData will retrieve insolvency dto object by transactionID
+func (m *MongoService) GetInsolvencyResourceData(transactionID string) (*models.InsolvencyResourceDaoDataDto, error) {
 
 	var insolvencyResourceDto models.InsolvencyResourceDto
-	 
+
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}

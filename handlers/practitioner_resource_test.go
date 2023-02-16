@@ -460,7 +460,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
@@ -500,7 +500,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return(&dataDto, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return(&dataDto, nil).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
@@ -529,7 +529,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
 		// Expect GetInsolvencyResource to return a valid insolvency case
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
@@ -576,7 +576,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return(&dataDto, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return(&dataDto, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
@@ -618,7 +618,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(gomock.Any()).Return(&dataDto, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return(&dataDto, nil).Times(1)
 		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
@@ -661,7 +661,7 @@ func serveGetPractitionersByIdssRequest(service dao.Service, tranIDSet bool) *ht
 	return res
 }
 
-func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
+func TestUnitHandleGetPractitionerResources(t *testing.T) {
 	err := os.Chdir("..")
 	if err != nil {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
@@ -698,7 +698,7 @@ func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
 		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(transactionID).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil).AnyTimes()
 
 		res := serveGetPractitionersByIdssRequest(mockService, true)
@@ -714,7 +714,7 @@ func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
 		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(transactionID).Return(nil, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(transactionID).Return(nil, nil).Times(1)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil).AnyTimes()
 
 		res := serveGetPractitionersByIdssRequest(mockService, true)
@@ -730,7 +730,7 @@ func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
 		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(transactionID).Return(nil, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(transactionID).Return(nil, nil).Times(1)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil).AnyTimes()
 
 		res := serveGetPractitionersByIdssRequest(mockService, true)
@@ -763,7 +763,7 @@ func TestUnitHandleGetPractitionersByIdss(t *testing.T) {
 		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersByTransactionID(transactionID).Return(&dataDto, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
+		mockService.EXPECT().GetInsolvencyResourceData(transactionID).Return(&dataDto, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
 		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil).AnyTimes()
 
 		res := serveGetPractitionersByIdssRequest(mockService, true)
@@ -1030,8 +1030,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 	apiURL := "https://api.companieshouse.gov.uk"
 
 	practitionerResourceDto := models.PractitionerResourceDto{
-		PractitionerId: practitionerID,
 		Data: models.PractitionerResourceDao{
+			PractitionerId:  practitionerID,
 			IPCode:          "ip_code",
 			FirstName:       "first_name",
 			LastName:        "last_name",
