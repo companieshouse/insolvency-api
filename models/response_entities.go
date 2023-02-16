@@ -111,12 +111,19 @@ type StatementOfAffairsResourceLinks struct {
 	Self string `json:"self"`
 }
 
+// ProgressReportResource contains the details of the progress report resource
 type ProgressReportResource struct {
-	FromDate    string   `json:"from_date"`
-	ToDate      string   `json:"to_date"`
-	Attachments []string `json:"attachments"`
-	Etag        string   `json:"etag"`
-	Kind        string   `json:"kind"`
+	FromDate    string                      `json:"from_date"`
+	ToDate      string                      `json:"to_date"`
+	Attachments []string                    `json:"attachments"`
+	Etag        string                      `json:"etag"`
+	Kind        string                      `json:"kind"`
+	Links       ProgressReportResourceLinks `json:"links"`
+}
+
+// ProgressReportResourceLinks contains the link details associated with a progress report
+type ProgressReportResourceLinks struct {
+	Self string `json:"self"`
 }
 
 // ValidationStatusResponse is the object returned when checking the validation of a case

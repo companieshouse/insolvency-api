@@ -4,12 +4,13 @@ import (
 	"fmt"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // ProgressReportResourceRequestToDB transforms a progress report request to a dao model
-func ProgressReportResourceRequestToDB(req *models.ProgressReport, helperService utils.HelperService) *models.ProgressReportResourceDao {
+func ProgressReportResourceRequestToDB(req *models.ProgressReport, transactionID string, helperService utils.HelperService) *models.ProgressReportResourceDao {
 
 	etag, err := helperService.GenerateEtag()
 
@@ -24,12 +25,15 @@ func ProgressReportResourceRequestToDB(req *models.ProgressReport, helperService
 		return nil
 	}
 
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + "insolvency/progress-report")
+
 	dao := &models.ProgressReportResourceDao{
 		FromDate:    req.FromDate,
 		ToDate:      req.ToDate,
 		Attachments: req.Attachments,
 		Etag:        etag,
 		Kind:        "insolvency-resource#progress-report",
+		Links:       models.ProgressReportResourceLinksDao{Self: selfLink},
 	}
 
 	return dao
@@ -43,5 +47,6 @@ func ProgressReportDaoToResponse(progressReport *models.ProgressReportResourceDa
 		Attachments: progressReport.Attachments,
 		Etag:        progressReport.Etag,
 		Kind:        progressReport.Kind,
+		Links:       models.ProgressReportResourceLinks(progressReport.Links),
 	}
 }

@@ -259,6 +259,18 @@ func TestUnitCreateProgressReportResource(t *testing.T) {
 	})
 }
 
+func TestUnitGetProgressReportResource(t *testing.T) {
+
+	Convey("Get progress report resource", t, func() {
+
+		mongoService := setUp(t)
+
+		_, err := mongoService.GetProgressReportResource("transactionID")
+
+		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+	})
+}
+
 func TestUnitGetResolutionResource(t *testing.T) {
 
 	Convey("Get resolution resource", t, func() {

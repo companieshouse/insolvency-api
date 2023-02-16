@@ -13,6 +13,7 @@ import (
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/mocks"
+	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
@@ -548,6 +549,100 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		So(res.Code, ShouldEqual, http.StatusCreated)
 		So(res.Body.String(), ShouldContainSubstring, "\"kind\":\"insolvency-resource#progress-report\"")
+	})
+}
+
+func serveHandleGetProgressReport(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+	path := "/transactions/123456789/insolvency/progress-report"
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	if tranIDSet {
+		req = mux.SetURLVars(req, map[string]string{"transaction_id": transactionID})
+	}
+	rec := httptest.NewRecorder()
+
+	handler := HandleGetProgressReport(service)
+	handler.ServeHTTP(rec, req)
+
+	return rec
+}
+
+func TestUnitHandleGetProgressReport(t *testing.T) {
+	err := os.Chdir("..")
+	if err != nil {
+		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
+	}
+
+	Convey("Must need a transaction ID in the url", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		res := serveHandleGetProgressReport(mock_dao.NewMockService(mockCtrl), false)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("Failed to get progress report from Insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetProgressReportResource to be called once and return an error
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&models.ProgressReportResourceDao{}, fmt.Errorf("failed to get progress report from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+
+		res := serveHandleGetProgressReport(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("Progress report was not found on supplied transaction", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		// Expect GetProgressReportResource to be called once and return nil
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&models.ProgressReportResourceDao{}, nil)
+
+		res := serveHandleGetProgressReport(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+	})
+
+	Convey("Success - Progress report was retrieved from insolvency resource", t, func() {
+		httpmock.Activate()
+		mockCtrl := gomock.NewController(t)
+		defer httpmock.DeactivateAndReset()
+		defer mockCtrl.Finish()
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		progressReport := models.ProgressReportResourceDao{
+			Etag:          "6f143c1f8109d834263eb764c5f020a0ae3ff78ee1789477179cb80f",
+			Kind:          "insolvency-resource#progress-report",
+			FromDate: "2021-06-06",
+			ToDate:   "2022-06-05",
+			Attachments: []string{
+				"1223-3445-5667",
+			},
+			Links: models.ProgressReportResourceLinksDao{
+				Self: "/transactions/12345678/insolvency/progress-report",
+			},
+		}
+
+		// Expect GetProgressReportResource to be called once and return statement of affairs
+		mockService.EXPECT().GetProgressReportResource(transactionID).Return(&progressReport, nil)
+
+		res := serveHandleGetProgressReport(mockService, true)
+
+		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, "etag")
+		So(res.Body.String(), ShouldContainSubstring, "kind")
+		So(res.Body.String(), ShouldContainSubstring, "links")
+		So(res.Body.String(), ShouldContainSubstring, "from_date")
+		So(res.Body.String(), ShouldContainSubstring, "to_date")
+		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }
 

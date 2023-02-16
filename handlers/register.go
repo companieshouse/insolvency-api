@@ -69,6 +69,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 		publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
 
 		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}
