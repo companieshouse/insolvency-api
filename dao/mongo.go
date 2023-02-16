@@ -789,6 +789,43 @@ func (m *MongoService) GetProgressReportResource(transactionID string) (*models.
 	return insolvencyResource.Data.ProgressReport, nil
 }
 
+// DeleteProgressReportResource deletes the progress report filed for an insolvency case
+func (m *MongoService) DeleteProgressReportResource(transactionID string) (int, error) {
+	collection := m.db.Collection(m.CollectionName)
+
+	// Choose specific transaction for insolvency case with attachment to be removed
+	filter := bson.M{"transaction_id": transactionID}
+
+	// Check if insolvency case exists for specified transactionID
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Error(err)
+			return http.StatusNotFound, fmt.Errorf(constants.MsgCaseForTransactionNotFound, transactionID)
+		}
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
+	}
+
+	query := bson.M{"data.progress-report": ""}
+
+	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
+	if err != nil {
+		log.Error(err)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete progress report", transactionID)
+	}
+
+	// Return error if Mongo could not update the document
+	if update.ModifiedCount == 0 {
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - progress report not found", transactionID)
+		log.Error(err)
+		return http.StatusNotFound, err
+	}
+
+	return http.StatusNoContent, nil
+}
+
 // GetResolutionResource retrieves the resolution filed for an Insolvency Case
 func (m *MongoService) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
 

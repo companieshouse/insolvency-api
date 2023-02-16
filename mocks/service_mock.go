@@ -230,6 +230,19 @@ func (m *MockService) CreateProgressReportResource(dao *models.ProgressReportRes
 	return ret0, ret1
 }
 
+// DeleteProgressReportResource
+func (m *MockService) DeleteProgressReportResource(transactionID string) (int, error) {
+	ret := m.ctrl.Call(m, "DeleteProgressReportResource", transactionID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteProgressReportResource indicates an expected call of DeleteProgressReportResource
+func (mr *MockServiceMockRecorder) DeleteProgressReportResource(transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteProgressReportResource", reflect.TypeOf((*MockService)(nil).DeleteProgressReportResource), transactionID)
+}
+
 // CreateStatementOfAffairsResource indicates an expected call of CreateStatementOfAffairsResource
 func (mr *MockServiceMockRecorder) CreateStatementOfAffairsResource(dao, transactionID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateStatementOfAffairsResource", reflect.TypeOf((*MockService)(nil).CreateStatementOfAffairsResource), dao, transactionID)
