@@ -271,6 +271,19 @@ func TestUnitGetProgressReportResource(t *testing.T) {
 	})
 }
 
+func TestUnitDeleteProgressReportResource(t *testing.T) {
+
+	Convey("Delete progress report", t, func() {
+
+		MongoService := setUp(t)
+
+		_, err := MongoService.DeleteProgressReportResource("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		
+	})
+}
+
 func TestUnitGetResolutionResource(t *testing.T) {
 
 	Convey("Get resolution resource", t, func() {

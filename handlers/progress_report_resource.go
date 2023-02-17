@@ -122,16 +122,24 @@ func HandleGetProgressReport(svc dao.Service) http.Handler {
 }
 
 // HandleDeleteProgressReport deletes a progress report resource from an insolvency case
-func HandleDeleteProgressReport(svc dao.Service) http.Handler {
+func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
+		isTransactionValid, _ := helperService.HandleTransactionIdExistsValidation(w, req, transactionID)
+		if !isTransactionValid {
+			return
+		}
+
+		/*
 		if transactionID == "" {
 			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
 			m := models.NewMessageResponse("transaction ID is not in the URL path")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
+		*/
 
 		log.InfoR(req, fmt.Sprintf("start DELETE request for submit progress report with transaction id: %s", transactionID))
 

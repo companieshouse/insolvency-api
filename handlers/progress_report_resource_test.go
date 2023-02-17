@@ -646,7 +646,7 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 	})
 }
 
-func serveHandleDeleteProgressReport(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleDeleteProgressReport(service dao.Service, helperService utils.HelperService,tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/progress-report"
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
 	if tranIDSet {
@@ -654,7 +654,7 @@ func serveHandleDeleteProgressReport(service dao.Service, tranIDSet bool) *httpt
 	}
 	res := httptest.NewRecorder()
 
-	handler := HandleDeleteProgressReport(service)
+	handler := HandleDeleteProgressReport(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
@@ -666,11 +666,13 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		log.ErrorR(nil, fmt.Errorf("error accessing root directory"))
 	}
 
+	helperService := utils.NewHelperService()
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), false)
+		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), helperService, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -684,7 +686,7 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), helperService,true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -698,7 +700,7 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), true)
+		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), helperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
@@ -712,10 +714,11 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
+		// Expect the deletion of progress report to return an error
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().DeleteProgressReportResource(transactionID).Return(http.StatusInternalServerError, fmt.Errorf("err"))
 
-		res := serveHandleDeleteProgressReport(mockService, true)
+		res := serveHandleDeleteProgressReport(mockService, helperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -732,7 +735,7 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().DeleteProgressReportResource(transactionID).Return(http.StatusNotFound, fmt.Errorf("err"))
 
-		res := serveHandleDeleteProgressReport(mockService, true)
+		res := serveHandleDeleteProgressReport(mockService, helperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
@@ -749,7 +752,7 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 		mockService.EXPECT().DeleteProgressReportResource(transactionID).Return(http.StatusNoContent, nil)
 
-		res := serveHandleDeleteProgressReport(mockService, true)
+		res := serveHandleDeleteProgressReport(mockService, helperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNoContent)
 	})
