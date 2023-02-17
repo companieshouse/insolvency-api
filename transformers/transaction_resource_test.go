@@ -11,13 +11,13 @@ import (
 func TestUnitInsolvencyResourceDaoToTransactionResource(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
 
-		incomingRequest := &models.InsolvencyResourceDao{
-			Links: models.InsolvencyResourceLinksDao{
-				Self:             "/transactions/87654321/insolvency",
-				ValidationStatus: "/transactions/87654321/insolvency/validation-status",
-			},
-			Kind: "insolvency-resource#insolvency-resource",
+		linksModels := models.InsolvencyResourceLinksDao{
+			Self:             "/transactions/87654321/insolvency",
+			ValidationStatus: "/transactions/87654321/insolvency/validation-status",
 		}
+
+		incomingRequest := &models.InsolvencyResourceDto{}
+		incomingRequest.Data.Links = linksModels
 
 		response := InsolvencyResourceDaoToTransactionResource(incomingRequest)
 

@@ -48,9 +48,11 @@ type CreatedPractitionerLinksResource struct {
 
 // AppointedPractitionerResource contains the details of an appointed practitioner
 type AppointedPractitionerResource struct {
-	AppointedOn string                             `json:"appointed_on"`
-	MadeBy      string                             `json:"made_by"`
-	Links       AppointedPractitionerLinksResource `json:"links"`
+	AppointedOn string                      `json:"appointed_on"`
+	MadeBy      string                      `json:"made_by"`
+	Links       AppointmentResourceLinksDao `json:"links"`
+	Etag           string                  `json:"etag"`
+	Kind           string                  `json:"kind"`
 }
 
 // AppointedPractitionerLinksResource contains the links details for a practitioner appointment

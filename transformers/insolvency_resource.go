@@ -3,59 +3,75 @@ package transformers
 import (
 	"fmt"
 
-	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
+// InsolvencyResourceDaoToCreatedResponse will transform an insolvency resource dao that has successfully been created into
+// a http response entity
+func InsolvencyResourceDtoToInsolvencyResourceDao(insolvencyResourceDto models.InsolvencyResourceDto) models.InsolvencyResourceDao {
+	insolvencyResourceDtoData := insolvencyResourceDto.Data
+	insolvencyResourceDaoData := models.InsolvencyResourceDaoData{
+		CompanyNumber:      insolvencyResourceDtoData.CompanyNumber,
+		CaseType:           insolvencyResourceDtoData.CaseType,
+		CompanyName:        insolvencyResourceDtoData.CompanyNumber,
+		Attachments:        insolvencyResourceDtoData.Attachments,
+		Resolution:         insolvencyResourceDtoData.Resolution,
+		StatementOfAffairs: insolvencyResourceDtoData.StatementOfAffairs,
+		ProgressReport:     insolvencyResourceDtoData.ProgressReport,
+	}
+
+	insolvencyResourceDao := models.InsolvencyResourceDao{
+		ID:            insolvencyResourceDto.ID,
+		TransactionID: insolvencyResourceDto.TransactionID,
+		Etag:          insolvencyResourceDtoData.Etag,
+		Kind:          insolvencyResourceDtoData.Kind,
+		Data:          insolvencyResourceDaoData,
+	}
+
+	return insolvencyResourceDao
+}
+
 // InsolvencyResourceRequestToDB will take the input request from the REST call and transform it to a dao ready for
 // insertion into the database
-func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string, helperService utils.HelperService) *models.InsolvencyResourceDao {
-
-	etag, err := helperService.GenerateEtag()
-	
-	if err != nil {
-		log.Error(fmt.Errorf("error generating etag: [%s]", err))
-		return nil
-	}
+func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string) *models.InsolvencyResourceDto {
 
 	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.InsolvencyPath)
 	transactionLink := fmt.Sprintf(constants.TransactionsPath + transactionID)
 	validationLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath)
 
-	dao := &models.InsolvencyResourceDao{
+	insolvencyResourceDto := &models.InsolvencyResourceDto{
 		TransactionID: transactionID,
-		Data: models.InsolvencyResourceDaoData{
+		Data: models.InsolvencyResourceDaoDataDto{
+			Kind:          "insolvency-resource#insolvency-resource",
 			CompanyNumber: req.CompanyNumber,
 			CaseType:      req.CaseType,
 			CompanyName:   req.CompanyName,
-		},
-		Etag: etag,
-		Kind: "insolvency-resource#insolvency-resource",
-		Links: models.InsolvencyResourceLinksDao{
-			Self:             selfLink,
-			Transaction:      transactionLink,
-			ValidationStatus: validationLink,
+			Links: models.InsolvencyResourceLinksDao{
+				Self:             selfLink,
+				Transaction:      transactionLink,
+				ValidationStatus: validationLink,
+			},
 		},
 	}
 
-	return dao
+	return insolvencyResourceDto
 }
 
 // InsolvencyResourceDaoToCreatedResponse will transform an insolvency resource dao that has successfully been created into
 // a http response entity
-func InsolvencyResourceDaoToCreatedResponse(model *models.InsolvencyResourceDao) *models.CreatedInsolvencyResource {
+func InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDto *models.InsolvencyResourceDto) *models.CreatedInsolvencyResource {
 	return &models.CreatedInsolvencyResource{
-		CompanyNumber: model.Data.CompanyNumber,
-		CaseType:      model.Data.CaseType,
-		Etag:          model.Etag,
-		Kind:          model.Kind,
-		CompanyName:   model.Data.CompanyName,
+		CompanyNumber: insolvencyResourceDto.Data.CompanyNumber,
+		CaseType:      insolvencyResourceDto.Data.CaseType,
+		Etag:          insolvencyResourceDto.Data.Etag,
+		Kind:          insolvencyResourceDto.Data.Kind,
+		CompanyName:   insolvencyResourceDto.Data.CompanyName,
 		Links: models.CreatedInsolvencyResourceLinks{
-			Self:             model.Links.Self,
-			Transaction:      model.Links.Transaction,
-			ValidationStatus: model.Links.ValidationStatus,
+			Self:             insolvencyResourceDto.Data.Links.Self,
+			Transaction:      insolvencyResourceDto.Data.Links.Transaction,
+			ValidationStatus: insolvencyResourceDto.Data.Links.ValidationStatus,
 		},
 	}
 }
@@ -65,17 +81,15 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 	return &models.AppointedPractitionerResource{
 		AppointedOn: model.AppointedOn,
 		MadeBy:      model.MadeBy,
-		Links: models.AppointedPractitionerLinksResource{
-			Self: model.Links.Self,
-		},
+		Links:       model.Links,
 	}
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity
-func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string,helperService utils.HelperService) (*models.AttachmentResource, error) {
-	
+func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string, helperService utils.HelperService) (*models.AttachmentResource, error) {
+
 	etag, err := helperService.GenerateEtag()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error generating etag")
 	}

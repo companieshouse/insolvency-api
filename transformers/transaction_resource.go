@@ -8,15 +8,15 @@ import (
 
 // InsolvencyResourceDaoToTransactionResource takes the dao for an insolvency request and converts it to
 // a transaction resource
-func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDao) *companieshouseapi.Transaction {
+func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDto) *companieshouseapi.Transaction {
 
 	// Generate insolvency resource for the transaction
 	transactionResource := make(map[string]*companieshouseapi.Resource)
-	transactionResource[req.Links.Self] = &companieshouseapi.Resource{
-		Kind: req.Kind,
+	transactionResource[req.Data.Links.Self] = &companieshouseapi.Resource{
+		Kind: req.Data.Kind,
 		Links: companieshouseapi.Links{
-			Resource:         req.Links.Self,
-			ValidationStatus: req.Links.ValidationStatus,
+			Resource:         req.Data.Links.Self,
+			ValidationStatus: req.Data.Links.ValidationStatus,
 		},
 		Marshal: apicore.Marshal{},
 	}

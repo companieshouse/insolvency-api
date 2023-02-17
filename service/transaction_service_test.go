@@ -16,10 +16,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func incomingInsolvencyResourceDao(helperService utils.HelperService) *models.InsolvencyResourceDao {
+func incomingInsolvencyResourceDao(helperService utils.HelperService) *models.InsolvencyResourceDto {
 	request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
 
-	res := transformers.InsolvencyResourceRequestToDB(request, "87654321", helperService)
+	res := transformers.InsolvencyResourceRequestToDB(request, "87654321")
 	return res
 }
 
@@ -96,8 +96,6 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusNotFound, "Message: Transaction not found"))
 
-			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-
 			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusNotFound)
@@ -109,8 +107,6 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
-			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-
 			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 			So(err, ShouldNotBeNil)
 			So(statusCode, ShouldEqual, http.StatusTeapot)
@@ -121,8 +117,6 @@ func TestUnitPatchTransactionWithInsolvencyResource(t *testing.T) {
 			defer httpmock.Reset()
 
 			httpmock.RegisterResponder(http.MethodPatch, privateApiURL+"/private/transactions/87654321", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse("open")))
-
-			mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 
 			err, statusCode := PatchTransactionWithInsolvencyResource("87654321", incomingInsolvencyResourceDao(mockHelperService), &http.Request{})
 

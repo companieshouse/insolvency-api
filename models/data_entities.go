@@ -2,6 +2,28 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
+// InsolvencyResourceDto contains the meta-data for the insolvency resource in Mongo with links rather than real data
+type InsolvencyResourceDto struct {
+	ID            primitive.ObjectID           `bson:"_id"`
+	TransactionID string                       `bson:"transaction_id"`
+	Data          InsolvencyResourceDaoDataDto `bson:"data"`
+}
+
+// InsolvencyResourceDaoDataDto contains the data for the insolvency resource in Mongo with links rather than real data
+type InsolvencyResourceDaoDataDto struct {
+	CompanyNumber      string                         `bson:"company_number"`
+	CaseType           string                         `bson:"case_type"`
+	CompanyName        string                         `bson:"company_name"`
+	Etag               string                         `bson:"etag"`
+	Kind               string                         `bson:"kind"`
+	Practitioners      string                         `bson:"practitioners,omitempty"`
+	Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
+	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
+	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
+	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
+	ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
+}
+
 // InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
 	ID            primitive.ObjectID         `bson:"_id"`
@@ -33,7 +55,7 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	ID              string                       `bson:"id"`
+	PractitionerId  string                       `bson:"practitioner_id"`
 	IPCode          string                       `bson:"ip_code"`
 	FirstName       string                       `bson:"first_name"`
 	LastName        string                       `bson:"last_name"`
@@ -49,12 +71,13 @@ type PractitionerResourceDao struct {
 
 // PractitionerResourceDto contains the data for the practitioner resource in Mongo
 type PractitionerResourceDto struct {
-	Data *PractitionerResourceDao `bson:"data"`
+	Data PractitionerResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDto contains the data for the appointment resource in Mongo
 type AppointmentResourceDto struct {
-	Data *AppointmentResourceDao `bson:"data"`
+	PractitionerId string                 `bson:"practitioner_id"`
+	Data           AppointmentResourceDao `bson:"data"`
 }
 
 // AppointmentResourceDao contains the appointment data for a practitioner
@@ -86,6 +109,7 @@ type AddressResourceDao struct {
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
 	Self        string `bson:"self"`
+	Appointment string `bson:"appointment,omitempty"`
 }
 
 // AttachmentResourceDao contains the data for the attachment DB resource

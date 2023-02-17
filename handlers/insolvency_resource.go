@@ -20,6 +20,15 @@ import (
 func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("error generating etag: [%s]", err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
 		// Check transaction id exists in path
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
 		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
@@ -31,7 +40,7 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.InsolvencyRequest
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
 			return
@@ -91,14 +100,15 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		}
 
 		// Add new insolvency resource to mongo
-		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID, helperService)
-		if model == nil {
+		insolvencyResourceDto := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
+		if insolvencyResourceDto == nil {
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction id [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 
-		httpStatus, err = svc.CreateInsolvencyResource(model)
+		insolvencyResourceDto.Data.Etag = etag
+		httpStatus, err = svc.CreateInsolvencyResource(insolvencyResourceDto)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database for transaction [%s]: %v", transactionID, err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction [%s]: %v", transactionID, err))
@@ -107,17 +117,17 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		}
 
 		// Patch transaction API with new insolvency resource
-		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, model, req)
+		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, insolvencyResourceDto, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
+			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully added insolvency resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDto), http.StatusCreated)
 	})
 }
 

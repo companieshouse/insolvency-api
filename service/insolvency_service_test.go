@@ -33,7 +33,6 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			CaseType:      "insolvency",
 			Practitioners: []models.PractitionerResourceDao{
 				{
-					ID:              "1234",
 					IPCode:          "1234",
 					FirstName:       "Name",
 					LastName:        "LastName",
@@ -48,7 +47,6 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 					},
 				},
 				{
-					ID:              "5678",
 					IPCode:          "5678",
 					FirstName:       "FirstName",
 					LastName:        "LastName",
@@ -106,7 +104,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			},
 			ProgressReport: &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -562,7 +560,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", insolvencyCase.Data.Practitioners[0].ID, insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]", insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
@@ -670,12 +668,12 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	Convey("Validate progress report from and to dates", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		
+
 		Convey("valid submission of progress-report", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -689,7 +687,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -703,7 +701,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "",
+				ToDate:   "",
 				Attachments: []string{
 					"id",
 				},
@@ -717,7 +715,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "",
-				ToDate:  "",
+				ToDate:   "",
 				Attachments: []string{
 					"id",
 				},
@@ -1091,9 +1089,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
 			{
-				ID:              "1234",
 				IPCode:          "1234",
 				FirstName:       "Name",
 				LastName:        "LastName",
@@ -1135,9 +1132,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
 			{
-				ID:              "1234",
 				IPCode:          "1234",
 				FirstName:       "Name",
 				LastName:        "LastName",

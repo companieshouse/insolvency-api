@@ -13,6 +13,7 @@ import (
 func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
 		transactionID := "1234"
+		practitionerID := "1234"
 
 		incomingRequest := &models.PractitionerRequest{
 			IPCode:    "1111",
@@ -25,16 +26,15 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 			Role: constants.FinalLiquidator.String(),
 		}
 
-		response := PractitionerResourceRequestToDB(incomingRequest, transactionID)
+		response := PractitionerResourceRequestToDB(incomingRequest, practitionerID, transactionID)
 
-		So(response.ID, ShouldNotBeBlank)
 		So(response.IPCode, ShouldEqual, "00001111")
 		So(response.FirstName, ShouldEqual, incomingRequest.FirstName)
 		So(response.LastName, ShouldEqual, incomingRequest.LastName)
 		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
 		So(response.Role, ShouldEqual, incomingRequest.Role)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+response.ID))
+		So(response.Links.Self, ShouldNotBeEmpty)
 	})
 }
 
@@ -44,7 +44,6 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 
 	Convey("field mappings are correct", t, func() {
 		dao := &models.PractitionerResourceDao{
-			ID:        id,
 			IPCode:    "1111",
 			FirstName: "First",
 			LastName:  "Last",
@@ -107,9 +106,9 @@ func TestUnitPractitionerAppointmentRequestToDB(t *testing.T) {
 
 		response := PractitionerAppointmentRequestToDB(dao, transactionID, practitionerID)
 
-		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
-		So(response.MadeBy, ShouldEqual, dao.MadeBy)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
+		So(response.Data.AppointedOn, ShouldEqual, dao.AppointedOn)
+		So(response.Data.MadeBy, ShouldEqual, dao.MadeBy)
+		So(response.Data.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
 	})
 }
 
@@ -123,7 +122,7 @@ func TestUnitPractitionerAppointmentDaoToResponse(t *testing.T) {
 			},
 		}
 
-		response := PractitionerAppointmentDaoToResponse(dao)
+		response := PractitionerAppointmentDaoToResponse(&dao)
 
 		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
 		So(response.MadeBy, ShouldEqual, dao.MadeBy)

@@ -12,24 +12,39 @@ import (
 
 //UpdateCollection updates documents of collections
 func UpdateCollection(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (int, error) {
-	update, err := collection.UpdateOne(context.Background(), filter, updateDocument)
+	_, err := collection.UpdateOne(context.Background(), filter, updateDocument)
 	if err != nil {
 		errMsg := fmt.Errorf("could not update practitioner appointment for practitionerID %s: %s", practitionerID, err)
 		log.Error(errMsg)
 		return http.StatusInternalServerError, errMsg
 	}
-	// Check if a match was found
-	if update.MatchedCount == 0 {
-		err = fmt.Errorf("item with transaction id %s or practitioner id %s does not exist", transactionID, practitionerID)
+
+	return http.StatusNoContent, nil
+}
+
+func Find(filter bson.M, collection *mongo.Collection, model interface{}, errs []error) (*mongo.SingleResult, interface{}, error) {
+	// Retrieve case from Mongo
+	storedCursor := collection.FindOne(context.Background(), filter)
+	err := storedCursor.Err()
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug(errs[0].Error())
+			return nil, nil, errs[1]
+		}
 		log.Error(err)
-		return http.StatusNotFound, err
-	}
-	// Check if Mongo updated the collection
-	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("item with transaction id %s or practitioner id %s not updated", transactionID, practitionerID)
-		log.Error(err)
-		return http.StatusNotFound, err
+		return nil, nil, errs[2]
 	}
 
-	return http.StatusNoContent, nil 
+	if model == nil {
+		return storedCursor, nil, nil
+	}
+
+	err = storedCursor.Decode(&model)
+	if err != nil {
+		log.Error(err)
+		return nil, nil, errs[2]
+	}
+
+	return storedCursor, model, nil
 }
