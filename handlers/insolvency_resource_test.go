@@ -653,6 +653,12 @@ func TestUnitHandleGetFilings(t *testing.T) {
 
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Practitioners = []models.PractitionerResourceDao{}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
+			},
+		}
 		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{{
 			Type: "resolution",
 		}}
@@ -668,7 +674,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
 		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LRESEX"`)
 		So(res.Body.String(), ShouldContainSubstring, `"Type":"resolution"`)
-		So(res.Body.String(), ShouldContainSubstring, `"practitioners":[]`)
+		So(res.Body.String(), ShouldNotContainSubstring, "practitioners")
 	})
 
 	Convey(`Generate filing for LIQ02 case with one practitioner and "statement-of-affairs-director"`, t, func() {
@@ -683,6 +689,12 @@ func TestUnitHandleGetFilings(t *testing.T) {
 
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Practitioners[0].Appointment = nil
+		insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
+			StatementDate: "2012-01-23",
+			Attachments: []string{
+				"123456789",
+			},
+		}
 		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{{
 			Type: "statement-of-affairs-director",
 		}}
