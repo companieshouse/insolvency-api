@@ -106,7 +106,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 			},
 			ProgressReport: &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -584,7 +584,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "date"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, "cannot parse")
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
@@ -605,7 +605,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, "cannot parse")
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
@@ -670,12 +670,12 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	Convey("Validate progress report from and to dates", t, func() {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
-		
+
 		Convey("valid submission of progress-report", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -689,7 +689,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "",
-				ToDate:  "2022-04-13",
+				ToDate:   "2022-04-13",
 				Attachments: []string{
 					"id",
 				},
@@ -703,7 +703,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "2021-04-14",
-				ToDate:  "",
+				ToDate:   "",
 				Attachments: []string{
 					"id",
 				},
@@ -717,7 +717,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.ProgressReport = &models.ProgressReportResourceDao{
 				FromDate: "",
-				ToDate:  "",
+				ToDate:   "",
 				Attachments: []string{
 					"id",
 				},
@@ -851,8 +851,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(filings[0].Data, ShouldNotContainKey, "attachments")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -883,8 +888,14 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#LRESEX")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LRESEX")
+		So(filings[0].Data, ShouldNotContainKey, "practitioners")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "resolution")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -916,8 +927,14 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -949,12 +966,18 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-liquidator")
+
 		So(err, ShouldBeNil)
 	})
 
-	Convey("Generate filing for LIQ02 case with statement-of-affairs-liquidator and statement-of-affairs-director attachments and two practitioners", t, func() {
+	Convey("Generate filing for LIQ02 case with statement-of-affairs-director and statement-of-concurrence attachments and two practitioners", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
@@ -968,7 +991,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
-				Type:   "statement-of-affairs-liquidator",
+				Type:   "statement-of-affairs-director",
 				Status: "status",
 				Links: models.AttachmentResourceLinksDao{
 					Self:     "self",
@@ -977,7 +1000,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 			{
 				ID:     "id",
-				Type:   "statement-of-affairs-director",
+				Type:   "statement-of-concurrence",
 				Status: "status",
 				Links: models.AttachmentResourceLinksDao{
 					Self:     "self",
@@ -991,8 +1014,15 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 2)
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[1].Type, ShouldEqual, "statement-of-concurrence")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -1022,14 +1052,23 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 2)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(filings[0].Data, ShouldNotContainKey, "attachments")
+
 		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ02")
+		So(filings[1].Data, ShouldContainKey, "practitioners")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+
 		So(err, ShouldBeNil)
 	})
 
-	Convey("Generate filing for 600, LRESEX, and LIQ02 case with statement-of-affairs-director and statement-of-affairs-liquidator attachments and two practitioners", t, func() {
+	Convey("Generate filing for 600, LRESEX, and LIQ02 case with statement-of-affairs-director and statement-of-concurrence attachments and two practitioners", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
@@ -1059,7 +1098,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 			{
 				ID:     "id",
-				Type:   "statement-of-affairs-liquidator",
+				Type:   "statement-of-concurrence",
 				Status: "status",
 				Links: models.AttachmentResourceLinksDao{
 					Self:     "self",
@@ -1073,12 +1112,26 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 3)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(filings[0].Data, ShouldNotContainKey, "attachments")
+
 		So(filings[1].Kind, ShouldEqual, "insolvency#LRESEX")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LRESEX")
+		So(filings[1].Data, ShouldNotContainKey, "practitioners")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "resolution")
+
 		So(filings[2].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[2].DescriptionIdentifier, ShouldEqual, "LIQ02")
+		So(filings[2].Data, ShouldContainKey, "practitioners")
+		So(len(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 2)
+		So(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)[1].Type, ShouldEqual, "statement-of-concurrence")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -1091,7 +1144,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
 			{
 				ID:              "1234",
 				IPCode:          "1234",
@@ -1121,8 +1174,14 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 1)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ03")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ03")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "progress-report")
+
 		So(err, ShouldBeNil)
 	})
 
@@ -1135,7 +1194,7 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao {
+		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
 			{
 				ID:              "1234",
 				IPCode:          "1234",
@@ -1169,10 +1228,19 @@ func TestUnitGenerateFilings(t *testing.T) {
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
+		So(len(filings), ShouldEqual, 2)
+
 		So(filings[0].Kind, ShouldEqual, "insolvency#600")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "600")
+		So(filings[0].Data, ShouldContainKey, "practitioners")
+		So(filings[0].Data, ShouldNotContainKey, "attachments")
+
 		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ03")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ03")
+		So(filings[1].Data, ShouldContainKey, "practitioners")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "progress-report")
+
 		So(err, ShouldBeNil)
 	})
 
