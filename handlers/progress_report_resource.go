@@ -125,6 +125,12 @@ func HandleGetProgressReport(svc dao.Service) http.Handler {
 func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "progress report", service.CheckIfTransactionClosed)
+		if !isValidTransaction {
+			return
+		}
+
+		/*
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
 		if transactionID == "" {
@@ -150,6 +156,7 @@ func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperServi
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
+		*/
 
 		// Delete progress report from DB
 		statusCode, err := svc.DeleteProgressReportResource(transactionID)
