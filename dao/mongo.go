@@ -675,7 +675,6 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 func (m *MongoService) DeleteStatementOfAffairsResource(transactionID string) (int, error) {
 
 	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "statement-of-affairs")
-
 	return httpStatus, err
 
 }
@@ -766,7 +765,6 @@ func (m *MongoService) GetProgressReportResource(transactionID string) (*models.
 func (m *MongoService) DeleteProgressReportResource(transactionID string) (int, error) {
 
 	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "progress-report")
-
 	return httpStatus, err
 
 }
@@ -807,7 +805,6 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 func (m *MongoService) DeleteResolutionResource(transactionID string) (int, error) {
 
 	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "resolution")
-
 	return httpStatus, err
 
 }
