@@ -160,7 +160,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		resolution := generateResolution()
 
 		body, _ := json.Marshal(resolution)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
 
@@ -185,7 +185,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDaoData{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
 
@@ -211,7 +211,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
 
@@ -288,7 +288,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -311,7 +311,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(generateAttachment(), nil)
 		// Expect CreateResolutionResource to be called once and return an error
@@ -334,7 +334,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		resolution := generateResolution()
 		body, _ := json.Marshal(resolution)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(generateAttachment(), nil)
 		// Expect CreateResolutionResource to be called once and return an error
@@ -370,7 +370,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -585,12 +585,11 @@ func generateAttachment() models.AttachmentResourceDao {
 	}
 }
 
-func generateInsolvencyResource() models.InsolvencyResourceDao {
-	return models.InsolvencyResourceDao{
-		Data: models.InsolvencyResourceDaoData{
-			CompanyNumber: "1234",
-			CaseType:      "CVL",
-			CompanyName:   "Company",
-		},
-	}
+func generateInsolvencyPractitionerAppointmentResources() models.InsolvencyResourceDaoData {
+	insolvencyDao := models.InsolvencyResourceDaoData{}
+	insolvencyDao.Data.CompanyNumber = "1234"
+	insolvencyDao.Data.CaseType = "CVL"
+	insolvencyDao.Data.CompanyName = "Company"
+
+	return insolvencyDao
 }

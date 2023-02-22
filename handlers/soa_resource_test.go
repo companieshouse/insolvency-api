@@ -160,7 +160,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement := generateStatement()
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
 
@@ -186,7 +186,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDaoData{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
 
@@ -211,7 +211,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
 
@@ -239,7 +239,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
 
@@ -264,7 +264,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, mockHelperService, true, rec)
 
@@ -291,7 +291,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
@@ -318,7 +318,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "statement-of-affairs-director"
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
@@ -345,7 +345,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "statement-of-affairs-director"
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
@@ -380,7 +380,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()

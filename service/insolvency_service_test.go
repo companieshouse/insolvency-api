@@ -21,100 +21,94 @@ var companyNumber = "01234567"
 var companyName = "companyName"
 var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 
-func createInsolvencyResource() models.InsolvencyResourceDao {
-	return models.InsolvencyResourceDao{
+func createInsolvencyResource() models.InsolvencyResourceDaoData {
+	_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
+	appointmentResourceDao.Data.MadeBy = "creditors"
+
+	practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+	practitionerResourceDao1 := models.PractitionerResourceDao{}
+	practitionerResourceDao1.Data.IPCode = "5678"
+	practitionerResourceDao1.Data.FirstName = "FirstName"
+	practitionerResourceDao1.Data.LastName = "LastName"
+	practitionerResourceDao1.Data.TelephoneNumber = "5678"
+	practitionerResourceDao1.Data.Email = "firstname@email.com"
+	practitionerResourceDao1.Data.Address = models.AddressResourceDao{}
+	practitionerResourceDao1.Data.Role = "final-liquidator"
+	practitionerResourceDao1.Data.Links = models.PractitionerResourceLinksDao{}
+
+	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
+	appointmentResourceDao.Data.MadeBy = "creditors"
+
+	practitionerResourceDao1.Data.Appointment = &appointmentResourceDao
+
+	insolvencyResourceDao := models.InsolvencyResourceDaoData{
 		ID:            primitive.ObjectID{},
 		TransactionID: transactionID,
-		Etag:          "etag1234",
-		Kind:          "insolvency",
-		Data: models.InsolvencyResourceDaoData{
-			CompanyNumber: companyNumber,
-			CompanyName:   companyName,
-			CaseType:      "insolvency",
-			Practitioners: []models.PractitionerResourceDao{
-				{
-					IPCode:          "1234",
-					FirstName:       "Name",
-					LastName:        "LastName",
-					TelephoneNumber: "1234",
-					Email:           "name@email.com",
-					Address:         models.AddressResourceDao{},
-					Role:            "final-liquidator",
-					Links:           models.PractitionerResourceLinksDao{},
-					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2021-07-07",
-						MadeBy:      "creditors",
-					},
-				},
-				{
-					IPCode:          "5678",
-					FirstName:       "FirstName",
-					LastName:        "LastName",
-					TelephoneNumber: "5678",
-					Email:           "firstname@email.com",
-					Address:         models.AddressResourceDao{},
-					Role:            "final-liquidator",
-					Links:           models.PractitionerResourceLinksDao{},
-					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2021-07-07",
-						MadeBy:      "creditors",
-					},
-				},
-			},
-			Attachments: []models.AttachmentResourceDao{
-				{
-					ID:     "id",
-					Type:   "resolution",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-				{
-					ID:     "id",
-					Type:   "statement-of-affairs-director",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-				{
-					ID:     "id",
-					Type:   "progress-report",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-			},
-			Resolution: &models.ResolutionResourceDao{
-				DateOfResolution: "2021-06-06",
-				Attachments: []string{
-					"id",
-				},
-			},
-			StatementOfAffairs: &models.StatementOfAffairsResourceDao{
-				StatementDate: "2021-06-06",
-				Attachments: []string{
-					"id",
-				},
-			},
-			ProgressReport: &models.ProgressReportResourceDao{
-				FromDate: "2021-04-14",
-				ToDate:   "2022-04-13",
-				Attachments: []string{
-					"id",
-				},
+	}
+	insolvencyResourceDao.Data.Etag = "etag1234"
+	insolvencyResourceDao.Data.Kind = "insolvency"
+	insolvencyResourceDao.Data.CompanyNumber = companyNumber
+	insolvencyResourceDao.Data.CompanyName = companyName
+	insolvencyResourceDao.Data.CaseType = "insolvency"
+	insolvencyResourceDao.Data.Practitioners = append(insolvencyResourceDao.Data.Practitioners, practitionerResourceDao, practitionerResourceDao1)
+	insolvencyResourceDao.Data.Attachments = []models.AttachmentResourceDao{
+		{
+			ID:     "id",
+			Type:   "resolution",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
 			},
 		},
-		Links: models.InsolvencyResourceLinksDao{
-			Self:             "/transactions/123456789/insolvency",
-			ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+		{
+			ID:     "id",
+			Type:   "statement-of-affairs-director",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
+			},
+		},
+		{
+			ID:     "id",
+			Type:   "progress-report",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
+			},
 		},
 	}
+	insolvencyResourceDao.Data.Resolution = &models.ResolutionResourceDao{
+		DateOfResolution: "2021-06-06",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
+		StatementDate: "2021-06-06",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.ProgressReport = &models.ProgressReportResourceDao{
+		FromDate: "2021-04-14",
+		ToDate:   "2022-04-13",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.Links = models.InsolvencyResourceLinksDao{
+		Self:             "/transactions/123456789/insolvency",
+		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+	}
+
+	return insolvencyResourceDao
+
 }
 
 func TestUnitValidateInsolvencyDetails(t *testing.T) {
@@ -125,7 +119,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 
 		// Remove appointment for one practitioner
-		insolvencyCase.Data.Practitioners[1].Appointment = &models.AppointmentResourceDao{}
+		insolvencyCase.Data.Practitioners[1].Data.Appointment = &models.AppointmentResourceDao{}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 
@@ -137,8 +131,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	Convey("error - one practitioner is appointed but not all practitioners have been appointed - missing date", t, func() {
 		insolvencyCase := createInsolvencyResource()
 
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = ""
 		// Remove appointment for one practitioner
-		insolvencyCase.Data.Practitioners[1].Appointment.AppointedOn = ""
+		insolvencyCase.Data.Practitioners[1].Data.Appointment = &appointmentResourceDao
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 
@@ -156,8 +152,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 
 		// Remove appointment details for all practitioners
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
-		insolvencyCase.Data.Practitioners[1].Appointment = nil
+		insolvencyCase.Data.Practitioners[0].Data.Appointment = nil
+		insolvencyCase.Data.Practitioners[1].Data.Appointment = nil
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So(validationErrors, ShouldHaveLength, 0)
@@ -165,13 +161,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 	Convey("error - attachment type is not resolution and practitioners key is absent", t, func() {
 		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "type",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "type",
 			},
 		}
 
@@ -183,16 +176,13 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - attachment type is not resolution and practitioners object is empty", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{},
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "type",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "type",
 			},
 		}
+		insolvencyCase.Data.Practitioners = []models.PractitionerResourceDao{}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 
@@ -223,50 +213,47 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of resolution attachment - attachment type is resolution and practitioners key is absent", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "resolution",
-						ID:   "1234",
-					},
-				},
-				Resolution: &models.ResolutionResourceDao{
-					DateOfResolution: "2021-06-06",
-					Attachments: []string{
-						"1234",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "resolution",
+				ID:   "1234",
+			},
+		}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
 			},
 		}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of resolution attachment - attachment type is resolution and practitioners object empty", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "resolution",
-						ID:   "1234",
-					},
-				},
-				Resolution: &models.ResolutionResourceDao{
-					DateOfResolution: "2021-06-06",
-					Attachments: []string{
-						"1234",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "resolution",
+				ID:   "1234",
+			},
+		}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
 			},
 		}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -321,23 +308,21 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Resolution = nil
 
 		// Remove appointment details for all practitioners
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
-		insolvencyCase.Data.Practitioners[1].Appointment = nil
+		insolvencyCase.Data.Practitioners[0].Data.Appointment = nil
+		insolvencyCase.Data.Practitioners[1].Data.Appointment = nil
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("error - no attachments present and no appointed practitioners on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{
-					{
-						FirstName: "Bob",
-					},
-				},
-			},
-		}
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.FirstName = "Bob"
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Practitioners = practitionerResourceDaos
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 
@@ -347,9 +332,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - no resolution and no submitted practitioners on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{},
-		}
+
+		insolvencyCase := models.InsolvencyResourceDaoData{}
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 
@@ -359,20 +343,17 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{
-					{
-						Appointment: &models.AppointmentResourceDao{
-							AppointedOn: "2020-01-01",
-							MadeBy:      "creditors",
-						},
-					},
-				},
-			},
-		}
+
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		insolvencyCase := models.InsolvencyResourceDaoData{}
+		insolvencyCase.Data.Practitioners = practitionerResourceDaos
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -557,10 +538,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+		insolvencyCase.Data.Practitioners[0].Data.Appointment.Data.AppointedOn = "2021-05-05"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]", insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]",
+			insolvencyCase.Data.Practitioners[0].Data.Appointment.Data.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
@@ -579,7 +561,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "date"
+		insolvencyCase.Data.Practitioners[0].Data.Appointment.Data.AppointedOn = "date"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
@@ -600,7 +582,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			},
 		}
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+		//	insolvencyCase.Data.Practitioners[0].Data.Appointment.AppointedOn = "2021-05-05"
 
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
@@ -895,8 +877,10 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
+
+		insolvencyResource.Data.Practitioners[0].Data.Appointment = nil
+		insolvencyResource.Data.Practitioners[1].Data.Appointment = nil
+
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -928,8 +912,10 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
+
+		insolvencyResource.Data.Practitioners[0].Data.Appointment = nil
+		insolvencyResource.Data.Practitioners[1].Data.Appointment = nil
+
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -961,8 +947,10 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
+
+		insolvencyResource.Data.Practitioners[0].Data.Appointment = nil
+		insolvencyResource.Data.Practitioners[1].Data.Appointment = nil
+
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -1088,19 +1076,15 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
+		_, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
-			{
-				IPCode:          "1234",
-				FirstName:       "Name",
-				LastName:        "LastName",
-				TelephoneNumber: "1234",
-				Email:           "name@email.com",
-				Address:         models.AddressResourceDao{},
-				Role:            "final-liquidator",
-				Links:           models.PractitionerResourceLinksDao{},
-			},
-		}
+
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{}
+		practitionerResourceDao.Data.Role = "final-liquidator"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{}
+
+		insolvencyResource.Data.Practitioners = append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -1131,23 +1115,12 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
-			{
-				IPCode:          "1234",
-				FirstName:       "Name",
-				LastName:        "LastName",
-				TelephoneNumber: "1234",
-				Email:           "name@email.com",
-				Address:         models.AddressResourceDao{},
-				Role:            "final-liquidator",
-				Links:           models.PractitionerResourceLinksDao{},
-				Appointment: &models.AppointmentResourceDao{
-					AppointedOn: "2021-07-07",
-					MadeBy:      "creditors",
-				},
-			},
-		}
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+		insolvencyResource.Data.Practitioners = append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",

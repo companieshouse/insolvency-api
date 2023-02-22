@@ -189,7 +189,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -218,7 +218,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -247,7 +247,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -276,7 +276,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -306,7 +306,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -343,7 +343,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		progressReport := generateProgressReport()
 		body, _ := json.Marshal(progressReport)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
 
@@ -371,7 +371,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDaoData{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -401,7 +401,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -428,7 +428,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -457,7 +457,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
@@ -488,7 +488,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		// Expect CreateProgressReportResource to be called and return an error
 		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID))
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, helperService, true, rec)
 
@@ -511,7 +511,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		attachment.Type = "progress-report"
 
 		body, _ := json.Marshal(progressReport)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		// Expect CreateProgressReportResource to be called and return an error
@@ -545,7 +545,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()

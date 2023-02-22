@@ -21,8 +21,8 @@ import (
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		var insolvencyResource models.InsolvencyResourceDto
-		var practitionerResourceDto models.PractitionerResourceDto
+		var insolvencyResource models.InsolvencyResourceDao
+		var practitionerResourceDto models.PractitionerResourceDao
 		//var practitionersMapResource map[string]string
 		practitionersMapResource := make(map[string]string)
 
@@ -78,13 +78,13 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		}
 
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, practitionerID, transactionID)
-		practitionerDao.Etag = etag
-		practitionerDao.Kind = "insolvency#practitioner"
-		practitionerResourceDto.Data = *practitionerDao
+		practitionerDao.Data.Etag = etag
+		practitionerDao.Data.Kind = "insolvency#practitioner"
+		practitionerResourceDto = *practitionerDao
 		practitionerResourceDto.Data.PractitionerId = practitionerID
 
 		// GetInsolvencyResourceData retrieves previously stored practitioners
-		insolvencyResourceDaoDataDto, err := svc.GetInsolvencyResourceData(transactionID)
+		insolvencyResourceDao, err := svc.GetInsolvencyResourceData(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
@@ -92,8 +92,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		maxPractitioners := 5
 		//check to ensure it is not nil from the collection
-		if insolvencyResourceDaoDataDto != nil && len(insolvencyResourceDaoDataDto.Practitioners) > 0 {
-			err = json.Unmarshal([]byte(insolvencyResourceDaoDataDto.Practitioners), &practitionersMapResource)
+		if insolvencyResourceDao != nil && len(insolvencyResourceDao.Data.Practitioners) > 0 {
+			err = json.Unmarshal([]byte(insolvencyResourceDao.Data.Practitioners), &practitionersMapResource)
 			if err != nil {
 				logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("there was a problem handling json Unmarshalling %s", transactionID)})
 				return
@@ -110,9 +110,9 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		// Check if practitioner is already assigned to this case
 		extractedPractitionerIds := utils.ConvertMapToStringArray(practitionersMapResource)
 
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner(extractedPractitionerIds, transactionID)
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			if err == nil && practitionerDao.IPCode == practitionerResourceDto.Data.IPCode {
+		practitionerResourceDaos, err := svc.GetPractitionersAppointmentResource(extractedPractitionerIds, transactionID)
+		for _, practitionerResourceDao := range practitionerResourceDaos {
+			if err == nil && practitionerDao.Data.IPCode == practitionerResourceDao.Data.IPCode {
 				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDto.Data.IPCode)})
 				return
 			}
@@ -166,32 +166,32 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
 
-		insolvencyResourceDaoDataDto, err := svc.GetInsolvencyResourceData(transactionID)
+		insolvencyResourceDao, err := svc.GetInsolvencyResourceData(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
-		if insolvencyResourceDaoDataDto == nil {
+		if insolvencyResourceDao == nil {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "error", []error{fmt.Errorf("insolvency case for transaction %s not found", transactionID),
 				fmt.Errorf("there was a problem handling your request for insolvency case with transaction ID: " + transactionID + " not found")})
 			return
 		}
-		if insolvencyResourceDaoDataDto != nil && len(insolvencyResourceDaoDataDto.Practitioners) == 0 {
+		if insolvencyResourceDao != nil && len(insolvencyResourceDao.Data.Practitioners) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "error", []error{fmt.Errorf("practitioners for insolvency case with transaction %s not found", transactionID),
 				fmt.Errorf("there was a problem handling your request for insolvency case with transaction: " + transactionID + " there are no practitioners assigned to this case")})
 			return
 		}
 
-		_, practitionerIds, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResourceDaoDataDto.Practitioners)
+		_, practitionerIds, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResourceDao.Data.Practitioners)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
 
-		practitionerResourceDtos, _ := svc.GetPractitionersByIdsFromPractitioner(practitionerIds, transactionID)
+		practitionerResourceDaos, _ := svc.GetPractitionersAppointmentResource(practitionerIds, transactionID)
 
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDto.Data)
+		for _, practitionerDao := range practitionerResourceDaos {
+			practitionerResourceDao = append(practitionerResourceDao, practitionerDao)
 		}
 
 		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDao)
@@ -215,21 +215,21 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
 
 		// Get practitioner from DB
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+		practitionerResourceDaos, err := svc.GetPractitionersAppointmentResource([]string{practitionerID}, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err),
 				fmt.Errorf("there was a problem handling your request")})
 			return
 		}
-
+		fmt.Println("practitionerResourceDaos1232======>", practitionerResourceDaos)
 		// Check if practitioner returned is empty
-		if len(practitionerResourceDtos) == 0 {
+		if len(practitionerResourceDaos) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "debug", []error{fmt.Errorf("practitioner with ID [%s] not found", practitionerID)})
 			return
 		}
 
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDto.Data)
+		for _, practitionerDao := range practitionerResourceDaos {
+			practitionerResourceDao = append(practitionerResourceDao, practitionerDao)
 		}
 
 		// Successfully retrieved practitioner
@@ -380,6 +380,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		vars := mux.Vars(req)
+
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
@@ -388,7 +389,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+		practitionerResourceDtos, err := svc.GetPractitionersAppointmentResource([]string{practitionerID}, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return

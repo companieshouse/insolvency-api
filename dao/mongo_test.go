@@ -35,7 +35,7 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Create Insolvency Resource", t, func() {
 
-		expectedInsolvency := models.InsolvencyResourceDto{}
+		expectedInsolvency := models.InsolvencyResourceDao{}
 
 		mongoService := setUp(t)
 
@@ -63,7 +63,7 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		practitionerResource := models.PractitionerResourceDto{}
+		practitionerResource := models.PractitionerResourceDao{}
 
 		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
@@ -89,9 +89,9 @@ func TestUnitGetPractitionersByIds(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practitionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersAppointmentResource([]string{"practitionerID"}, "transactionID")
 
-		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "the Aggregate operation must have a Deployment set before Execute can be called")
 	})
 }
 

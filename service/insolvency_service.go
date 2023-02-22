@@ -17,14 +17,15 @@ const validationMessageFormat = "validation failed for insolvency ID [%s]: [%v]"
 
 // ValidateInsolvencyDetails checks that an insolvency case is valid and ready for submission
 // Any validation errors found are added to an array to be returned
-func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) *[]models.ValidationErrorResponseResource {
+func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDaoData) *[]models.ValidationErrorResponseResource {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
 	// Check if there is one practitioner appointed and if there is, ensure that all practitioners are appointed
 	hasAppointedPractitioner := false
+	 
 	for _, practitioner := range insolvencyResource.Data.Practitioners {
-		if practitioner.Appointment != nil {
+		if practitioner.Data.Appointment != nil {
 			hasAppointedPractitioner = true
 			break
 		}
@@ -32,7 +33,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 
 	if hasAppointedPractitioner {
 		for _, practitioner := range insolvencyResource.Data.Practitioners {
-			if practitioner.Appointment == nil || practitioner.Appointment.AppointedOn == "" {
+			if practitioner.Data.Appointment == nil || practitioner.Data.Appointment.Data.AppointedOn == "" {
 				validationError := fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyResource.TransactionID)
 				log.Info(validationError)
 				validationErrors = addValidationError(validationErrors, validationError, "appointment")
@@ -117,7 +118,8 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 
 	// Check that id of uploaded resolution attachment matches attachment id supplied in resolution
 	if hasResolutionAttachment && resolutionFiled && !(insolvencyResource.Data.Attachments[resolutionArrayPosition].ID == insolvencyResource.Data.Resolution.Attachments[0]) {
-		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
+		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", 
+		insolvencyResource.TransactionID)
 		log.Info(validationError)
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 	}
@@ -125,14 +127,20 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	// Check if "statement-of-affairs-director" or "statement-of-affairs-liquidator" has been filed, if so, then a statement date must be present
 	_, hasStatementOfAffairsDirector := attachmentTypes[constants.StatementOfAffairsDirector.String()]
 	if (hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator) && (insolvencyResource.Data.StatementOfAffairs == nil || insolvencyResource.Data.StatementOfAffairs.StatementDate == "") {
-		validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyResource.TransactionID)
+		validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]",
+			constants.StatementOfAffairsDirector.String(),
+			constants.StatementOfAffairsLiquidator.String(),
+			insolvencyResource.TransactionID)
 		log.Info(validationError)
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
 	}
 
 	// Check if SOA resource exists or statement date is not empty in DB, if not, then an SOA-D or SOA-L attachment must be filed
 	if insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != "" && !(hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator) {
-		validationError := fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyResource.TransactionID)
+		validationError := fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]",
+			constants.StatementOfAffairsDirector.String(),
+			constants.StatementOfAffairsLiquidator.String(),
+			insolvencyResource.TransactionID)
 		log.Info(validationError)
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
 	}
@@ -144,7 +152,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	}
 
 	if !hasSubmittedPractitioner && !hasResolutionAttachment {
-		validationError := fmt.Sprintf("error - if no practitioners are present then an attachment of the type resolution must be present")
+		validationError :=  "error - if no practitioners are present then an attachment of the type resolution must be present"
 		log.Info(fmt.Sprintf(validationMessageFormat, insolvencyResource.ID, validationError))
 		validationErrors = addValidationError(validationErrors, validationError, "no practitioners and no resolution")
 	}
@@ -154,14 +162,14 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 	// or after resolution date
 	if hasAppointedPractitioner && hasResolutionAttachment {
 		for _, practitioner := range insolvencyResource.Data.Practitioners {
-			ok, err := checkValidAppointmentDate(practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
+			ok, err := checkValidAppointmentDate(practitioner.Data.Appointment.Data.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
 			if err != nil {
 				log.Error(fmt.Errorf("error when parsing date for insolvency ID [%s]: [%s]", insolvencyResource.ID, err))
 				validationErrors = addValidationError(validationErrors, fmt.Sprint(err), "practitioner")
 			}
 
 			if !ok {
-				validationError := fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]", practitioner.Appointment.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
+				validationError := fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]", practitioner.Data.Appointment.Data.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
 				validationErrors = addValidationError(validationErrors, validationError, "practitioner")
 			}
 		}
@@ -248,7 +256,7 @@ func addValidationError(validationErrors []models.ValidationErrorResponseResourc
 
 // ValidateAntivirus checks that attachments on an insolvency case pass the antivirus check and are ready for submission
 // Any validation errors found are added to an array to be returned
-func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDao, req *http.Request) *[]models.ValidationErrorResponseResource {
+func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyResourceDaoData, req *http.Request) *[]models.ValidationErrorResponseResource {
 
 	validationErrors := make([]models.ValidationErrorResponseResource, 0)
 
@@ -307,7 +315,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 
 	// Check for an appointed practitioner to determine if there's a 600 insolvency form
 	for _, practitioner := range insolvencyResource.Data.Practitioners {
-		if practitioner.Appointment != nil {
+		if practitioner.Data.Appointment != nil {
 			// If a filing is a 600 add a generated filing to the array of filings
 			filing600 := models.NewFiling(
 				generateDataBlockForFiling(&insolvencyResource, "600"),
@@ -363,7 +371,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 }
 
 // generateDataBlockForFiling generates the block of data to be included with a filing
-func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
+func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDaoData, form string) map[string]interface{} {
 
 	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,

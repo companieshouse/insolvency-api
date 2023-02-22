@@ -16,7 +16,7 @@ func TestUnitInsolvencyResourceDaoToTransactionResource(t *testing.T) {
 			ValidationStatus: "/transactions/87654321/insolvency/validation-status",
 		}
 
-		incomingRequest := &models.InsolvencyResourceDto{}
+		incomingRequest := &models.InsolvencyResourceDao{}
 		incomingRequest.Data.Links = linksModels
 
 		response := InsolvencyResourceDaoToTransactionResource(incomingRequest)

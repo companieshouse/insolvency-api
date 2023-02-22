@@ -75,7 +75,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 
 	var errs []string
 
-	practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+	practitionerResourceDao, err := svc.GetPractitionersAppointmentResource([]string{practitionerID}, transactionID)
 	if err != nil {
 		errs = append(errs, err.Error())
 		err = fmt.Errorf("error getting pracititioner resources from DB: [%s]", err)
@@ -83,14 +83,14 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 		return errs, err
 	}
 
-	for _, practitioner := range practitionerResourceDtos {
-		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
+	for _, practitioner := range practitionerResourceDao {
+		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.Data.AppointedOn != "" {
 			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
 			log.Info(msg)
 			errs = append(errs, msg)
 		}
 	}
-	
+
 	// Check if appointment date supplied is in the future or before company was incorporated
 	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
@@ -118,9 +118,9 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	// // Check if appointment date supplied is different from stored appointment dates in DB
-	for _, practitioner := range practitionerResourceDtos {
-		if practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" && practitioner.Data.Appointment.AppointedOn != appointment.AppointedOn {
-			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitioner.Data.Appointment.AppointedOn))
+	for _, practitioner := range practitionerResourceDao {
+		if practitioner.Data.Appointment != nil && practitioner.Data.Appointment.Data.AppointedOn != "" && practitioner.Data.Appointment.Data.AppointedOn != appointment.AppointedOn {
+			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitioner.Data.Appointment.Data.AppointedOn))
 		}
 	}
 
