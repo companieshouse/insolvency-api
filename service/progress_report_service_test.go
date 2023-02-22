@@ -13,7 +13,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestValidProgressReport(t *testing.T) {
+func TestUnitValidProgressReport(t *testing.T) {
 	transactionID := "123"
 
 	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
