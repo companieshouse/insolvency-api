@@ -309,18 +309,13 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	for _, practitioner := range insolvencyResource.Data.Practitioners {
 		if practitioner.Appointment != nil {
 			// If a filing is a 600 add a generated filing to the array of filings
-			filing600 := models.NewFiling(
-				generateDataBlockForFiling(&insolvencyResource, "600"),
-				fmt.Sprintf("600 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
-				"600",
-				"insolvency#600")
-			filings = append(filings, *filing600)
+			newFiling := generateNewFiling(&insolvencyResource, nil, "600")
+			filings = append(filings, *newFiling)
 			break
 		}
 	}
 
 	// Map attachments to filing types
-	attachmentsMap := map[string][]*models.AttachmentResourceDao{}
 	attachmentsLRESEX := []*models.AttachmentResourceDao{}
 	attachmentsLIQ02 := []*models.AttachmentResourceDao{}
 	attachmentsLIQ03 := []*models.AttachmentResourceDao{}
@@ -334,33 +329,24 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 		case "progress-report":
 			attachmentsLIQ03 = append(attachmentsLIQ03, &insolvencyResource.Data.Attachments[i])
 		}
-		if len(attachmentsLRESEX) > 0 {
-			attachmentsMap["LRESEX"] = attachmentsLRESEX
-		}
-		if len(attachmentsLIQ02) > 0 {
-			attachmentsMap["LIQ02"] = attachmentsLIQ02
-		}
-		if len(attachmentsLIQ03) > 0 {
-			attachmentsMap["LIQ03"] = attachmentsLIQ03
-		}
 	}
-
-	for filingType := range attachmentsMap {
-		dataBlock := generateDataBlockForFiling(&insolvencyResource, filingType)
-		dataBlock["attachments"] = attachmentsMap[filingType]
-		newFiling := models.NewFiling(
-			dataBlock,
-			fmt.Sprintf("%s insolvency case for %v", filingType, insolvencyResource.Data.CompanyNumber),
-			filingType,
-			fmt.Sprintf("insolvency#%s", filingType))
+	if len(attachmentsLRESEX) > 0 {
+		newFiling := generateNewFiling(&insolvencyResource, attachmentsLRESEX, "LRESEX")
 		filings = append(filings, *newFiling)
 	}
-
+	if len(attachmentsLIQ02) > 0 {
+		newFiling := generateNewFiling(&insolvencyResource, attachmentsLIQ02, "LIQ02")
+		filings = append(filings, *newFiling)
+	}
+	if len(attachmentsLIQ03) > 0 {
+		newFiling := generateNewFiling(&insolvencyResource, attachmentsLIQ03, "LIQ03")
+		filings = append(filings, *newFiling)
+	}
 	return filings, nil
 }
 
-// generateDataBlockForFiling generates the block of data to be included with a filing
-func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
+// generateNewFiling generates a new filing for a specified filing type using data extracted from the InsolvencyResourceDao & a supplied slice of attachments
+func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
 
 	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,
@@ -369,7 +355,7 @@ func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao
 		"practitioners":  &insolvencyResource.Data.Practitioners,
 	}
 
-	switch form {
+	switch filingType {
 	case "LRESEX":
 		if insolvencyResource.Data.Resolution != nil {
 			dataBlock["case_date"] = &insolvencyResource.Data.Resolution.DateOfResolution
@@ -385,6 +371,14 @@ func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao
 			dataBlock["to_date"] = &insolvencyResource.Data.ProgressReport.ToDate
 		}
 	}
+	if attachments != nil {
+		dataBlock["attachments"] = attachments
+	}
 
-	return dataBlock
+	newFiling := models.NewFiling(
+		dataBlock,
+		fmt.Sprintf("%s insolvency case for %v", filingType, insolvencyResource.Data.CompanyNumber),
+		filingType,
+		fmt.Sprintf("insolvency#%s", filingType))
+	return newFiling
 }
