@@ -345,7 +345,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	return filings, nil
 }
 
-// generateDataBlockForFiling generates the block of data to be included with a filing
+// generateNewFiling generates a new filing for a specified filing type using data extracted from the InsolvencyResourceDao & a supplied slice of attachments
 func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
 
 	dataBlock := map[string]interface{}{
