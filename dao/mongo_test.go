@@ -306,3 +306,14 @@ func TestUnitDeleteResolutionResource(t *testing.T) {
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
+
+func TestUnitDeleteResource(t *testing.T) {
+	Convey("DeleteResource", t, func() {
+
+		MongoService := setUp(t)
+
+		_, err := MongoService.DeleteResource("transactionID", "progress-report")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+	})
+}

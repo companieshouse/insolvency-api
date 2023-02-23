@@ -674,7 +674,7 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 // DeleteStatementOfAffairsResource deletes the statement of affairs filed for an insolvency case
 func (m *MongoService) DeleteStatementOfAffairsResource(transactionID string) (int, error) {
 
-	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "statement-of-affairs")
+	httpStatus, err := m.DeleteResource(transactionID, "statement-of-affairs")
 	return httpStatus, err
 
 }
@@ -764,7 +764,7 @@ func (m *MongoService) GetProgressReportResource(transactionID string) (*models.
 // DeleteProgressReportResource deletes the progress report filed for an insolvency case
 func (m *MongoService) DeleteProgressReportResource(transactionID string) (int, error) {
 
-	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "progress-report")
+	httpStatus, err := m.DeleteResource(transactionID, "progress-report")
 	return httpStatus, err
 
 }
@@ -801,15 +801,15 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 	return *insolvencyResource.Data.Resolution, nil
 }
 
-// DeleteResolutionResource deletes an resource filed for an Insolvency Case
+// DeleteResolutionResource deletes a resolution resource filed for an Insolvency Case
 func (m *MongoService) DeleteResolutionResource(transactionID string) (int, error) {
 
-	httpStatus, err := m.DeleteResourceDBChecks(transactionID, "resolution")
+	httpStatus, err := m.DeleteResource(transactionID, "resolution")
 	return httpStatus, err
 
 }
 
-func (m *MongoService) DeleteResourceDBChecks(transactionID string, resType string) (int, error) {
+func (m *MongoService) DeleteResource(transactionID string, resType string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific transaction for insolvency case with attachment to be removed
