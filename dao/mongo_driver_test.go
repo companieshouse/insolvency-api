@@ -346,7 +346,7 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 	})
 }
 
-func TestUnitGetPractitionersAppointmentResourceDriver(t *testing.T) {
+func TestUnitGetPractitionersResourceDriver(t *testing.T) {
 	t.Parallel()
 
 	mongoService, commandError, _, opts, _ := setDriverUp()
@@ -354,17 +354,17 @@ func TestUnitGetPractitionersAppointmentResourceDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("GetPractitionersAppointmentResource runs with error", func(mt *mtest.T) {
+	mt.Run("GetPractitionersResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		practitioner, err := mongoService.GetPractitionersAppointmentResource([]string{"practitionerID"}, "transactionID")
+		practitioner, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
 
 		assert.Nil(t, practitioner)
 		assert.Equal(t, err.Error(), "(Name) Message")
 	})
 
-	mt.Run("GetPractitionersAppointmentResource runs successfully", func(mt *mtest.T) {
+	mt.Run("GetPractitionersResource runs successfully", func(mt *mtest.T) {
 		bsonData := bson.M{
 			"id":               "ID",
 			"ip_code":          "IPCode",
@@ -385,7 +385,7 @@ func TestUnitGetPractitionersAppointmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(first, second, killCursors)
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetPractitionersAppointmentResource([]string{"practitionerID"}, "transactionID")
+		insolvencyResource, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)

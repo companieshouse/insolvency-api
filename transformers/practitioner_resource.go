@@ -43,11 +43,13 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, practition
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
 	practitionerResourceDao := model.Data
 	return &models.CreatedPractitionerResource{
+		PractitionerId:  practitionerResourceDao.PractitionerId,
 		IPCode:          practitionerResourceDao.IPCode,
 		FirstName:       practitionerResourceDao.FirstName,
 		LastName:        practitionerResourceDao.LastName,
 		TelephoneNumber: practitionerResourceDao.TelephoneNumber,
-		Email:           practitionerResourceDao.Email,
+		Etag:            practitionerResourceDao.Etag,
+		Kind:            practitionerResourceDao.Kind,
 		Address: models.CreatedAddressResource{
 			Premises:     practitionerResourceDao.Address.Premises,
 			AddressLine1: practitionerResourceDao.Address.AddressLine1,
@@ -59,8 +61,9 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 			POBox:        practitionerResourceDao.Address.POBox,
 		},
 		Role: practitionerResourceDao.Role,
-		Links: models.CreatedPractitionerLinksResource{
-			Self: practitionerResourceDao.Links.Self,
+		Links: models.PractitionerResourceLinksDao{
+			Self:        practitionerResourceDao.Links.Self,
+			Appointment: practitionerResourceDao.Links.Appointment,
 		},
 	}
 }
@@ -69,7 +72,7 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 // a list of the created response model
 func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.PractitionerResourceDao) []models.CreatedPractitionerResource {
 	var createdPractitioners []models.CreatedPractitionerResource
-
+	
 	for _, practitioner := range practitionerList {
 		createdPractitioners = append(createdPractitioners, *PractitionerResourceDaoToCreatedResponse(&practitioner))
 	}

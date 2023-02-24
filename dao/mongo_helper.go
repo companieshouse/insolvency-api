@@ -24,13 +24,14 @@ func UpdateCollection(transactionID string, practitionerID string, filter bson.M
 	return http.StatusNoContent, nil
 }
 
-func GetInsolvencyPractitionersDetails(insolvencyResource models.InsolvencyResourceDao, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
+func GetInsolvencyPractitionersDetails(practitionersString string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
 
-	_, practitionerIDs, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResource.Data.Practitioners)
+	_, practitionerIDs, err := utils.ConvertStringToMapObjectAndStringList(practitionersString)
 	if err != nil {
 		return nil, err
 	}
 
+	fmt.Println("practitionerIDs", practitionerIDs)
 	// make a call to fetch all practitioners from the string array
 	var practitionerResourceDao []models.PractitionerResourceDao
 	practitionerResourceDao, err = getPractitioners(practitionerIDs, transactionID, collection)

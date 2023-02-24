@@ -29,6 +29,24 @@ type InsolvencyResourceLinksDao struct {
 }
 
 // PractitionerResourceDao contains the data for the practitioner resource in Mongo
+type PractitionerResourceDao1 struct {
+	Data struct {
+		PractitionerId  string                       `bson:"practitioner_id"`
+		IPCode          string                       `bson:"ip_code"`
+		FirstName       string                       `bson:"first_name"`
+		LastName        string                       `bson:"last_name"`
+		TelephoneNumber string                       `bson:"telephone_number,omitempty"`
+		Email           string                       `bson:"email,omitempty"`
+		Address         AddressResourceDao           `bson:"address"`
+		Role            string                       `bson:"role"`
+		Etag            string                       `bson:"etag"`
+		Kind            string                       `bson:"kind"`
+		Links           PractitionerResourceLinksDao `bson:"links"`
+		Appointment     *[]AppointmentResourceDao      `bson:"appointment,omitempty"`
+	}
+}
+
+// PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
 	Data struct {
 		PractitionerId  string                       `bson:"practitioner_id"`

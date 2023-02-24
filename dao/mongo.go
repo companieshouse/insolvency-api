@@ -133,13 +133,20 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 
 	// make a call to get insolvency practitioner details
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
-	practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(insolvencyResourceDao, transactionID, practitionerCollection)
-	if err != nil {
-		log.Error(err)
-		return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", transactionID)
+
+	practitionersString := insolvencyResourceDao.Data.Practitioners
+	fmt.Println("practitionersString============>", practitionersString)
+	if len(practitionersString) > 0 {
+		practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
+		if err != nil {
+			log.Error(err)
+			return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", err)
+		}
+
+		return &insolvencyResourceDao, practitionerResourceDaos, nil
 	}
 
-	return &insolvencyResourceDao, practitionerResourceDaos, nil
+	return &insolvencyResourceDao, nil, nil
 }
 
 func (m *MongoService) GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error) {
@@ -218,8 +225,8 @@ func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource model
 	return http.StatusNoContent, nil
 }
 
-// GetPractitionersAppointmentResource gets practitioner(s) for an practitioner collection by practitionerID(s)
-func (m *MongoService) GetPractitionersAppointmentResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error) {
+// GetPractitionersResource gets practitioner(s) for an practitioner collection by practitionerID(s)
+func (m *MongoService) GetPractitionersResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error) {
 
 	collection := m.db.Collection(PractitionerCollectionName)
 

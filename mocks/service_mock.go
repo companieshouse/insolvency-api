@@ -113,17 +113,17 @@ func (mr *MockServiceMockRecorder) UpdateInsolvencyPractitioners(practitionersRe
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateInsolvencyPractitioners", reflect.TypeOf((*MockService)(nil).UpdateInsolvencyPractitioners),practitionersResource, transactionID)
 }
 
-// GetPractitionersAppointmentResource mocks base method
-func (m *MockService) GetPractitionersAppointmentResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error)  {
-	ret := m.ctrl.Call(m, "GetPractitionersAppointmentResource", practitionerIDs, transactionID)
+// GetPractitionersResource mocks base method
+func (m *MockService) GetPractitionersResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error)  {
+	ret := m.ctrl.Call(m, "GetPractitionersResource", practitionerIDs, transactionID)
 	ret0, _ := ret[0].([]models.PractitionerResourceDao)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetPractitionersAppointmentResource indicates an expected call of GetPractitionersAppointmentResource
-func (mr *MockServiceMockRecorder) GetPractitionersAppointmentResource(practitionerIDs, transactionID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionersAppointmentResource", reflect.TypeOf((*MockService)(nil).GetPractitionersAppointmentResource), practitionerIDs, transactionID)
+// GetPractitionersResource indicates an expected call of GetPractitionersResource
+func (mr *MockServiceMockRecorder) GetPractitionersResource(practitionerIDs, transactionID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionersResource", reflect.TypeOf((*MockService)(nil).GetPractitionersResource), practitionerIDs, transactionID)
 }
 
 // DeletePractitioner mocks base method

@@ -89,7 +89,7 @@ func TestUnitGetPractitionersByIds(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersAppointmentResource([]string{"practitionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
 
 		So(err.Error(), ShouldEqual, "the Aggregate operation must have a Deployment set before Execute can be called")
 	})
