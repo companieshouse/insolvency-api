@@ -218,36 +218,6 @@ func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource model
 	return http.StatusNoContent, nil
 }
 
-// // GetInsolvencyResourceData will retrieve insolvency dto object by transactionID
-func (m *MongoService) GetInsolvencyResourceData(transactionID string) (*models.InsolvencyResourceDao, error) {
-
-	var insolvencyResourceDao models.InsolvencyResourceDao
-
-	collection := m.db.Collection(m.CollectionName)
-
-	filter := bson.M{"transaction_id": transactionID}
-
-	// Retrieve insolvency case from Mongo
-	storedPractitioners := collection.FindOne(context.Background(), filter)
-	err := storedPractitioners.Err()
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
-		}
-		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}
-
-	err = storedPractitioners.Decode(&insolvencyResourceDao)
-	if err != nil {
-		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}
-
-	return &insolvencyResourceDao, nil
-}
-
 // GetPractitionersAppointmentResource gets practitioner(s) for an practitioner collection by practitionerID(s)
 func (m *MongoService) GetPractitionersAppointmentResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error) {
 

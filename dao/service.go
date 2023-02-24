@@ -20,9 +20,6 @@ type Service interface {
 	// UpdateInsolvencyPractitioners will update insolvency with practitioners resource
 	UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDao, transactionID string) (int, error)
 
-	// GetInsolvencyResourceData will retrieve insolvency dto object by transactionID
-	GetInsolvencyResourceData(transactionID string) (*models.InsolvencyResourceDao, error)
-
 	// GetPractitionerAppointment will retrieve a practitioner appointment
 	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)
 

@@ -58,8 +58,15 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
+		// GetInsolvencyPractitionersResource retrieves previously stored practitioners
+		insolvencyResourceDao, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
+			return
+		}
+
 		// Validates that the provided practitioner details are in the correct format
-		validationErrs, err := service.ValidatePractitionerDetails(svc, transactionID, request)
+		validationErrs, err := service.ValidatePractitionerDetails(insolvencyResourceDao, transactionID, request)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err, fmt.Errorf("failed to validate the practitioner request supplied")})
 			return
@@ -83,12 +90,6 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		practitionerResourceDto = *practitionerDao
 		practitionerResourceDto.Data.PractitionerId = practitionerID
 
-		// GetInsolvencyResourceData retrieves previously stored practitioners
-		insolvencyResourceDao, err := svc.GetInsolvencyResourceData(transactionID)
-		if err != nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
-			return
-		}
 
 		maxPractitioners := 5
 		//check to ensure it is not nil from the collection
@@ -166,7 +167,7 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
 
-		insolvencyResourceDao, err := svc.GetInsolvencyResourceData(transactionID)
+		insolvencyResourceDao, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return

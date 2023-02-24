@@ -77,7 +77,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetInsolvencyResourceData("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
