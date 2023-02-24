@@ -135,7 +135,7 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
 	practitionersString := insolvencyResourceDao.Data.Practitioners
-	fmt.Println("practitionersString============>", practitionersString)
+	 
 	if len(practitionersString) > 0 {
 		practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
 		if err != nil {

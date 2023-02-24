@@ -20,9 +20,9 @@ import (
 // incoming list of practitioners
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-
 		var insolvencyResource models.InsolvencyResourceDao
-		var practitionerResourceDto models.PractitionerResourceDao
+		var practitionerResourceDao models.PractitionerResourceDao
+
 		//var practitionersMapResource map[string]string
 		practitionersMapResource := make(map[string]string)
 
@@ -87,8 +87,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, practitionerID, transactionID)
 		practitionerDao.Data.Etag = etag
 		practitionerDao.Data.Kind = "insolvency#practitioner"
-		practitionerResourceDto = *practitionerDao
-		practitionerResourceDto.Data.PractitionerId = practitionerID
+		practitionerResourceDao = *practitionerDao
+		practitionerResourceDao.Data.PractitionerId = practitionerID
 
 		maxPractitioners := 5
 		//check to ensure it is not nil from the collection
@@ -113,7 +113,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		practitionerResourceDaos, err := svc.GetPractitionersResource(extractedPractitionerIds, transactionID)
 		for _, practitionerResourceDao := range practitionerResourceDaos {
 			if err == nil && practitionerDao.Data.IPCode == practitionerResourceDao.Data.IPCode {
-				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDto.Data.IPCode)})
+				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDao.Data.IPCode)})
 				return
 			}
 		}
@@ -122,7 +122,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		practitionersMapResource[practitionerID] = fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerID))
 
 		// Create new practitioner for the insolvency
-		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDto, transactionID)
+		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDao, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return
@@ -146,7 +146,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		log.InfoR(req, fmt.Sprintf("successfully added practitioners resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerDao), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao), http.StatusCreated)
 	})
 }
 
@@ -181,17 +181,8 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 			return
 		}
 
-		// _, practitionerIds, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResourceDao.Data.Practitioners)
-		// if err != nil {
-		// 	logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
-		// 	return
-		// }
-
-		// practitionerResourceDaos, _ := svc.GetPractitionersResource(practitionerIds, transactionID)
-
-		// practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDaos...)
-
 		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDaos)
+
 		utils.WriteJSONWithStatus(w, req, pra, http.StatusOK)
 	})
 }
@@ -226,7 +217,7 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		}
 
 		practitionerResourceDaos = append(practitionerResources, practitionerResourceDaos...)
-		
+
 		// Successfully retrieved practitioner
 		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDaos[0]), http.StatusOK)
 	})

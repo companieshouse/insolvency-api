@@ -25,13 +25,11 @@ func UpdateCollection(transactionID string, practitionerID string, filter bson.M
 }
 
 func GetInsolvencyPractitionersDetails(practitionersString string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
-
 	_, practitionerIDs, err := utils.ConvertStringToMapObjectAndStringList(practitionersString)
 	if err != nil {
 		return nil, err
 	}
 
-	fmt.Println("practitionerIDs", practitionerIDs)
 	// make a call to fetch all practitioners from the string array
 	var practitionerResourceDao []models.PractitionerResourceDao
 	practitionerResourceDao, err = getPractitioners(practitionerIDs, transactionID, collection)
@@ -44,13 +42,12 @@ func GetInsolvencyPractitionersDetails(practitionersString string, transactionID
 }
 
 func getPractitioners(practitionerIDs []string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
-
 	var practitionerResourceDaos []models.PractitionerResourceDao
 	var practitionerResourceDao models.PractitionerResourceDao
 
 	matchQuery := bson.D{{"$match", bson.D{{"data.practitioner_id", bson.D{{"$in", practitionerIDs}}}}}}
 	lookupQuery := bson.D{{"$lookup", bson.D{{"from", AppointmentCollectionName}, {"localField", "data.practitioner_id"}, {"foreignField", "practitioner_id"}, {"as", "data.appointment"}}}}
-	unwindQuery := bson.D{{"$unwind", bson.D{{"path", "$data.appointment"}, {"preserveNullAndEmptyArrays", false}}}}
+	unwindQuery := bson.D{{"$unwind", bson.D{{"path", "$data.appointment"}, {"preserveNullAndEmptyArrays", true}}}}
 
 	// Retrieve practitioners and appointments from DB
 	practitionerCursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{lookupQuery, matchQuery, unwindQuery})
