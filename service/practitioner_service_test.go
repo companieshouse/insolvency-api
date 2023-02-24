@@ -324,7 +324,7 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		// Expect GetInsolvencyPractitionersResource to return an error
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, nil, fmt.Errorf("error retrieving insolvency case"))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("error retrieving insolvency case"))
 
 		_, err := ValidatePractitionerDetails(mockService, transactionID, practitioner)
 
@@ -409,7 +409,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -472,7 +472,6 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 
-		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
@@ -643,7 +642,7 @@ func generateAppointment() models.PractitionerAppointment {
 	}
 }
 
-func generateInsolvencyPractitionerAppointmentResources() (models.InsolvencyResourceDao, models.PractitionerResourceDao, models.AppointmentResourceDao) {
+func generateInsolvencyPractitionerAppointmentResources() (*models.InsolvencyResourceDao, models.PractitionerResourceDao, models.AppointmentResourceDao) {
 
 	practitionerID := "456"
 	practitionerResourceDao := models.PractitionerResourceDao{}
@@ -664,15 +663,12 @@ func generateInsolvencyPractitionerAppointmentResources() (models.InsolvencyReso
 	appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
 	appointmentResourceDao.PractitionerId = "PractitionerID"
 
-	//practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
-
 	insolvencyResourceDaoData := models.InsolvencyResourceDao{}
 	insolvencyResourceDaoData.Data.CompanyNumber = "1234"
 	insolvencyResourceDaoData.Data.CaseType = "creditors-voluntary-liquidation"
 	insolvencyResourceDaoData.Data.CompanyName = "Company"
-	//insolvencyResourceDaoData.Data.Practitioners = practitionerResourceDaos
 
-	return insolvencyResourceDaoData, practitionerResourceDao, appointmentResourceDao
+	return &insolvencyResourceDaoData, practitionerResourceDao, appointmentResourceDao
 }
 
 func companyProfileDateResponse(dateOfCreation string) string {

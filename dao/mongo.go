@@ -105,7 +105,7 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 }
 
 // GetInsolvencyPractitionersResource retrieves all the data for an insolvency case with the specified transactionID
-func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) (models.InsolvencyResourceDao, []models.PractitionerResourceDao, error) {
+func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) (*models.InsolvencyResourceDao, []models.PractitionerResourceDao, error) {
 
 	var insolvencyResourceDao models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
@@ -113,22 +113,22 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	filter := bson.M{"transaction_id": transactionID}
 
 	// Retrieve insolvency case from Mongo
-	storedInsolvency := collection.FindOne(context.Background(), filter)
+	storedPractitioners := collection.FindOne(context.Background(), filter)
 
-	err := storedInsolvency.Err()
+	err := storedPractitioners.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)
+			return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
 		}
 		log.Error(err)
-		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	err = storedInsolvency.Decode(&insolvencyResourceDao)
+	err = storedPractitioners.Decode(&insolvencyResourceDao)
 	if err != nil {
 		log.Error(err)
-		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
 	// make a call to get insolvency practitioner details
@@ -136,10 +136,10 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(insolvencyResourceDao, transactionID, practitionerCollection)
 	if err != nil {
 		log.Error(err)
-		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", transactionID)
+		return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", transactionID)
 	}
 
-	return insolvencyResourceDao, practitionerResourceDaos, nil
+	return &insolvencyResourceDao, practitionerResourceDaos, nil
 }
 
 func (m *MongoService) GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error) {

@@ -498,7 +498,7 @@ func serveHandleGetFilings(service dao.Service, tranIDSet bool) *httptest.Respon
 	return res
 }
 
-func createInsolvencyResource() models.InsolvencyResourceDao {
+func createInsolvencyResource() *models.InsolvencyResourceDao {
 
 	jsonPractitionersDao := `{
 		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
@@ -527,7 +527,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
 	}
 
-	return insolvencyResourceDao
+	return &insolvencyResourceDao
 }
 
 func TestUnitHandleGetValidationStatus(t *testing.T) {
@@ -557,7 +557,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 
 		// Expect GetInsolvencyPractitionersResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)).Times(1)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -570,7 +570,7 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		defer httpmock.DeactivateAndReset()
 
 		// Expect GetInsolvencyPractitionersResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, errors.New("error getting insolvency case from DB")).Times(1)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, errors.New("error getting insolvency case from DB")).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -659,7 +659,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, nil, fmt.Errorf("error")).Times(1)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("error")).Times(1)
 
 		res := serveHandleGetFilings(mockService, true)
 

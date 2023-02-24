@@ -21,7 +21,7 @@ var companyNumber = "01234567"
 var companyName = "companyName"
 var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 
-func createInsolvencyResource() models.InsolvencyResourceDao {
+func createInsolvencyResource() *models.InsolvencyResourceDao {
 	_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 
 	jsonPractitionersDao := `{
@@ -112,7 +112,7 @@ func createInsolvencyResource() models.InsolvencyResourceDao {
 		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
 	}
 
-	return insolvencyResourceDao
+	return &insolvencyResourceDao
 
 }
 
@@ -128,7 +128,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &models.AppointmentResourceDao{}
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 3)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
@@ -150,7 +150,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao1)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 3)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
@@ -167,7 +167,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		appointmentResourceDao.PractitionerId = "PractitionerID"
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(createInsolvencyResource(), practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*createInsolvencyResource(), practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -180,7 +180,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = nil
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 0)
 	})
@@ -230,7 +230,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 0)
 	})
@@ -259,7 +259,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 0)
 	})
@@ -317,7 +317,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -334,7 +334,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -355,7 +355,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 2)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyCase.TransactionID))
@@ -376,7 +376,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = nil
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -446,7 +446,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 5)
 		So((*validationErrors)[1].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -459,7 +459,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		insolvencyCase.Data.Resolution = nil
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -476,7 +476,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a resolution attachment must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -498,7 +498,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -521,7 +521,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -534,7 +534,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -554,7 +554,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			StatementDate: "",
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -569,7 +569,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -587,7 +587,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Remove statement resource
 		insolvencyCase.Data.StatementOfAffairs = nil
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -601,7 +601,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Attachments[1].Type = "random"
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -629,7 +629,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]",
 			practitionerResourceDaos[0].Data.Appointment.Data.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
@@ -657,7 +657,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
@@ -683,7 +683,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("cannot parse"))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
@@ -697,7 +697,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			practitionerResourceDao := models.PractitionerResourceDao{}
 			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid statementOfAffairs date")
 		})
 
@@ -705,7 +705,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.Resolution.DateOfResolution = "invalid"
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid resolution date")
 		})
 
@@ -714,7 +714,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-20"
 			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must not be before resolution date")
 		})
 
@@ -723,7 +723,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-29"
 			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must be within 7 days of resolution date")
 		})
 
@@ -749,7 +749,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -769,7 +769,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 			So(validationErrors, ShouldHaveLength, 0)
 		})
@@ -786,7 +786,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 			practitionerResourceDaos := append([]models.PractitionerResourceDao{})
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
@@ -802,9 +802,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				},
 			}
 
-			practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
@@ -822,7 +822,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
@@ -855,7 +855,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyCase.TransactionID))
@@ -881,7 +881,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyCase.TransactionID))
@@ -907,7 +907,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 }

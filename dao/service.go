@@ -12,7 +12,7 @@ type Service interface {
 	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error)
 
 	// GetInsolvencyPractitionersResource will retrieve an Insolvency Resource
-	GetInsolvencyPractitionersResource(transactionID string) (models.InsolvencyResourceDao, []models.PractitionerResourceDao, error)
+	GetInsolvencyPractitionersResource(transactionID string) (*models.InsolvencyResourceDao, []models.PractitionerResourceDao, error)
 
 	// CreatePractitionerResource will persist a newly created practitioner resource
 	CreatePractitionerResource(dao *models.PractitionerResourceDao, transactionID string) (int, error)

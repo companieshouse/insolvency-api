@@ -258,7 +258,7 @@ func TestUnitGetInsolvencyPractitionersResourceDriver(t *testing.T) {
 		mongoService.db = mt.DB
 		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
-		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction [transactionID]")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
 	})
 
 	mt.Run("GetInsolvencyPractitionersResource runs successfully", func(mt *mtest.T) {

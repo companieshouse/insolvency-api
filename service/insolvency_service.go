@@ -318,7 +318,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 		if practitioner.Data.Appointment != nil {
 			// If a filing is a 600 add a generated filing to the array of filings
 			filing600 := models.NewFiling(
-				generateDataBlockForFiling(&insolvencyResource, practitionerResourceDaos, "600"),
+				generateDataBlockForFiling(insolvencyResource, practitionerResourceDaos, "600"),
 				fmt.Sprintf("600 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
 				"600",
 				"insolvency#600")
@@ -337,7 +337,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	if _, hasResolution := attachmentTypes["resolution"]; hasResolution {
 		// If a filing is an LRESEX add a generated filing to the array of filings
 		filingLRESEX := models.NewFiling(
-			generateDataBlockForFiling(&insolvencyResource, practitionerResourceDaos, "LRESEX"),
+			generateDataBlockForFiling(insolvencyResource, practitionerResourceDaos, "LRESEX"),
 			fmt.Sprintf("LRESEX insolvency case for %v", insolvencyResource.Data.CompanyNumber),
 			"LRESEX",
 			"insolvency#LRESEX")
@@ -350,7 +350,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	if hasStatementOfAffairsDirector || hasStatementOfAffairsLiquidator {
 		// If a filing is a LIQ02 add a generated filing to the array of filings
 		filingLIQ02 := models.NewFiling(
-			generateDataBlockForFiling(&insolvencyResource, practitionerResourceDaos, "LIQ02"),
+			generateDataBlockForFiling(insolvencyResource, practitionerResourceDaos, "LIQ02"),
 			fmt.Sprintf("LIQ02 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
 			"LIQ02",
 			"insolvency#LIQ02")
@@ -360,7 +360,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	if _, hasProgressReport := attachmentTypes["progress-report"]; hasProgressReport {
 		// Add a generated filing to the array of filings if it's a LIQ03
 		filingLIQ03 := models.NewFiling(
-			generateDataBlockForFiling(&insolvencyResource, practitionerResourceDaos, "LIQ03"),
+			generateDataBlockForFiling(insolvencyResource, practitionerResourceDaos, "LIQ03"),
 			fmt.Sprintf("LIQ03 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
 			"LIQ03",
 			"insolvency#LIQ03")

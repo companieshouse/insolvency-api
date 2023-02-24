@@ -51,7 +51,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
 
 		resolution := generateResolutionDao()
 

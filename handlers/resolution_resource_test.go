@@ -185,7 +185,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
 
@@ -585,11 +585,12 @@ func generateAttachment() models.AttachmentResourceDao {
 	}
 }
 
-func generateInsolvencyPractitionerAppointmentResources() models.InsolvencyResourceDao {
+func generateInsolvencyPractitionerAppointmentResources() *models.InsolvencyResourceDao {
+
 	insolvencyDao := models.InsolvencyResourceDao{}
 	insolvencyDao.Data.CompanyNumber = "1234"
 	insolvencyDao.Data.CaseType = "CVL"
 	insolvencyDao.Data.CompanyName = "Company"
 
-	return insolvencyDao
+	return &insolvencyDao
 }
