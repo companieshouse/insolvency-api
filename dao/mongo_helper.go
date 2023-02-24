@@ -12,8 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-//UpdateCollection updates documents of collections
-func UpdateCollection(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (int, error) {
+//updateCollection updates documents of collections
+func updateCollection(transactionID string, practitionerID string, filter bson.M, updateDocument bson.M, collection *mongo.Collection) (int, error) {
 	_, err := collection.UpdateOne(context.Background(), filter, updateDocument)
 	if err != nil {
 		errMsg := fmt.Errorf("could not update practitioner appointment for practitionerID %s: %s", practitionerID, err)
@@ -24,7 +24,7 @@ func UpdateCollection(transactionID string, practitionerID string, filter bson.M
 	return http.StatusNoContent, nil
 }
 
-func GetInsolvencyPractitionersDetails(practitionersString string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
+func getInsolvencyPractitionersDetails(practitionersString string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
 	_, practitionerIDs, err := utils.ConvertStringToMapObjectAndStringList(practitionersString)
 	if err != nil {
 		return nil, err

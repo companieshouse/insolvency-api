@@ -135,9 +135,9 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
 	practitionersString := insolvencyResourceDao.Data.Practitioners
-	 
+
 	if len(practitionersString) > 0 {
-		practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
+		practitionerResourceDaos, err := getInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
 		if err != nil {
 			log.Error(err)
 			return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", err)
@@ -288,7 +288,7 @@ func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *mod
 	pratitionerDocumentToUpdate := bson.M{"$set": bson.M{"data.links.appointment": appointmentResourceDao.Data.Links.Self}}
 
 	//update practitioner collection with appointment link
-	status, err := UpdateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
+	status, err := updateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
 
 	return status, err
 }
@@ -302,7 +302,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 	filter := bson.M{"transaction_id": transactionID, "data.practitioners.id": practitionerID}
 	updateDocument := bson.M{"$unset": bson.M{"data.practitioners.$.appointment": ""}}
 
-	status, err := UpdateCollection(transactionID, practitionerID, filter, updateDocument, collection)
+	status, err := updateCollection(transactionID, practitionerID, filter, updateDocument, collection)
 
 	return status, err
 }
