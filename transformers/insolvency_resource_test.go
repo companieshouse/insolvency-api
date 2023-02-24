@@ -56,19 +56,6 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 			ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
 		}
 
-		// Data: models.InsolvencyResourceDaoDataDto{
-		// 	Etag:          "etag123",
-		// 	Kind:          "insolvency-resource#insolvency-resource",
-		// 	CompanyName:   "companyName",
-		// 	CaseType:      constants.CVL.String(),
-		// 	CompanyNumber: "123456789",
-		// 	Links: models.InsolvencyResourceLinksDao{
-		// 		Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
-		// 		Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
-		// 		ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
-		// 	},
-		// },
-
 		response := InsolvencyResourceDaoToCreatedResponse(dao)
 
 		So(response.CompanyNumber, ShouldEqual, dao.Data.CompanyNumber)

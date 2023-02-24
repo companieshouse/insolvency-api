@@ -104,10 +104,10 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDa
 	return http.StatusConflict, fmt.Errorf("an insolvency case already exists for this transaction id")
 }
 
-// GetInsolvencyResource retrieves all the data for an insolvency case with the specified transactionID
-func (m *MongoService) GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDaoData, error) {
+// GetInsolvencyPractitionersResource retrieves all the data for an insolvency case with the specified transactionID
+func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) (models.InsolvencyResourceDao, []models.PractitionerResourceDao, error) {
 
-	var insolvencyResourceDaoData models.InsolvencyResourceDaoData
+	var insolvencyResourceDao models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
@@ -119,20 +119,29 @@ func (m *MongoService) GetInsolvencyResource(transactionID string) (models.Insol
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return models.InsolvencyResourceDaoData{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)
+			return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)
 		}
 		log.Error(err)
-		return models.InsolvencyResourceDaoData{}, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
 	}
 
-	err = storedInsolvency.Decode(&insolvencyResourceDaoData)
+	err = storedInsolvency.Decode(&insolvencyResourceDao)
 	if err != nil {
 		log.Error(err)
-		return models.InsolvencyResourceDaoData{}, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
 	}
 
-	return insolvencyResourceDaoData, nil
+	// make a call to get insolvency practitioner details
+	practitionerCollection := m.db.Collection(PractitionerCollectionName)
+	practitionerResourceDaos, err := GetInsolvencyPractitionersDetails(insolvencyResourceDao, transactionID, practitionerCollection)
+	if err != nil {
+		log.Error(err)
+		return models.InsolvencyResourceDao{}, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", transactionID)
+	}
+
+	return insolvencyResourceDao, practitionerResourceDaos, nil
 }
+
 func (m *MongoService) GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error) {
 
 	var appointmentResourceDao models.AppointmentResourceDao
@@ -242,22 +251,10 @@ func (m *MongoService) GetInsolvencyResourceData(transactionID string) (*models.
 // GetPractitionersAppointmentResource gets practitioner(s) for an practitioner collection by practitionerID(s)
 func (m *MongoService) GetPractitionersAppointmentResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error) {
 
-	var practitionerResourceDao []models.PractitionerResourceDao
-
 	collection := m.db.Collection(PractitionerCollectionName)
 
-	matchQuery := bson.D{{"$match", bson.D{{"data.practitioner_id", bson.D{{"$in", practitionerIDs}}}}}}
-	lookupQuery := bson.D{{"$lookup", bson.D{{"from", AppointmentCollectionName}, {"localField", "data.practitioner_id"}, {"foreignField", "practitioner_id"}, {"as", "data.appointment"}}}}
-	unwindQuery := bson.D{{"$unwind", bson.D{{"path", "$data.appointment"}, {"preserveNullAndEmptyArrays", false}}}}
-
-	// Retrieve practitioner and appointment from Mongo
-	practitionerCursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{lookupQuery, matchQuery, unwindQuery})
+	practitionerResourceDao, err := getPractitioners(practitionerIDs, transactionID, collection)
 	if err != nil {
-		log.Debug("no practitioner found for transaction id", log.Data{"transaction_id": transactionID})
-		return nil, err
-	}
-
-	if err = practitionerCursor.All(context.Background(), &practitionerResourceDao); err != nil {
 		log.Error(err)
 		return nil, err
 	}

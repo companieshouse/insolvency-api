@@ -190,9 +190,7 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 		practitionerResourceDaos, _ := svc.GetPractitionersAppointmentResource(practitionerIds, transactionID)
 
-		for _, practitionerDao := range practitionerResourceDaos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerDao)
-		}
+		practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDaos...)
 
 		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDao)
 		utils.WriteJSONWithStatus(w, req, pra, http.StatusOK)
@@ -221,16 +219,14 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 				fmt.Errorf("there was a problem handling your request")})
 			return
 		}
-		fmt.Println("practitionerResourceDaos1232======>", practitionerResourceDaos)
+
 		// Check if practitioner returned is empty
 		if len(practitionerResourceDaos) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "debug", []error{fmt.Errorf("practitioner with ID [%s] not found", practitionerID)})
 			return
 		}
 
-		for _, practitionerDao := range practitionerResourceDaos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerDao)
-		}
+		practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDaos...)
 
 		// Successfully retrieved practitioner
 		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao[0]), http.StatusOK)

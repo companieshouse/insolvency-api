@@ -16,6 +16,7 @@ import (
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
+
 	"github.com/gorilla/mux"
 	"github.com/jarcoal/httpmock"
 	. "github.com/smartystreets/goconvey/convey"
@@ -182,6 +183,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.FromDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -189,7 +192,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -211,14 +215,18 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.ToDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
+
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -240,14 +248,18 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.FromDate = "1999-01-02"
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
+
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -269,6 +281,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.ToDate = "1999-06-26"
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -276,7 +290,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -299,6 +314,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport.FromDate = "2021-06-27"
 		progressReport.ToDate = "2021-06-26"
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -306,7 +323,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -333,7 +351,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 	})
 
 	Convey("Attachment is not associated with transaction", t, func() {
-		mockService, _, rec := mocks.CreateTestObjects(t)
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -343,9 +361,14 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		progressReport := generateProgressReport()
 		body, _ := json.Marshal(progressReport)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
+
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
+
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 
 		res := serveHandleCreateProgressReport(body, mockService, helperService, true, rec)
 
@@ -363,6 +386,12 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		progressReport := generateProgressReport()
+		progressReport.Attachments = nil
+
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyDao.Data.Attachments = []models.AttachmentResourceDao{{
+			Type: "resolution",
+		}}
 
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
@@ -371,7 +400,11 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDaoData{}, fmt.Errorf("error"))
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusInternalServerError).AnyTimes()
+
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(gomock.Any(), gomock.Any()).Return(models.AttachmentResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -394,6 +427,9 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 			"0987654321",
 		}
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyDao.Data.Attachments = nil
+
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -401,7 +437,11 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
+
+		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -421,6 +461,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.Attachments = []string{}
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -428,7 +470,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -447,6 +490,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		progressReport := generateProgressReport()
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		attachment := generateAttachment()
 		attachment.Type = "not-progress-report"
 
@@ -457,11 +502,11 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
+
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
@@ -480,6 +525,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 
 		progressReport := generateProgressReport()
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		attachment := generateAttachment()
 		attachment.Type = "progress-report"
 
@@ -488,7 +535,7 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		// Expect CreateProgressReportResource to be called and return an error
 		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID))
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, helperService, true, rec)
 
@@ -510,12 +557,15 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "progress-report"
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
+		//	mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		// Expect CreateProgressReportResource to be called and return an error
 		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, helperService, true, rec)
 
@@ -537,6 +587,8 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "progress-report"
 
+		insolvencyDao := generateInsolvencyPractitionerAppointmentResources()
+
 		body, _ := json.Marshal(progressReport)
 
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
@@ -545,12 +597,12 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), nil)
-		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
+		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, progressReport.Attachments[0]).Return(attachment, nil)
 		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockService.EXPECT().CreateProgressReportResource(gomock.Any(), transactionID).Return(http.StatusOK, nil)
-		mockHelperService.EXPECT().HandleCreateResourceValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyDao, []models.PractitionerResourceDao{}, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 

@@ -19,6 +19,10 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	cfg, _ := config.Get()
 	dataBase := NewGetMongoDatabase("mongoDBURL", "databaseName")
 
+	jsonPractitionersDao := `{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
+	}`
+
 	mongoService := MongoService{
 		db:             dataBase,
 		CollectionName: cfg.MongoCollection,
@@ -48,7 +52,7 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	dataInsolvency.Data.CompanyNumber = "CompanyNumber"
 	dataInsolvency.Data.CaseType = "CaseType"
 	dataInsolvency.Data.CompanyName = "CompanyName"
-	dataInsolvency.Data.Practitioners = "Practitioners"
+	dataInsolvency.Data.Practitioners = jsonPractitionersDao
 	dataInsolvency.Data.Attachments = []models.AttachmentResourceDao{}
 	dataInsolvency.Data.Resolution = &models.ResolutionResourceDao{}
 	dataInsolvency.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{}
@@ -240,7 +244,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
+func TestUnitGetInsolvencyPractitionersResourceDriver(t *testing.T) {
 	t.Parallel()
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
@@ -248,25 +252,40 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("GetInsolvencyResource runs with error", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyPractitionersResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		_, err := mongoService.GetInsolvencyResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction [transactionID]")
 	})
 
-	mt.Run("GetInsolvencyResource runs successfully", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
-			{"_id", expectedInsolvency.ID},
+	mt.Run("GetInsolvencyPractitionersResource runs successfully", func(mt *mtest.T) {
+		id1 := primitive.NewObjectID()
+		id2 := primitive.NewObjectID()
+
+		first := mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", id1},
 			{"transaction_id", expectedInsolvency.TransactionID},
 			{"etag", expectedInsolvency.Data.Etag},
 			{"kind", expectedInsolvency.Data.Kind},
-		}))
+			{"data", expectedInsolvency.Data},
+		})
+
+		second := mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.NextBatch, bson.D{
+			{"_id", id2},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", expectedInsolvency.Data},
+		})
+
+		killCursors := mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.NextBatch)
+		mt.AddMockResponses(first, second, killCursors)
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetInsolvencyResource("transactionID")
+		insolvencyResource, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)

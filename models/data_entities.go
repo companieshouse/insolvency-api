@@ -2,28 +2,6 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-// // InsolvencyResourceDto contains the meta-data for the insolvency resource in Mongo with links rather than real data
-// type InsolvencyResourceDto struct {
-// 	ID            primitive.ObjectID           `bson:"_id"`
-// 	TransactionID string                       `bson:"transaction_id"`
-// 	Data          InsolvencyResourceDaoDataDto `bson:"data"`
-// }
-
-// // InsolvencyResourceDaoDataDto contains the data for the insolvency resource in Mongo with links rather than real data
-// type InsolvencyResourceDaoDataDto struct {
-// 	CompanyNumber      string                         `bson:"company_number"`
-// 	CaseType           string                         `bson:"case_type"`
-// 	CompanyName        string                         `bson:"company_name"`
-// 	Etag               string                         `bson:"etag"`
-// 	Kind               string                         `bson:"kind"`
-// 	Practitioners      string                         `bson:"practitioners,omitempty"`
-// 	Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
-// 	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
-// 	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
-// 	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
-// 	ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
-// }
-
 // InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
 	ID            primitive.ObjectID `bson:"_id"`
@@ -35,25 +13,6 @@ type InsolvencyResourceDao struct {
 		Etag               string                         `bson:"etag"`
 		Kind               string                         `bson:"kind"`
 		Practitioners      string                         `bson:"practitioners,omitempty"`
-		Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
-		Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
-		Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
-		StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
-		ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
-	}
-}
-
-// InsolvencyResourceDaoData contains the data for the insolvency resource in Mongo
-type InsolvencyResourceDaoData struct {
-	ID            primitive.ObjectID `bson:"_id"`
-	TransactionID string             `bson:"transaction_id"`
-	Data          struct {
-		CompanyNumber      string                         `bson:"company_number"`
-		CaseType           string                         `bson:"case_type"`
-		CompanyName        string                         `bson:"company_name"`
-		Etag               string                         `bson:"etag"`
-		Kind               string                         `bson:"kind"`
-		Practitioners      []PractitionerResourceDao      `bson:"practitioners,omitempty"`
 		Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
 		Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
 		Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`

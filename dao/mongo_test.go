@@ -45,13 +45,13 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyResource(t *testing.T) {
+func TestUnitGetInsolvencyPractitionersResource(t *testing.T) {
 
 	Convey("Get Insolvency Resource", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetInsolvencyResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction [transactionID]")
 	})

@@ -31,7 +31,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		statement.Attachments = []string{}
@@ -52,7 +52,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		statement.Attachments = []string{
@@ -71,7 +71,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDaoData{}, fmt.Errorf("err"))
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
 
 		statement := generateStatement()
 
@@ -91,7 +91,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -110,7 +110,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = "2001/1/2"
@@ -132,7 +132,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
@@ -150,7 +150,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -171,7 +171,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = "1999-01-01"
@@ -192,7 +192,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 		statement := generateStatement()
 

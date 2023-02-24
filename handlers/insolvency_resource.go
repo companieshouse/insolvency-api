@@ -147,7 +147,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for validating insolvency resource with transaction id: %s", transactionID))
 
-		insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
+		insolvencyResource, practitionerResourceDao, err := svc.GetInsolvencyPractitionersResource(transactionID)
 		if err != nil {
 			// Check if insolvency case was not found
 			if err.Error() == fmt.Sprintf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {
@@ -164,7 +164,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 			return
 		}
 
-		validationErrors := service.ValidateInsolvencyDetails(insolvencyResource)
+		validationErrors := service.ValidateInsolvencyDetails(insolvencyResource, practitionerResourceDao)
 		antivirusValidationErrors := service.ValidateAntivirus(svc, insolvencyResource, req)
 
 		// If antivirus check has failed, set case false and append antivirus validation error to existing validation errors
