@@ -58,7 +58,9 @@ paths:
       summary: Get validation status of an insolvency data change resource
       responses:
         200:
-          description: "A validation status response was returned (note: this does not mean there were no validation errors)"
+          description:
+            "A validation status response was returned
+            (note: this does not mean there were no validation errors)"
           content:
             application/json:
               schema:
