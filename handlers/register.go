@@ -70,6 +70,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	} else if cfg.EnableNonLiveRouteHandlers {
 		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
 		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
+		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleDeleteProgressReport(svc, helperService)).Methods(http.MethodDelete).Name("deleteProgressReport")
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}
