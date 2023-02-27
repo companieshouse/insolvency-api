@@ -207,12 +207,12 @@ func (m *MongoService) CreateAppointmentResource(appointmentResourceDao *models.
 }
 
 // UpdateInsolvencyPractitioners updates the practitoners for an Insolvency Case
-func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDao, transactionID string) (int, error) {
+func (m *MongoService) UpdateInsolvencyPractitioners(insolvencyResource models.InsolvencyResourceDao, transactionID string) (int, error) {
 
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
-	update := bson.M{"$set": bson.M{"data.practitioners": practitionersResource.Data.Practitioners}}
+	update := bson.M{"$set": bson.M{"data.practitioners": insolvencyResource.Data.Practitioners}}
 
 	//Update the insolvency practitioner
 	_, err := collection.UpdateOne(context.Background(), filter, update)

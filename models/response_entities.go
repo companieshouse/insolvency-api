@@ -19,16 +19,16 @@ type CreatedInsolvencyResourceLinks struct {
 
 // CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
 type CreatedPractitionerResource struct {
-	PractitionerId  string                       `bson:"practitioner_id"`
+	PractitionerId  string                       `json:"practitioner_id"`
 	IPCode          string                       `json:"ip_code"`
 	FirstName       string                       `json:"first_name"`
 	LastName        string                       `json:"last_name"`
 	TelephoneNumber string                       `json:"telephone_number"`
 	Address         CreatedAddressResource       `json:"address"`
 	Role            string                       `json:"role"`
-	Etag            string                       `bson:"etag"`
-	Kind            string                       `bson:"kind"`
-	Links           PractitionerResourceLinksDao `bson:"links"`
+	Etag            string                       `json:"etag"`
+	Kind            string                       `json:"kind"`
+	Links           PractitionerResourceLinksDao `json:"links"`
 }
 
 // CreatedAddressResource contains the address fields for the created practitioner resource
