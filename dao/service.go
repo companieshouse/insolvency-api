@@ -24,7 +24,7 @@ type Service interface {
 	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)
 
 	// GetPractitionersResource will retrieve practitioner(s) from the insolvency resource
-	GetPractitionersResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error)
+	GetPractitionersResource(practitionerIDs []string) ([]models.PractitionerResourceDao, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
 	DeletePractitioner(practitionerID, transactionID string) (int, error)

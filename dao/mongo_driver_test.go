@@ -358,10 +358,10 @@ func TestUnitGetPractitionersResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		practitioner, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
+		practitioner, err := mongoService.GetPractitionersResource([]string{"practitionerID"})
 
 		assert.Nil(t, practitioner)
-		assert.Equal(t, err.Error(), "(Name) Message")
+		assert.Equal(t, err.Error(), "no practitioner found for practitioner id(s) [practitionerID]")
 	})
 
 	mt.Run("GetPractitionersResource runs successfully", func(mt *mtest.T) {
@@ -385,7 +385,7 @@ func TestUnitGetPractitionersResourceDriver(t *testing.T) {
 		mt.AddMockResponses(first, second, killCursors)
 
 		mongoService.db = mt.DB
-		insolvencyResource, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
+		insolvencyResource, err := mongoService.GetPractitionersResource([]string{"practitionerID"})
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)
@@ -406,13 +406,17 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		"email":            "Email",
 	}
 
+	jsonPractitionersDao := `{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
+	}`
+
 	bsonArrays := bson.A{}
 	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", bsonArrays},
+		{"practitioners", jsonPractitionersDao},
 	}
 
 	mt := mtest.New(t, opts)
@@ -427,6 +431,66 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
 	})
 
+	mt.Run("DeletePractitioner runs with error with invalid practitioner links", func(mt *mtest.T) {
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", "jsonPractitionersDao"},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+
+		assert.Equal(t, code, 500)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID not able to map insolvency practitioners")
+	})
+
+	mt.Run("DeletePractitioner run successfully with ModifiedCount", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"acknowledged", true}, {"n", 1}})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"value", bson.D{
+				{"_id", expectedInsolvency.ID},
+				{"transaction_id", expectedInsolvency.TransactionID},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
+				{"data", bsonInsolvency},
+			}},
+		})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"nModified", 1},
+		})
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, code, 204)
+
+	})
+
 	mt.Run("DeletePractitioner with ModifiedCount zero", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
@@ -438,6 +502,19 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"acknowledged", true}, {"n", 1}})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"value", bson.D{
+				{"_id", expectedInsolvency.ID},
+				{"transaction_id", expectedInsolvency.TransactionID},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
+				{"data", bsonInsolvency},
+			}},
+		})
+
 		mt.AddMockResponses(bson.D{
 			{"ok", 1},
 			{"nModified", 0},
@@ -447,12 +524,12 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
 		assert.NotNil(t, err)
-		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID - practitioner with id practitionerID not found")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID - not able to update insolvency practitioners practitionerID")
 		assert.Equal(t, code, 404)
 
 	})
 
-	mt.Run("DeletePractitioner runs successfully", func(mt *mtest.T) {
+	mt.Run("DeletePractitioner runs failed to delete practitioner after sucessfully deleted appointment", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
@@ -471,8 +548,31 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		mongoService.db = mt.DB
 		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
-		assert.Nil(t, err)
-		assert.Equal(t, code, 204)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID not able to delete practitioners")
+		assert.Equal(t, code, 500)
+
+	})
+
+	mt.Run("DeletePractitioner runs failed to delete appointment", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(bson.D{{"ok", 0}, {"acknowledged", true}, {"n", 0}})
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID not able to delete practitioners appointment")
+		assert.Equal(t, code, 500)
 
 	})
 }
@@ -495,9 +595,10 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		_, err := mongoService.UpdatePractitionerAppointment(&appointmentResourceDao, "transactionID", "practitionerID")
+		statusCode, err := mongoService.UpdatePractitionerAppointment(&appointmentResourceDao, "transactionID", "practitionerID")
 
-		assert.Equal(t, err.Error(), "could not update practitioner appointment for practitionerID practitionerID: (Name) Message")
+		assert.Equal(t, statusCode, 500)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID - not able to update practitioner's appointment practitionerID")
 	})
 }
 
@@ -518,13 +619,17 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		"email":            "Email",
 	}
 
+	jsonPractitionersDao := `{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
+	}`
+
 	bsonArrays := bson.A{}
 	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", bsonArrays},
+		{"practitioners", jsonPractitionersDao},
 	}
 
 	mt.Run("DeletePractitionerAppointment runs with error", func(mt *mtest.T) {
@@ -534,10 +639,171 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 
 		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
-		assert.Equal(t, err.Error(), "could not update practitioner appointment for practitionerID practitionerID: (Name) Message")
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
 	})
 
-	mt.Run("DeletePractitionerAppointment runs successfully", func(mt *mtest.T) {
+	mt.Run("DeletePractitionerAppointment runs with error with invalid appointment links", func(mt *mtest.T) {
+		practitionerLinks := models.PractitionerResourceLinksDao{
+			Self:        "",
+			Appointment: "jsonPractitionersDao",
+		}
+
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", "jsonPractitionersDao"},
+			{"links", practitionerLinks},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+
+		assert.Equal(t, code, 500)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id practitionerID not able to map practitioner appointment")
+	})
+
+	mt.Run("DeletePractitionerAppointment run successfully with ModifiedCount", func(mt *mtest.T) {
+		practitionerLinks := models.PractitionerResourceLinksDao{
+			Self:        "",
+			Appointment: jsonPractitionersDao,
+		}
+
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", "jsonPractitionersDao"},
+			{"links", practitionerLinks},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"value", bson.D{
+				{"_id", expectedInsolvency.ID},
+				{"transaction_id", expectedInsolvency.TransactionID},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
+				{"data", bsonInsolvency},
+			}},
+		})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"nModified", 1},
+		})
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, code, 204)
+
+	})
+
+	mt.Run("DeletePractitionerAppointment with ModifiedCount zero", func(mt *mtest.T) {
+		practitionerLinks := models.PractitionerResourceLinksDao{
+			Self:        "",
+			Appointment: jsonPractitionersDao,
+		}
+
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", "jsonPractitionersDao"},
+			{"links", practitionerLinks},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"acknowledged", true}, {"n", 1}})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"value", bson.D{
+				{"_id", expectedInsolvency.ID},
+				{"transaction_id", expectedInsolvency.TransactionID},
+				{"etag", expectedInsolvency.Data.Etag},
+				{"kind", expectedInsolvency.Data.Kind},
+				{"data", bsonInsolvency},
+			}},
+		})
+
+		mt.AddMockResponses(bson.D{
+			{"ok", 1},
+			{"nModified", 0},
+		})
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id practitionerID - not able to update insolvency practitioners transactionID")
+		assert.Equal(t, code, 404)
+
+	})
+
+	mt.Run("DeletePractitionerAppointment runs failed to delete practitioner after sucessfully deleted appointment", func(mt *mtest.T) {
+		practitionerLinks := models.PractitionerResourceLinksDao{
+			Self:        "",
+			Appointment: jsonPractitionersDao,
+		}
+
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", "jsonPractitionersDao"},
+			{"links", practitionerLinks},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(bson.D{{"ok", 1}, {"acknowledged", true}, {"n", 0}})
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id practitionerID not able to delete practitioners appointment")
+		assert.Equal(t, code, 500)
+
+	})
+
+	mt.Run("DeletePractitionerAppointment runs and failed to fetch insolvency resource", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
@@ -557,8 +823,9 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mongoService.db = mt.DB
 		code, err := mongoService.DeletePractitionerAppointment("practitionerID", "transactionID")
 
-		assert.Nil(t, err)
-		assert.Equal(t, code, 204)
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id practitionerID")
+		assert.Equal(t, code, 500)
 
 	})
 }
