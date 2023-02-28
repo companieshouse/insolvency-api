@@ -47,6 +47,7 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 		IPCode:          practitionerResourceDao.IPCode,
 		FirstName:       practitionerResourceDao.FirstName,
 		LastName:        practitionerResourceDao.LastName,
+		Email:           practitionerResourceDao.Email,
 		TelephoneNumber: practitionerResourceDao.TelephoneNumber,
 		Etag:            practitionerResourceDao.Etag,
 		Kind:            practitionerResourceDao.Kind,
@@ -72,7 +73,7 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 // a list of the created response model
 func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.PractitionerResourceDao) []models.CreatedPractitionerResource {
 	var createdPractitioners []models.CreatedPractitionerResource
-	
+
 	for _, practitioner := range practitionerList {
 		createdPractitioners = append(createdPractitioners, *PractitionerResourceDaoToCreatedResponse(&practitioner))
 	}

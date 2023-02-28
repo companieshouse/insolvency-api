@@ -23,6 +23,7 @@ type CreatedPractitionerResource struct {
 	IPCode          string                       `json:"ip_code"`
 	FirstName       string                       `json:"first_name"`
 	LastName        string                       `json:"last_name"`
+	Email           string                       `json:"email"`
 	TelephoneNumber string                       `json:"telephone_number"`
 	Address         CreatedAddressResource       `json:"address"`
 	Role            string                       `json:"role"`

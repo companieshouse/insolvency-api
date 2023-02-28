@@ -2,7 +2,7 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-// InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
+// InsolvencyResourceDao contains the insolvency resource in Mongo
 type InsolvencyResourceDao struct {
 	ID            primitive.ObjectID `bson:"_id"`
 	TransactionID string             `bson:"transaction_id"`
