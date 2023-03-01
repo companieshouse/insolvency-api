@@ -9,34 +9,31 @@ import (
 type Service interface {
 
 	// CreateInsolvencyResource will persist a newly created resource
-	CreateInsolvencyResource(dao *models.InsolvencyResourceDto) (int, error)
+	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error)
 
-	// GetInsolvencyResource will retrieve an Insolvency Resource
-	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)
+	// GetInsolvencyPractitionersResource will retrieve an Insolvency Resource
+	GetInsolvencyPractitionersResource(transactionID string) (*models.InsolvencyResourceDao, []models.PractitionerResourceDao, error)
 
 	// CreatePractitionerResource will persist a newly created practitioner resource
-	CreatePractitionerResource(dao *models.PractitionerResourceDto, transactionID string) (int, error)
+	CreatePractitionerResource(dao *models.PractitionerResourceDao, transactionID string) (int, error)
 
 	// UpdateInsolvencyPractitioners will update insolvency with practitioners resource
-	UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDto, transactionID string) (int, error)
-
-	// GetInsolvencyResourceData will retrieve insolvency dto object by transactionID
-	GetInsolvencyResourceData(transactionID string) (*models.InsolvencyResourceDaoDataDto, error)
+	UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDao, transactionID string) (int, error)
 
 	// GetPractitionerAppointment will retrieve a practitioner appointment
 	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)
 
-	// GetPractitionersByIdsFromPractitioner will retrieve practitioner(s) from the insolvency resource
-	GetPractitionersByIdsFromPractitioner(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDto, error)
+	// GetPractitionersResource will retrieve practitioner(s) from the insolvency resource
+	GetPractitionersResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
 	DeletePractitioner(practitionerID, transactionID string) (int, error)
 
 	// CreateAppointmentResource will create appointment resource
-	CreateAppointmentResource(dao *models.AppointmentResourceDto) (int, error)
+	CreateAppointmentResource(dao *models.AppointmentResourceDao) (int, error)
 
 	// UpdatePractitionerAppointment will update practitioner with appointment
-	UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDto, transactionID string, practitionerID string) (int, error)
+	UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
 
 	// DeletePractitionerAppointment will delete the appointment for a practitioner
 	DeletePractitionerAppointment(transactionID string, practitionerID string) (int, error)

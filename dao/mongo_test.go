@@ -35,7 +35,7 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 
 	Convey("Create Insolvency Resource", t, func() {
 
-		expectedInsolvency := models.InsolvencyResourceDto{}
+		expectedInsolvency := models.InsolvencyResourceDao{}
 
 		mongoService := setUp(t)
 
@@ -45,15 +45,15 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyResource(t *testing.T) {
+func TestUnitGetInsolvencyPractitionersResource(t *testing.T) {
 
 	Convey("Get Insolvency Resource", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetInsolvencyResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 
@@ -63,7 +63,7 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		practitionerResource := models.PractitionerResourceDto{}
+		practitionerResource := models.PractitionerResourceDao{}
 
 		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
@@ -77,7 +77,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetInsolvencyResourceData("transactionID")
+		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -89,9 +89,9 @@ func TestUnitGetPractitionersByIds(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersByIdsFromPractitioner([]string{"practitionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
 
-		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "the Aggregate operation must have a Deployment set before Execute can be called")
 	})
 }
 

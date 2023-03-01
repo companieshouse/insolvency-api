@@ -19,14 +19,17 @@ type CreatedInsolvencyResourceLinks struct {
 
 // CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
 type CreatedPractitionerResource struct {
-	IPCode          string                           `json:"ip_code"`
-	FirstName       string                           `json:"first_name"`
-	LastName        string                           `json:"last_name"`
-	TelephoneNumber string                           `json:"telephone_number"`
-	Email           string                           `json:"email"`
-	Address         CreatedAddressResource           `json:"address"`
-	Role            string                           `json:"role"`
-	Links           CreatedPractitionerLinksResource `json:"links"`
+	PractitionerId  string                       `json:"practitioner_id"`
+	IPCode          string                       `json:"ip_code"`
+	FirstName       string                       `json:"first_name"`
+	LastName        string                       `json:"last_name"`
+	Email           string                       `json:"email"`
+	TelephoneNumber string                       `json:"telephone_number"`
+	Address         CreatedAddressResource       `json:"address"`
+	Role            string                       `json:"role"`
+	Etag            string                       `json:"etag"`
+	Kind            string                       `json:"kind"`
+	Links           PractitionerResourceLinksDao `json:"links"`
 }
 
 // CreatedAddressResource contains the address fields for the created practitioner resource
@@ -51,8 +54,8 @@ type AppointedPractitionerResource struct {
 	AppointedOn string                      `json:"appointed_on"`
 	MadeBy      string                      `json:"made_by"`
 	Links       AppointmentResourceLinksDao `json:"links"`
-	Etag           string                  `json:"etag"`
-	Kind           string                  `json:"kind"`
+	Etag        string                      `json:"etag"`
+	Kind        string                      `json:"kind"`
 }
 
 // AppointedPractitionerLinksResource contains the links details for a practitioner appointment

@@ -8,7 +8,7 @@ import (
 
 // InsolvencyResourceDaoToTransactionResource takes the dao for an insolvency request and converts it to
 // a transaction resource
-func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDto) *companieshouseapi.Transaction {
+func InsolvencyResourceDaoToTransactionResource(req *models.InsolvencyResourceDao) *companieshouseapi.Transaction {
 
 	// Generate insolvency resource for the transaction
 	transactionResource := make(map[string]*companieshouseapi.Resource)

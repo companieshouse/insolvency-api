@@ -16,7 +16,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func incomingInsolvencyResourceDao(helperService utils.HelperService) *models.InsolvencyResourceDto {
+func incomingInsolvencyResourceDao(helperService utils.HelperService) *models.InsolvencyResourceDao {
 	request := incomingInsolvencyRequest("01234567", "companyName", constants.CVL.String())
 
 	res := transformers.InsolvencyResourceRequestToDB(request, "87654321")

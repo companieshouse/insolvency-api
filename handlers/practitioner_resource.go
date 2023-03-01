@@ -20,9 +20,9 @@ import (
 // incoming list of practitioners
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		var insolvencyResource models.InsolvencyResourceDao
+		var practitionerResourceDao models.PractitionerResourceDao
 
-		var insolvencyResource models.InsolvencyResourceDto
-		var practitionerResourceDto models.PractitionerResourceDto
 		//var practitionersMapResource map[string]string
 		practitionersMapResource := make(map[string]string)
 
@@ -58,8 +58,15 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
+		// GetInsolvencyPractitionersResource retrieves previously stored practitioners
+		insolvencyResourceDao, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
+			return
+		}
+
 		// Validates that the provided practitioner details are in the correct format
-		validationErrs, err := service.ValidatePractitionerDetails(svc, transactionID, request)
+		validationErrs, err := service.ValidatePractitionerDetails(insolvencyResourceDao, transactionID, request)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err, fmt.Errorf("failed to validate the practitioner request supplied")})
 			return
@@ -78,22 +85,15 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		}
 
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, practitionerID, transactionID)
-		practitionerDao.Etag = etag
-		practitionerDao.Kind = "insolvency#practitioner"
-		practitionerResourceDto.Data = *practitionerDao
-		practitionerResourceDto.Data.PractitionerId = practitionerID
-
-		// GetInsolvencyResourceData retrieves previously stored practitioners
-		insolvencyResourceDaoDataDto, err := svc.GetInsolvencyResourceData(transactionID)
-		if err != nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
-			return
-		}
+		practitionerDao.Data.Etag = etag
+		practitionerDao.Data.Kind = "insolvency#practitioner"
+		practitionerResourceDao = *practitionerDao
+		practitionerResourceDao.Data.PractitionerId = practitionerID
 
 		maxPractitioners := 5
 		//check to ensure it is not nil from the collection
-		if insolvencyResourceDaoDataDto != nil && len(insolvencyResourceDaoDataDto.Practitioners) > 0 {
-			err = json.Unmarshal([]byte(insolvencyResourceDaoDataDto.Practitioners), &practitionersMapResource)
+		if insolvencyResourceDao != nil && len(insolvencyResourceDao.Data.Practitioners) > 0 {
+			err = json.Unmarshal([]byte(insolvencyResourceDao.Data.Practitioners), &practitionersMapResource)
 			if err != nil {
 				logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("there was a problem handling json Unmarshalling %s", transactionID)})
 				return
@@ -110,10 +110,10 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		// Check if practitioner is already assigned to this case
 		extractedPractitionerIds := utils.ConvertMapToStringArray(practitionersMapResource)
 
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner(extractedPractitionerIds, transactionID)
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			if err == nil && practitionerDao.IPCode == practitionerResourceDto.Data.IPCode {
-				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDto.Data.IPCode)})
+		practitionerResourceDaos, err := svc.GetPractitionersResource(extractedPractitionerIds, transactionID)
+		for _, practitionerResourceDao := range practitionerResourceDaos {
+			if err == nil && practitionerDao.Data.IPCode == practitionerResourceDao.Data.IPCode {
+				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDao.Data.IPCode)})
 				return
 			}
 		}
@@ -122,7 +122,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		practitionersMapResource[practitionerID] = fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerID))
 
 		// Create new practitioner for the insolvency
-		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDto, transactionID)
+		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDao, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return
@@ -146,7 +146,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		log.InfoR(req, fmt.Sprintf("successfully added practitioners resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerDao), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao), http.StatusCreated)
 	})
 }
 
@@ -155,7 +155,6 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
-		var practitionerResourceDao []models.PractitionerResourceDao
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
@@ -166,35 +165,24 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
 
-		insolvencyResourceDaoDataDto, err := svc.GetInsolvencyResourceData(transactionID)
+		insolvencyResourceDao, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
-		if insolvencyResourceDaoDataDto == nil {
+		if insolvencyResourceDao == nil {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "error", []error{fmt.Errorf("insolvency case for transaction %s not found", transactionID),
 				fmt.Errorf("there was a problem handling your request for insolvency case with transaction ID: " + transactionID + " not found")})
 			return
 		}
-		if insolvencyResourceDaoDataDto != nil && len(insolvencyResourceDaoDataDto.Practitioners) == 0 {
+		if insolvencyResourceDao != nil && len(insolvencyResourceDao.Data.Practitioners) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "error", []error{fmt.Errorf("practitioners for insolvency case with transaction %s not found", transactionID),
 				fmt.Errorf("there was a problem handling your request for insolvency case with transaction: " + transactionID + " there are no practitioners assigned to this case")})
 			return
 		}
 
-		_, practitionerIds, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResourceDaoDataDto.Practitioners)
-		if err != nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
-			return
-		}
+		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDaos)
 
-		practitionerResourceDtos, _ := svc.GetPractitionersByIdsFromPractitioner(practitionerIds, transactionID)
-
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDto.Data)
-		}
-
-		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDao)
 		utils.WriteJSONWithStatus(w, req, pra, http.StatusOK)
 	})
 }
@@ -203,7 +191,7 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 // on the insolvency case with the specified transactionID
 func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		var practitionerResourceDao []models.PractitionerResourceDao
+		var practitionerResourceDaos []models.PractitionerResourceDao
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
@@ -215,7 +203,7 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
 
 		// Get practitioner from DB
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+		practitionerResources, err := svc.GetPractitionersResource([]string{practitionerID}, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err),
 				fmt.Errorf("there was a problem handling your request")})
@@ -223,17 +211,15 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		}
 
 		// Check if practitioner returned is empty
-		if len(practitionerResourceDtos) == 0 {
+		if len(practitionerResources) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusNotFound, "debug", []error{fmt.Errorf("practitioner with ID [%s] not found", practitionerID)})
 			return
 		}
 
-		for _, practitionerResourceDto := range practitionerResourceDtos {
-			practitionerResourceDao = append(practitionerResourceDao, practitionerResourceDto.Data)
-		}
+		practitionerResourceDaos = append(practitionerResources, practitionerResourceDaos...)
 
 		// Successfully retrieved practitioner
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao[0]), http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDaos[0]), http.StatusOK)
 	})
 }
 
@@ -380,6 +366,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		vars := mux.Vars(req)
+
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
@@ -388,7 +375,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+		practitionerResourceDtos, err := svc.GetPractitionersResource([]string{practitionerID}, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return

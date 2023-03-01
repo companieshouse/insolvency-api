@@ -35,7 +35,7 @@ func CheckTransactionID(transactionID string, req *http.Request) (error, int) {
 }
 
 // PatchTransactionWithInsolvencyResource will patch the provided transaction with the created insolvency resource
-func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyResource *models.InsolvencyResourceDto, req *http.Request) (error, int) {
+func PatchTransactionWithInsolvencyResource(transactionID string, insolvencyResource *models.InsolvencyResourceDao, req *http.Request) (error, int) {
 
 	// Create Private SDK session
 	api, err := manager.GetPrivateSDK(req)

@@ -7,7 +7,6 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -45,19 +44,16 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 
 		transactionID := "987654321"
 
-		dao := &models.InsolvencyResourceDto{
-			Data: models.InsolvencyResourceDaoDataDto{
-				Etag:          "etag123",
-				Kind:          "insolvency-resource#insolvency-resource",
-				CompanyName:   "companyName",
-				CaseType:      constants.CVL.String(),
-				CompanyNumber: "123456789",
-				Links: models.InsolvencyResourceLinksDao{
-					Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
-					Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
-					ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
-				},
-			},
+		dao := &models.InsolvencyResourceDao{}
+		dao.Data.Etag = "etag123"
+		dao.Data.Kind = "insolvency-resource#insolvency-resource"
+		dao.Data.CompanyName = "companyName"
+		dao.Data.CaseType = constants.CVL.String()
+		dao.Data.CompanyNumber = "123456789"
+		dao.Data.Links = models.InsolvencyResourceLinksDao{
+			Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
+			Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
+			ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
 		}
 
 		response := InsolvencyResourceDaoToCreatedResponse(dao)
@@ -75,39 +71,18 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 
 func TestUnitAppointmentResourceDaoToAppointedResponse(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
-		dao := &models.AppointmentResourceDao{
-			AppointedOn: "2012-02-23",
-			MadeBy:      "company",
-			Links: models.AppointmentResourceLinksDao{
-				Self: "/self/link",
-			},
+
+		appointmentResourceDao := &models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
+		appointmentResourceDao.Data.MadeBy = "company"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{
+			Self: "/self/link",
 		}
 
-		response := AppointmentResourceDaoToAppointedResponse(dao)
-		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
-		So(response.MadeBy, ShouldEqual, dao.MadeBy)
-		So(response.Links.Self, ShouldEqual, dao.Links.Self)
-	})
-}
+		response := AppointmentResourceDaoToAppointedResponse(appointmentResourceDao)
 
-func TestUnitInsolvencyResourceDtoToInsolvencyResourceDao(t *testing.T) {
-	Convey("field mappings are correct", t, func() {
-		insolvencyResourceDto := models.InsolvencyResourceDto{
-			ID:            primitive.NewObjectID(),
-			TransactionID: "transaction_id",
-			Data: models.InsolvencyResourceDaoDataDto{
-				CompanyNumber: "company_number",
-				CaseType:      "case_type",
-				CompanyName:   "company_name",
-				Etag:          "etag",
-				Kind:          "kind",
-				Practitioners: "practitioners,omitempty",
-			},
-		}
-
-		response := InsolvencyResourceDtoToInsolvencyResourceDao(insolvencyResourceDto)
-		So(response.ID, ShouldEqual, insolvencyResourceDto.ID)
-		So(response.TransactionID, ShouldEqual, insolvencyResourceDto.TransactionID)
-		So(response.Data.CompanyNumber, ShouldEqual, insolvencyResourceDto.Data.CompanyNumber)
+		So(response.AppointedOn, ShouldEqual, appointmentResourceDao.Data.AppointedOn)
+		So(response.MadeBy, ShouldEqual, appointmentResourceDao.Data.MadeBy)
+		So(response.Links.Self, ShouldEqual, appointmentResourceDao.Data.Links.Self)
 	})
 }

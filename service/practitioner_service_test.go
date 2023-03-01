@@ -9,7 +9,6 @@ import (
 
 	"github.com/companieshouse/insolvency-api/constants"
 
-	"github.com/companieshouse/insolvency-api/mocks"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/golang/mock/gomock"
@@ -27,12 +26,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.TelephoneNumber = ""
 		practitioner.Email = ""
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "either telephone_number or email are required")
@@ -45,12 +40,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = ""
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
@@ -62,12 +53,9 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.Email = ""
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+	
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
@@ -78,13 +66,9 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "07777777"
-
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+	
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
@@ -97,12 +81,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "077777777777"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must be 10 or 11 digits long")
@@ -115,12 +95,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "077777777OO"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
@@ -133,12 +109,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "07777OO"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
@@ -152,12 +124,9 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "0777777 7777"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
 
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must not contain spaces")
@@ -170,12 +139,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.TelephoneNumber = "77777777777"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "telephone_number must start with 0 and contain only numeric characters")
@@ -188,12 +153,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.FirstName = "wr0ng"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the first name contains a character which is not allowed")
@@ -206,11 +167,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.LastName = "wr0ng"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the last name contains a character which is not allowed")
@@ -224,12 +182,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.FirstName = "name?"
 		practitioner.LastName = "wr0ng"
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "the first name contains a character which is not allowed")
@@ -246,11 +200,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner.Email = ""
 		practitioner.TelephoneNumber = ""
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, "either telephone_number or email are required")
@@ -265,11 +216,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.Role = constants.Receiver.String()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldNotBeBlank)
 		So(err, ShouldContainSubstring, fmt.Sprintf("the practitioner role must be "+constants.FinalLiquidator.String()+" because the insolvency case for transaction ID [%s] is of type "+constants.CVL.String(), transactionID))
@@ -282,14 +230,9 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 		practitioner := generatePractitioner()
 		practitioner.Role = constants.Receiver.String()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
+		_, err := ValidatePractitionerDetails(&models.InsolvencyResourceDao{}, transactionID, practitioner)
 
-		// Expect GetInsolvencyResource to return an error
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error retrieving insolvency case"))
-
-		_, err := ValidatePractitionerDetails(mockService, transactionID, practitioner)
-
-		So(err, ShouldNotBeNil)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("Practitioner request supplied is valid - both telephone number and email are supplied", t, func() {
@@ -298,12 +241,8 @@ func TestUnitIsValidPractitionerDetails(t *testing.T) {
 
 		practitioner := generatePractitioner()
 
-		mockService := mock_dao.NewMockService(mockCtrl)
-
-		// Expect GetInsolvencyResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
-
-		err, _ := ValidatePractitionerDetails(mockService, transactionID, practitioner)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		err, _ := ValidatePractitionerDetails(insolvencyResourceDao, transactionID, practitioner)
 
 		So(err, ShouldBeBlank)
 	})
@@ -317,26 +256,14 @@ func TestUnitIsValidAppointment(t *testing.T) {
 	httpmock.Activate()
 	defer httpmock.DeactivateAndReset()
 
-	practitionerResourceDto := models.PractitionerResourceDto{
-		Data: models.PractitionerResourceDao{
-			PractitionerId:  "practitionerID",
-			IPCode:          "ip_code",
-			FirstName:       "first_name",
-			LastName:        "last_name",
-			TelephoneNumber: "telephone_number,omitempty",
-			Email:           "email,omitempty",
-		},
-	}
-	practitionerResourceDtos := append([]models.PractitionerResourceDto{}, practitionerResourceDto)
-
 	Convey("error getting practitioners", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		//	mockService.EXPECT().GetInsolvencyResourceData(gomock.Any()).Return("", fmt.Errorf("err"))
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(nil, fmt.Errorf("err"))
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, nil, fmt.Errorf("err"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -351,26 +278,20 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		practitionerResourceDto = models.PractitionerResourceDto{
+		_, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
 
-			Data: models.PractitionerResourceDao{
-				PractitionerId:  practitionerID,
-				IPCode:          "ip_code",
-				FirstName:       "first_name",
-				LastName:        "last_name",
-				TelephoneNumber: "telephone_number,omitempty",
-				Email:           "email,omitempty",
-				Appointment: &models.AppointmentResourceDao{
-					AppointedOn: "2012-01-23",
-				},
-			},
-		}
-		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-01-23"
+		appointmentResourceDao.Data.MadeBy = "creditors"
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErrs, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
@@ -383,27 +304,15 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		practitionerResourceDto = models.PractitionerResourceDto{
-			Data: models.PractitionerResourceDao{
-				PractitionerId:  "practitionerID",
-				IPCode:          "ip_code",
-				FirstName:       "first_name",
-				LastName:        "last_name",
-				TelephoneNumber: "telephone_number,omitempty",
-				Email:           "email,omitempty",
-			},
-		}
-		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService := mocks.NewMockService(mockCtrl)
-
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("err"))
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
+
 		So(err.Error(), ShouldContainSubstring, "err")
-		So(validationErr, ShouldBeEmpty)
+		So(validationErr, ShouldNotBeEmpty)
 	})
 
 	Convey("error retrieving company details", t, func() {
@@ -413,13 +322,16 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
+
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error getting company details from DB")
 	})
@@ -431,11 +343,13 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "2001/1/2"
 
@@ -452,23 +366,13 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("error")))
 
-		practitionerResourceDto = models.PractitionerResourceDto{
-			Data: models.PractitionerResourceDao{
-				PractitionerId:  "practitionerID",
-				IPCode:          "ip_code",
-				FirstName:       "first_name",
-				LastName:        "last_name",
-				TelephoneNumber: "telephone_number,omitempty",
-				Email:           "email,omitempty",
-			},
-		}
-		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService := mocks.NewMockService(mockCtrl)
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
-
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
 		So(validationErr, ShouldBeEmpty)
@@ -482,11 +386,14 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		 
 		appointment := generateAppointment()
 		appointment.AppointedOn = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
 
@@ -503,11 +410,14 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+	 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "1999-01-01"
 
@@ -524,41 +434,31 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		practitionersResponse := []models.PractitionerResourceDao{
-			{
-				Appointment: &models.AppointmentResourceDao{
-					AppointedOn: "2012-01-23",
-				},
-			},
-		}
+		practitionersResponseDao := models.PractitionerResourceDao{}
 
-		practitionerResourceDto = models.PractitionerResourceDto{
-			Data: models.PractitionerResourceDao{
-				PractitionerId:  "practitionerID",
-				IPCode:          "ip_code",
-				FirstName:       "first_name",
-				LastName:        "last_name",
-				TelephoneNumber: "telephone_number,omitempty",
-				Email:           "email,omitempty",
-				Appointment: &models.AppointmentResourceDao{
-					AppointedOn: "2012-01-23",
-				},
-			},
-		}
-		practitionerResourceDtos = append([]models.PractitionerResourceDto{}, practitionerResourceDto)
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-01-23"
 
-		mockService := mocks.NewMockService(mockCtrl)
+		practitionersResponseDao.Data.Appointment = &appointmentResourceDao
+		practitionersResponse := append([]models.PractitionerResourceDao{}, practitionersResponseDao)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		_, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
 
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		 
 		appointment := generateAppointment()
 		appointment.AppointedOn = "2012-01-24"
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, "111", req)
 
-		So(validationErr[0], ShouldEqual, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitionersResponse[0].Appointment.AppointedOn))
+		So(validationErr[0], ShouldEqual, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitionersResponse[0].Data.Appointment.Data.AppointedOn))
 		So(err, ShouldBeNil)
 	})
 
@@ -569,10 +469,12 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
 
 		appointment := generateAppointment()
 		appointment.MadeBy = "company"
@@ -590,11 +492,13 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		defer httpmock.Reset()
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService := mocks.NewMockService(mockCtrl)
+		mockService := mock_dao.NewMockService(mockCtrl)
 
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
-		mockService.EXPECT().GetPractitionersByIdsFromPractitioner(gomock.Any(), gomock.Any()).Return(practitionerResourceDtos, nil)
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		 
 		appointment := generateAppointment()
 		appointment.MadeBy = "creditors"
 
@@ -628,27 +532,33 @@ func generateAppointment() models.PractitionerAppointment {
 	}
 }
 
-func generateInsolvencyResource() models.InsolvencyResourceDao {
-	return models.InsolvencyResourceDao{
-		Data: models.InsolvencyResourceDaoData{
-			CompanyNumber: "1234",
-			CaseType:      "creditors-voluntary-liquidation",
-			CompanyName:   "Company",
-			Practitioners: []models.PractitionerResourceDao{
-				{
-					IPCode:          "1111",
-					FirstName:       "First",
-					LastName:        "Last",
-					TelephoneNumber: "12345678901",
-					Email:           "email@email.com",
-					Address:         models.AddressResourceDao{},
-					Role:            "role",
-					Links:           models.PractitionerResourceLinksDao{},
-					Appointment:     nil,
-				},
-			},
-		},
-	}
+func generateInsolvencyPractitionerAppointmentResources() (*models.InsolvencyResourceDao, models.PractitionerResourceDao, models.AppointmentResourceDao) {
+
+	practitionerID := "456"
+	practitionerResourceDao := models.PractitionerResourceDao{}
+
+	practitionerResourceDao.Data.PractitionerId = practitionerID
+	practitionerResourceDao.Data.IPCode = "1111"
+	practitionerResourceDao.Data.FirstName = "First"
+	practitionerResourceDao.Data.LastName = "First"
+	practitionerResourceDao.Data.TelephoneNumber = "TelephoneNumber"
+	practitionerResourceDao.Data.Email = "email@email.com"
+	practitionerResourceDao.Data.Role = "role"
+	practitionerResourceDao.Data.Appointment = &models.AppointmentResourceDao{}
+	practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{}
+
+	appointmentResourceDao := models.AppointmentResourceDao{}
+	appointmentResourceDao.Data.AppointedOn = "2012-01-23"
+	appointmentResourceDao.Data.MadeBy = "MadeBy"
+	appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+	appointmentResourceDao.PractitionerId = "PractitionerID"
+
+	insolvencyResourceDaoData := models.InsolvencyResourceDao{}
+	insolvencyResourceDaoData.Data.CompanyNumber = "1234"
+	insolvencyResourceDaoData.Data.CaseType = "creditors-voluntary-liquidation"
+	insolvencyResourceDaoData.Data.CompanyName = "Company"
+
+	return &insolvencyResourceDaoData, practitionerResourceDao, appointmentResourceDao
 }
 
 func companyProfileDateResponse(dateOfCreation string) string {

@@ -14,7 +14,7 @@ import (
 )
 
 // ValidatePractitionerDetails checks that the incoming practitioner details are valid
-func ValidatePractitionerDetails(svc dao.Service, transactionID string, practitioner models.PractitionerRequest) (string, error) {
+func ValidatePractitionerDetails(insolvencyCase *models.InsolvencyResourceDao, transactionID string, practitioner models.PractitionerRequest) (string, error) {
 	var errs []string
 
 	// Check that either the telephone number or email field are populated
@@ -55,13 +55,6 @@ func ValidatePractitionerDetails(svc dao.Service, transactionID string, practiti
 		errs = append(errs, "the last name contains a character which is not allowed")
 	}
 
-	// Get insolvency case from DB
-	insolvencyCase, err := svc.GetInsolvencyResource(transactionID)
-	if err != nil {
-		log.Error(fmt.Errorf("error getting insolvency case from DB: [%s]", err))
-		return "", err
-	}
-
 	// Check if insolvency case is of type CVL and practitioner role is of type final liquidator
 	if insolvencyCase.Data.CaseType == constants.CVL.String() && practitioner.Role != constants.FinalLiquidator.String() {
 		errs = append(errs, fmt.Sprintf("the practitioner role must be "+constants.FinalLiquidator.String()+" because the insolvency case for transaction ID [%s] is of type "+constants.CVL.String(), transactionID))
@@ -75,28 +68,20 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 
 	var errs []string
 
-	practitionerResourceDtos, err := svc.GetPractitionersByIdsFromPractitioner([]string{practitionerID}, transactionID)
+	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
 	if err != nil {
 		errs = append(errs, err.Error())
-		err = fmt.Errorf("error getting pracititioner resources from DB: [%s]", err)
+		err = fmt.Errorf("error getting practitioner and insolvency resources from DB: [%s]", err)
 		log.ErrorR(req, err)
 		return errs, err
 	}
 
-	for _, practitioner := range practitionerResourceDtos {
-		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" {
+	for _, practitioner := range practitionerResourceDaos {
+		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.Data.AppointedOn != "" {
 			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
 			log.Info(msg)
 			errs = append(errs, msg)
 		}
-	}
-	
-	// Check if appointment date supplied is in the future or before company was incorporated
-	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
-	if err != nil {
-		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
-		log.ErrorR(req, err)
-		return errs, err
 	}
 
 	// Retrieve company incorporation date
@@ -118,9 +103,9 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	// // Check if appointment date supplied is different from stored appointment dates in DB
-	for _, practitioner := range practitionerResourceDtos {
-		if practitioner.Data.Appointment != nil && practitioner.Data.Appointment.AppointedOn != "" && practitioner.Data.Appointment.AppointedOn != appointment.AppointedOn {
-			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitioner.Data.Appointment.AppointedOn))
+	for _, practitioner := range practitionerResourceDaos {
+		if practitioner.Data.Appointment != nil && practitioner.Data.Appointment.Data.AppointedOn != "" && practitioner.Data.Appointment.Data.AppointedOn != appointment.AppointedOn {
+			errs = append(errs, fmt.Sprintf("appointed_on [%s] differs from practitioner who was appointed on [%s]", appointment.AppointedOn, practitioner.Data.Appointment.Data.AppointedOn))
 		}
 	}
 

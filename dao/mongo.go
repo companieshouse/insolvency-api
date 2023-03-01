@@ -11,7 +11,6 @@ import (
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/transformers"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -72,7 +71,7 @@ func getMongoDatabase(mongoDBURL, databaseName string) MongoDatabaseInterface {
 }
 
 // CreateInsolvencyResource will store the insolvency request into the database
-func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDto) (int, error) {
+func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error) {
 
 	dao.ID = primitive.NewObjectID()
 
@@ -105,41 +104,54 @@ func (m *MongoService) CreateInsolvencyResource(dao *models.InsolvencyResourceDt
 	return http.StatusConflict, fmt.Errorf("an insolvency case already exists for this transaction id")
 }
 
-// GetInsolvencyResource retrieves all the data for an insolvency case with the specified transactionID
-func (m *MongoService) GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error) {
+// GetInsolvencyPractitionersResource retrieves all the data for an insolvency case with the specified transactionID
+func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) (*models.InsolvencyResourceDao, []models.PractitionerResourceDao, error) {
 
-	var insolvencyResource models.InsolvencyResourceDto
+	var insolvencyResourceDao models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
 
 	// Retrieve insolvency case from Mongo
-	storedInsolvency := collection.FindOne(context.Background(), filter)
+	storedPractitioners := collection.FindOne(context.Background(), filter)
 
-	err := storedInsolvency.Err()
+	err := storedPractitioners.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return models.InsolvencyResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)
+			return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
 		}
 		log.Error(err)
-		return models.InsolvencyResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	err = storedInsolvency.Decode(&insolvencyResource)
+	err = storedPractitioners.Decode(&insolvencyResourceDao)
 	if err != nil {
 		log.Error(err)
-		return models.InsolvencyResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s]", transactionID)
+		return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	// convert insolvencyResourceDto to insolvencyResourceDao
-	insolvencyResourceDao := transformers.InsolvencyResourceDtoToInsolvencyResourceDao(insolvencyResource)
+	// make a call to get insolvency practitioner details
+	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
-	return insolvencyResourceDao, nil
+	practitionersString := insolvencyResourceDao.Data.Practitioners
+
+	if len(practitionersString) > 0 {
+		practitionerResourceDaos, err := getInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
+		if err != nil {
+			log.Error(err)
+			return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", err)
+		}
+
+		return &insolvencyResourceDao, practitionerResourceDaos, nil
+	}
+
+	return &insolvencyResourceDao, nil, nil
 }
+
 func (m *MongoService) GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error) {
 
-	var appointmentResourceDao models.AppointmentResourceDto
+	var appointmentResourceDao models.AppointmentResourceDao
 
 	collection := m.db.Collection(AppointmentCollectionName)
 
@@ -163,15 +175,15 @@ func (m *MongoService) GetPractitionerAppointment(practitionerID string, transac
 		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
 	}
 
-	return &appointmentResourceDao.Data, nil
+	return &appointmentResourceDao, nil
 }
 
 // CreatePractitionerResource stores an incoming practitioner to the practitioners collection
-func (m *MongoService) CreatePractitionerResource(practitionerResourceDto *models.PractitionerResourceDto, transactionID string) (int, error) {
+func (m *MongoService) CreatePractitionerResource(practitionerResourceDao *models.PractitionerResourceDao, transactionID string) (int, error) {
 
 	collection := m.db.Collection(PractitionerCollectionName)
 
-	_, err := collection.InsertOne(context.Background(), practitionerResourceDto)
+	_, err := collection.InsertOne(context.Background(), practitionerResourceDao)
 	if err != nil {
 		log.Error(err)
 		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s (insert practitioner to collection)", transactionID)
@@ -181,7 +193,7 @@ func (m *MongoService) CreatePractitionerResource(practitionerResourceDto *model
 }
 
 // CreateAppointmentResource stores a practitioner's appointment in appointment collection
-func (m *MongoService) CreateAppointmentResource(appointmentResourceDao *models.AppointmentResourceDto) (int, error) {
+func (m *MongoService) CreateAppointmentResource(appointmentResourceDao *models.AppointmentResourceDao) (int, error) {
 
 	collection := m.db.Collection(AppointmentCollectionName)
 
@@ -195,12 +207,12 @@ func (m *MongoService) CreateAppointmentResource(appointmentResourceDao *models.
 }
 
 // UpdateInsolvencyPractitioners updates the practitoners for an Insolvency Case
-func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDto, transactionID string) (int, error) {
+func (m *MongoService) UpdateInsolvencyPractitioners(insolvencyResource models.InsolvencyResourceDao, transactionID string) (int, error) {
 
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
-	update := bson.M{"$set": bson.M{"data.practitioners": practitionersResource.Data.Practitioners}}
+	update := bson.M{"$set": bson.M{"data.practitioners": insolvencyResource.Data.Practitioners}}
 
 	//Update the insolvency practitioner
 	_, err := collection.UpdateOne(context.Background(), filter, update)
@@ -213,61 +225,18 @@ func (m *MongoService) UpdateInsolvencyPractitioners(practitionersResource model
 	return http.StatusNoContent, nil
 }
 
-// // GetInsolvencyResourceData will retrieve insolvency dto object by transactionID
-func (m *MongoService) GetInsolvencyResourceData(transactionID string) (*models.InsolvencyResourceDaoDataDto, error) {
+// GetPractitionersResource gets practitioner(s) for an practitioner collection by practitionerID(s)
+func (m *MongoService) GetPractitionersResource(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDao, error) {
 
-	var insolvencyResourceDto models.InsolvencyResourceDto
-
-	collection := m.db.Collection(m.CollectionName)
-
-	filter := bson.M{"transaction_id": transactionID}
-
-	// Retrieve insolvency case from Mongo
-	storedPractitioners := collection.FindOne(context.Background(), filter)
-	err := storedPractitioners.Err()
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
-		}
-		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}
-
-	err = storedPractitioners.Decode(&insolvencyResourceDto)
-	if err != nil {
-		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
-	}
-
-	return &insolvencyResourceDto.Data, nil
-}
-
-// GetPractitionersByIdsFromPractitioner gets practitioner(s) for an practitioner collection by practitionerID(s)
-func (m *MongoService) GetPractitionersByIdsFromPractitioner(practitionerIDs []string, transactionID string) ([]models.PractitionerResourceDto, error) {
-
-	var practitionerResourceDto []models.PractitionerResourceDto
 	collection := m.db.Collection(PractitionerCollectionName)
 
-	filter := bson.M{
-		"practitioner_id": bson.M{
-			"$in": bson.A{practitionerIDs},
-		},
-	}
-
-	// Retrieve practitioner from Mongo
-	practitionerCursor, err := collection.Find(context.Background(), filter)
+	practitionerResourceDao, err := getPractitioners(practitionerIDs, transactionID, collection)
 	if err != nil {
-		log.Debug("no practitioner found for transaction id", log.Data{"transaction_id": transactionID})
-		return nil, err
-	}
-
-	if err = practitionerCursor.All(context.Background(), &practitionerResourceDto); err != nil {
 		log.Error(err)
 		return nil, err
 	}
 
-	return practitionerResourceDto, nil
+	return practitionerResourceDao, nil
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
@@ -310,16 +279,16 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 }
 
 // UpdatePractitionerAppointment adds appointment details into practitioner case with the specified transactionID and practitionerID
-func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDto, transactionID string, practitionerID string) (int, error) {
+func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
 
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
 	// Choose specific practitioner to update with appointment
-	practitionerToUpdate := bson.M{"practitioner_id": practitionerID}
+	practitionerToUpdate := bson.M{"data.practitioner_id": practitionerID}
 	pratitionerDocumentToUpdate := bson.M{"$set": bson.M{"data.links.appointment": appointmentResourceDao.Data.Links.Self}}
 
 	//update practitioner collection with appointment link
-	status, err := UpdateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
+	status, err := updateCollection(transactionID, practitionerID, practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
 
 	return status, err
 }
@@ -333,7 +302,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 	filter := bson.M{"transaction_id": transactionID, "data.practitioners.id": practitionerID}
 	updateDocument := bson.M{"$unset": bson.M{"data.practitioners.$.appointment": ""}}
 
-	status, err := UpdateCollection(transactionID, practitionerID, filter, updateDocument, collection)
+	status, err := updateCollection(transactionID, practitionerID, filter, updateDocument, collection)
 
 	return status, err
 }
@@ -538,7 +507,7 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 // with the specified transactionID
 func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
 
-	var insolvencyResource models.InsolvencyResourceDto
+	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
@@ -588,7 +557,7 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 // with the specified transactionID
 func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error) {
 
-	var insolvencyResource models.InsolvencyResourceDto
+	var insolvencyResource models.InsolvencyResourceDao
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
