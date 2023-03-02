@@ -25,7 +25,7 @@ func ProgressReportResourceRequestToDB(req *models.ProgressReport, transactionID
 		return nil
 	}
 
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + "insolvency/progress-report")
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + "/insolvency/progress-report")
 
 	dao := &models.ProgressReportResourceDao{
 		FromDate:    req.FromDate,
