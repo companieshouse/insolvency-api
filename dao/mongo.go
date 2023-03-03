@@ -352,10 +352,9 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 	appointmentCollection := m.db.Collection(AppointmentCollectionName)
 
-	// Choose specific transaction for insolvency case with practitioner to be removed
+	// get practitioner with specified practitionerID
 	filter := bson.M{"data.practitioner_id": practitionerID}
 
-	// Check if insolvency case exists for specified transactionID
 	storedPractitioners := practitionerCollection.FindOne(context.Background(), filter)
 	err := storedPractitioners.Err()
 	if err != nil {
