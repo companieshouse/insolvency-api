@@ -649,9 +649,9 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 		"transaction_id": transactionID,
 	}
 
-	// Retrieve statement of affairs from Mongo
-	storedStatementOfAffairs := collection.FindOne(context.Background(), filter)
-	err := storedStatementOfAffairs.Err()
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
@@ -662,10 +662,13 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 		return models.StatementOfAffairsResourceDao{}, err
 	}
 
-	err = storedStatementOfAffairs.Decode(&insolvencyResource)
+	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return models.StatementOfAffairsResourceDao{}, err
+	}
+	if insolvencyResource.Data.StatementOfAffairs == nil {
+		return models.StatementOfAffairsResourceDao{}, nil
 	}
 
 	return *insolvencyResource.Data.StatementOfAffairs, nil
@@ -739,9 +742,9 @@ func (m *MongoService) GetProgressReportResource(transactionID string) (*models.
 		"transaction_id": transactionID,
 	}
 
-	// Retrieve progress report from Mongo
-	storedProgressReport := collection.FindOne(context.Background(), filter)
-	err := storedProgressReport.Err()
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
@@ -752,10 +755,13 @@ func (m *MongoService) GetProgressReportResource(transactionID string) (*models.
 		return &models.ProgressReportResourceDao{}, err
 	}
 
-	err = storedProgressReport.Decode(&insolvencyResource)
+	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return &models.ProgressReportResourceDao{}, err
+	}
+	if insolvencyResource.Data.ProgressReport == nil {
+		return &models.ProgressReportResourceDao{}, nil
 	}
 
 	return insolvencyResource.Data.ProgressReport, nil
@@ -779,9 +785,9 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 		"transaction_id": transactionID,
 	}
 
-	// Retrieve resolution from Mongo
-	storedResolution := collection.FindOne(context.Background(), filter)
-	err := storedResolution.Err()
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
@@ -792,10 +798,13 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 		return models.ResolutionResourceDao{}, err
 	}
 
-	err = storedResolution.Decode(&insolvencyResource)
+	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return models.ResolutionResourceDao{}, err
+	}
+	if insolvencyResource.Data.Resolution == nil {
+		return models.ResolutionResourceDao{}, nil
 	}
 
 	return *insolvencyResource.Data.Resolution, nil
@@ -828,8 +837,8 @@ func (m *MongoService) DeleteResource(transactionID string, resType string) (int
 	}
 
 	// Choose specific attachment to delete
-	query := bson.M{"data."+resType: ""}
-	
+	query := bson.M{"data." + resType: ""}
+
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
 	if err != nil {
 		log.Error(err)
