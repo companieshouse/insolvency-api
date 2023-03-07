@@ -544,6 +544,46 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
 	})
 
+    Convey("error - attachment type is statement-of-concurrence and practitioner object empty", t, func() {
+        insolvencyCase := createInsolvencyResource()
+
+        // Remove the Practitioners
+        insolvencyCase.Data.Practitioners = nil
+
+        // Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
+        insolvencyCase.Data.Attachments[0].Type = "type"
+        insolvencyCase.Data.Attachments[1].Type = "statement-of-concurrence"
+        insolvencyCase.Data.Attachments[2].Type = "type2"
+
+        // Remove the resolution/statement of affairs/progress report details
+        insolvencyCase.Data.Resolution = nil
+        insolvencyCase.Data.StatementOfAffairs = nil
+        insolvencyCase.Data.ProgressReport = nil
+
+        validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+        So(validationErrors, ShouldHaveLength, 2)
+        So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+        So((*validationErrors)[1].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
+
+    })
+
+    Convey("successful validation of statement-of-concurrence - attachment type is statement-of-concurrence and at least one practitioner present", t, func() {
+        insolvencyCase := createInsolvencyResource()
+
+        // Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
+        insolvencyCase.Data.Attachments[0].Type = "type"
+        insolvencyCase.Data.Attachments[1].Type = "statement-of-concurrence"
+        insolvencyCase.Data.Attachments[2].Type = "type2"
+
+        // Remove the resolution/statement of affairs/progress report details
+        insolvencyCase.Data.Resolution = nil
+        insolvencyCase.Data.StatementOfAffairs = nil
+        insolvencyCase.Data.ProgressReport = nil
+
+        validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+        So(validationErrors, ShouldHaveLength, 0)
+    })
+    
 	Convey("error - practitioner appointment is before date of resolution", t, func() {
 		// Add resolution to insolvency case
 		insolvencyCase := createInsolvencyResource()

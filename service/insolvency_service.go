@@ -68,18 +68,6 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		attachmentTypes[attachment.Type] = struct{}{}
 	}
 
-	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
-	_, hasStatementOfConcurrence := attachmentTypes["statement-of-concurrence"]
-
-	if hasStatementOfConcurrence {
-		_, hasStatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
-		if !hasStatementOfAffairsDirector {
-			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
-			log.Info(validationError)
-			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
-		}
-	}
-
 	// Check if attachment type is statement-of-affairs-liquidator, if true then no practitioners must be appointed, but at least one should be present
 	_, hasStateOfAffairsLiquidator := attachmentTypes["statement-of-affairs-liquidator"]
 
