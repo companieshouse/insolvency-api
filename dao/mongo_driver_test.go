@@ -704,7 +704,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		mongoService.db = mt.DB
 		code, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
-		assert.Equal(t, code, 400)
+		assert.Equal(t, code, 404)
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID - no practitioner's appointment found")
 	})
 
