@@ -82,6 +82,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	privateAppRouter.Handle(constants.TransactionsPath+"{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
 	mainRouter.Use(log.Handler)
+	mainRouter.Use(RecoveryHandler)
 }
 
 func healthCheck(w http.ResponseWriter, _ *http.Request) {
