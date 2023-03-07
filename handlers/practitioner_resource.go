@@ -376,22 +376,22 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitionerResourceDtos, err := svc.GetPractitionersResource([]string{practitionerID})
+		practitionerResourceDaos, err := svc.GetPractitionersResource([]string{practitionerID})
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
 
 		// Check if practitioner is empty (not found).
-		if len(practitionerResourceDtos) == 0 {
+		if len(practitionerResourceDaos) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
 		// Check if practitioner has an appointment
-		appointment := practitionerResourceDtos[0].Data.Appointment
+		appointment := practitionerResourceDaos[0].Data.Appointment
 		if appointment == nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] an transactionID [%s]", practitionerID, transactionID)})
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] and transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 

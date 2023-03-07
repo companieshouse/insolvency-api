@@ -83,6 +83,18 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 	})
 }
 
+func TestUnitGetPractitionerAppointmentResource(t *testing.T) {
+
+	Convey("Get practitioner resources", t, func() {
+
+		mongoService := setUp(t)
+
+		_, err := mongoService.GetPractitionerAppointment("practitionerID","transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+	})
+}
+
 func TestUnitGetPractitionersResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
