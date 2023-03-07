@@ -317,7 +317,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 			return statusCode, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to update insolvency practitioners %s", transactionID, practitionerID)
 		}
 	} else {
-		return http.StatusForbidden, fmt.Errorf("there was a problem handling your request for transaction id %s not able to find practitioner %s to delete", transactionID, practitionerID)
+		return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s not able to find practitioner %s to delete", transactionID, practitionerID)
 	}
 
 	return http.StatusNoContent, nil
@@ -358,7 +358,7 @@ func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *mod
 // DeletePractitionerAppointment deletes an appointment for the specified transactionID and practitionerID
 func (m *MongoService) DeletePractitionerAppointment(transactionID string, practitionerID string) (int, error) {
 
-	var pratitionerDocumentToUpdate primitive.M
+	var practitionerDocumentToUpdate primitive.M
 	var practitionerResourceDao models.PractitionerResourceDao
 
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
@@ -388,7 +388,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 	mappedPractitionerAppointment, _, err := utils.ConvertStringToMapObjectAndStringList(practitionerResourceDao.Data.Links.Appointment)
 	if err != nil {
 		log.Error(err)
-		return http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction id %s - no practitioner's appointment found", transactionID)
+		return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s - no practitioner's appointment found", transactionID)
 	}
 
 	// check if practitionerID exists
@@ -410,18 +410,18 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 
 		practitionerToUpdate := bson.M{"data.practitioner_id": practitionerID}
 		if practitionerAppointmentString == "{}" {
-			pratitionerDocumentToUpdate = bson.M{"$unset": bson.M{"data.links.appointment": ""}}
+			practitionerDocumentToUpdate = bson.M{"$unset": bson.M{"data.links.appointment": ""}}
 		} else {
-			pratitionerDocumentToUpdate = bson.M{"$set": bson.M{"data.links.appointment": practitionerAppointmentString}}
+			practitionerDocumentToUpdate = bson.M{"$set": bson.M{"data.links.appointment": practitionerAppointmentString}}
 		}
 
-		statusCode, err := updateCollection(practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
+		statusCode, err := updateCollection(practitionerToUpdate, practitionerDocumentToUpdate, practitionerCollection)
 		if err != nil {
 			log.Error(err)
 			return statusCode, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to update insolvency practitioners %s", transactionID, practitionerID)
 		}
 	} else {
-		return http.StatusForbidden, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to find practitioner %s to delete appointment", transactionID, practitionerID)
+		return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to find practitioner %s to delete appointment", transactionID, practitionerID)
 	}
 
 	return http.StatusNoContent, nil
