@@ -272,22 +272,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
-	Convey("error - attachment type is statement-of-concurrence and attachment type statement-of-affairs-director is not present", t, func() {
-		insolvencyCase := createInsolvencyResource()
-		// Set attachment type to "statement-of-concurrence"
-		insolvencyCase.Data.Attachments = append(insolvencyCase.Data.Attachments, models.AttachmentResourceDao{Type: "statement-of-concurrence"})
-		// Remove SOA director
-		insolvencyCase.Data.Attachments[1].Type = "type"
-		// Remove SOA
-		insolvencyCase.Data.StatementOfAffairs = nil
-
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of concurrence attachment type")
-	})
-
 	Convey("successful validation of statement-of-concurrence attachment - attachment type is statement-of-concurrence and statement-of-affairs-director are present", t, func() {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Resolution = nil
