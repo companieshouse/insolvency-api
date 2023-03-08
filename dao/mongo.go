@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
@@ -391,9 +392,11 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 		return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s - no practitioner's appointment found", transactionID)
 	}
 
-	// check if practitionerID exists
-	_, isPresent := mappedPractitionerAppointment[practitionerID]
-	if isPresent {
+	// check if practitionerID exists and validate transactionID
+	value, isPresent := mappedPractitionerAppointment[practitionerID]
+	hasValidTransactionID := strings.Contains(value, transactionID)
+
+	if isPresent && hasValidTransactionID {
 		// remove unwanted appointment from the slice
 		delete(mappedPractitionerAppointment, practitionerID)
 
