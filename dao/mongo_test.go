@@ -83,15 +83,15 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 	})
 }
 
-func TestUnitGetPractitionersByIds(t *testing.T) {
+func TestUnitGetPractitionersResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"}, "transactionID")
+		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"})
 
-		So(err.Error(), ShouldEqual, "the Aggregate operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "no practitioner found for practitioner id(s) [practitionerID]")
 	})
 }
 
@@ -115,7 +115,7 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 

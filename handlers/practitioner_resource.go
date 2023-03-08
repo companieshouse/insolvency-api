@@ -110,7 +110,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		// Check if practitioner is already assigned to this case
 		extractedPractitionerIds := utils.ConvertMapToStringArray(practitionersMapResource)
 
-		practitionerResourceDaos, err := svc.GetPractitionersResource(extractedPractitionerIds, transactionID)
+		practitionerResourceDaos, err := svc.GetPractitionersResource(extractedPractitionerIds)
 		for _, practitionerResourceDao := range practitionerResourceDaos {
 			if err == nil && practitionerDao.Data.IPCode == practitionerResourceDao.Data.IPCode {
 				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDao.Data.IPCode)})
@@ -203,7 +203,7 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
 
 		// Get practitioner from DB
-		practitionerResources, err := svc.GetPractitionersResource([]string{practitionerID}, transactionID)
+		practitionerResources, err := svc.GetPractitionersResource([]string{practitionerID})
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err),
 				fmt.Errorf("there was a problem handling your request")})
@@ -266,6 +266,7 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var appointmentResponse models.AppointedPractitionerResource
+
 		// generate etag for request
 		etag, err := helperService.GenerateEtag()
 		if err != nil {
@@ -375,7 +376,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitionerResourceDtos, err := svc.GetPractitionersResource([]string{practitionerID}, transactionID)
+		practitionerResourceDtos, err := svc.GetPractitionersResource([]string{practitionerID})
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
