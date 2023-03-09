@@ -1527,6 +1527,56 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 
+	Convey("failed -no appointment returned when transactionID is not valid", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
+
+		practitionerResourceDaos[0].Data.PractitionerId = practitionerID
+		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/X/insolvency/practitioners/00001234/appointment\"}"
+
+		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
+
+		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
+	Convey("failed -no appointment returned when practitionerID is not valid", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		body, _ := json.Marshal(models.PractitionerAppointment{
+			AppointedOn: "2012-02-23",
+			MadeBy:      "company",
+		})
+
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
+
+		practitionerResourceDaos[0].Data.PractitionerId = "practitionerID"
+		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/123456789/insolvency/practitioners/00001234/appointment\"}"
+
+		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
+
+		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+	})
+
 	Convey("success - appointment returned", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
@@ -1541,7 +1591,9 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		appointmentResourceDao := models.AppointmentResourceDao{}
 		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
 
+		practitionerResourceDaos[0].Data.PractitionerId = practitionerID
 		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/12345678/insolvency/practitioners/00001234/appointment\"}"
 
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 
