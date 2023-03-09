@@ -32,13 +32,8 @@ func ConvertMapToString(mapString map[string]string) (string, error) {
 	return string(stringPractitionerLinks), nil
 }
 
-// ConvertStringToArray is a helper function to split string to array string
-func ConvertStringToArray(stringItem string, splitChar string) []string {
-	return strings.Split(stringItem, splitChar)
-}
-
-// CheckStringArrayHasElement is a helper function to check if an element is in string array
-func CheckStringArrayHasElement(stringItem string, splitChar string, find string) bool {
+// CheckStringContainsElement is a helper function to check if an element is in string array
+func CheckStringContainsElement(stringItem string, splitChar string, find string) bool {
 	s := strings.Split(stringItem, splitChar)
 	for _, v := range s {
 		if v == find {

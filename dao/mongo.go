@@ -393,7 +393,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 
 	// check if practitionerID exists and validate transactionID
 	value, isPresent := mappedPractitionerAppointment[practitionerID]
-	hasValidTransactionID := utils.CheckStringArrayHasElement(value, "/", transactionID)
+	hasValidTransactionID := utils.CheckStringContainsElement(value, "/", transactionID)
 
 	if isPresent && hasValidTransactionID {
 		// remove unwanted appointment from the slice
