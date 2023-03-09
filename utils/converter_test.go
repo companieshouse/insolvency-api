@@ -39,4 +39,22 @@ func TestUnitConverter(t *testing.T) {
 
 	})
 
+	Convey("CheckStringContainsElement returns true when required element is found", t, func() {
+
+		arrayString := CheckStringContainsElement(jsonPractitionersDao, "/", "168570-809316-704268")
+
+		So(arrayString, ShouldNotBeNil)
+		So(arrayString, ShouldBeTrue)
+
+	})
+
+	Convey("CheckStringContainsElement returns false when required element is found", t, func() {
+
+		arrayString := CheckStringContainsElement(jsonPractitionersDao, "/", "168570-809316-7042622")
+
+		So(arrayString, ShouldNotBeNil)
+		So(arrayString, ShouldBeFalse)
+
+	})
+
 }

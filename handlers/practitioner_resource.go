@@ -191,7 +191,8 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 // on the insolvency case with the specified transactionID
 func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		var practitionerResourceDaos []models.PractitionerResourceDao
+
+		var practitionerResourceDao models.PractitionerResourceDao
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
@@ -216,10 +217,18 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 			return
 		}
 
-		practitionerResourceDaos = append(practitionerResources, practitionerResourceDaos...)
+		// check if each practitioner has valid transactionID
+		for _, practitionerResource := range practitionerResources {
+			if practitionerResource.Data.PractitionerId == practitionerID {
+				hasValidTransactionID := utils.CheckStringContainsElement(practitionerResource.Data.Links.Self, "/", transactionID)
+				if hasValidTransactionID {
+					practitionerResourceDao = practitionerResource
+				}
+			}
+		}
 
 		// Successfully retrieved practitioner
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDaos[0]), http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao), http.StatusOK)
 	})
 }
 
@@ -366,6 +375,7 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		var practitionerResourceDao models.PractitionerResourceDao
 		vars := mux.Vars(req)
 
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
@@ -376,26 +386,39 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitionerResourceDtos, err := svc.GetPractitionersResource([]string{practitionerID})
+		practitionerResourceDaos, err := svc.GetPractitionersResource([]string{practitionerID})
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
 
 		// Check if practitioner is empty (not found).
-		if len(practitionerResourceDtos) == 0 {
+		if len(practitionerResourceDaos) == 0 {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
-		// Check if practitioner has an appointment
-		appointment := practitionerResourceDtos[0].Data.Appointment
-		if appointment == nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] an transactionID [%s]", practitionerID, transactionID)})
+		// check if each practitioner's appointment has valid transactionID
+		for _, practitionerResource := range practitionerResourceDaos {
+			if practitionerResource.Data.PractitionerId == practitionerID {
+				mappedPractitionerAppointment, _, _ := utils.ConvertStringToMapObjectAndStringList(practitionerResource.Data.Links.Appointment)
+				// check if practitionerID exists and validate transactionID
+
+				value, isPresent := mappedPractitionerAppointment[practitionerID]
+				hasValidTransactionID := utils.CheckStringContainsElement(value, "/", transactionID)
+				if isPresent && hasValidTransactionID {
+					practitionerResourceDao = practitionerResource
+				}
+			}
+		}
+
+		// check and returns error when practitioner has no appointment
+		if practitionerResourceDao.Data.Appointment == nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] and transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
-		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(appointment)
+		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(practitionerResourceDao.Data.Appointment)
 
 		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
 	})

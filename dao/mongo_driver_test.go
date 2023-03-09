@@ -346,6 +346,101 @@ func TestUnitCreatePractitionerResourceDriver(t *testing.T) {
 	})
 }
 
+func TestUnitGetPractitionerAppointmentDriver(t *testing.T) {
+	t.Parallel()
+
+	mongoService, commandError, _, opts, _ := setDriverUp()
+
+	mt := mtest.New(t, opts)
+	defer mt.Close()
+
+	mt.Run("GetPractitionerAppointment runs with error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mongoService.db = mt.DB
+		practitioner, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+
+		assert.Nil(t, practitioner)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+	})
+
+	mt.Run("GetPractitionerAppointment failed on findone", func(mt *mtest.T) {
+
+		bsonData := bson.M{
+			"appointed_on": "appointedon",
+			"made_by":      "madeby",
+			"links":        "appointmentResourceLinksDao",
+			"last_name":    "LastName",
+			"etag":         "etag",
+			"kind":         "kind",
+		}
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+		
+		first := mtest.CreateCursorResponse(1, "models.AppointmentResourceDao", mtest.FirstBatch, bson.D{
+			{"data", bsonData},
+		})
+
+		mt.AddMockResponses(first)
+
+		mongoService.db = mt.DB
+		appointmentResource, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+		assert.Nil(t, appointmentResource)
+	})
+
+	mt.Run("GetPractitionerAppointment failed on decoding model", func(mt *mtest.T) {
+
+		bsonData := bson.M{
+			"appointed_on": "appointedon",
+			"made_by":      "madeby",
+			"links":        "appointmentResourceLinksDao",
+			"last_name":    "LastName",
+			"etag":         "etag",
+			"kind":         "kind",
+		}
+
+		first := mtest.CreateCursorResponse(1, "models.AppointmentResourceDao", mtest.FirstBatch, bson.D{
+			{"data", bsonData},
+		})
+
+		mt.AddMockResponses(first)
+
+		mongoService.db = mt.DB
+		appointmentResource, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
+		assert.Nil(t, appointmentResource)
+	})
+
+	mt.Run("GetPractitionerAppointment runs successfully", func(mt *mtest.T) {
+		appointmentResourceLinksDao := models.AppointmentResourceLinksDao{}
+
+		bsonData := bson.M{
+			"appointed_on": "appointedon",
+			"made_by":      "madeby",
+			"links":        appointmentResourceLinksDao,
+			"last_name":    "LastName",
+			"etag":         "etag",
+			"kind":         "kind",
+		}
+
+		first := mtest.CreateCursorResponse(1, "models.AppointmentResourceDao", mtest.FirstBatch, bson.D{
+			{"data", bsonData},
+		})
+
+		mt.AddMockResponses(first)
+
+		mongoService.db = mt.DB
+		insolvencyResource, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+
+		assert.Nil(t, err)
+		assert.NotNil(t, insolvencyResource)
+	})
+}
 func TestUnitGetPractitionersResourceDriver(t *testing.T) {
 	t.Parallel()
 
