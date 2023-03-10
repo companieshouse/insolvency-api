@@ -79,7 +79,7 @@ func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
 
 		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 
@@ -115,7 +115,7 @@ func TestUnitDeletePractitioner(t *testing.T) {
 
 		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
@@ -127,7 +127,7 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
 }
 
