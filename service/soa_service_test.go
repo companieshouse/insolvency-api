@@ -202,6 +202,21 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		So(err, ShouldBeNil)
 	})
 
+	Convey("nil dao", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		mockService := mocks.NewMockService(mockCtrl)
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		validationErr, err := ValidateStatementDetails(mockService, nil, transactionID, req)
+		So(validationErr, ShouldBeEmpty)
+		So(err.Error(), ShouldContainSubstring, "nil DAO passed to service for validation")
+	})
+
 }
 
 func generateStatement() models.StatementOfAffairsResourceDao {

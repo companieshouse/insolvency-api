@@ -98,7 +98,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 
 	// Check if a resolution has been filed against the insolvency case
 	resolutionFiled := false
-	if !(insolvencyResource.Data.Resolution == nil) {
+	if insolvencyResource.Data.Resolution != nil {
 		resolutionFiled = true
 	}
 
@@ -117,7 +117,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 	}
 
 	// Check that id of uploaded resolution attachment matches attachment id supplied in resolution
-	if hasResolutionAttachment && resolutionFiled && !(insolvencyResource.Data.Attachments[resolutionArrayPosition].ID == insolvencyResource.Data.Resolution.Attachments[0]) {
+	if hasResolutionAttachment && resolutionFiled && (insolvencyResource.Data.Attachments[resolutionArrayPosition].ID != insolvencyResource.Data.Resolution.Attachments[0]) {
 		validationError := fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]",
 			insolvencyResource.TransactionID)
 		log.Info(validationError)
@@ -179,7 +179,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 	hasStatementOfAffairsDate := insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != ""
 	hasResolutionDate := insolvencyResource.Data.Resolution != nil && insolvencyResource.Data.Resolution.DateOfResolution != ""
 	if hasStatementOfAffairsDate && hasResolutionDate {
-		ok, reason, err, errLocation := checkValidStatementOfAffairsDate(insolvencyResource.Data.StatementOfAffairs.StatementDate, insolvencyResource.Data.Resolution.DateOfResolution)
+		ok, reason, errLocation, err := checkValidStatementOfAffairsDate(insolvencyResource.Data.StatementOfAffairs.StatementDate, insolvencyResource.Data.Resolution.DateOfResolution)
 		if err != nil {
 			log.Error(fmt.Errorf("error checking dates: %s", err))
 			validationErrors = addValidationError(validationErrors, fmt.Sprint(err), errLocation)
@@ -225,28 +225,28 @@ func checkValidAppointmentDate(appointedOn string, dateOfResolution string) (boo
 	return true, nil
 }
 
-func checkValidStatementOfAffairsDate(statementOfAffairsDate string, resolutionDate string) (bool, string, error, string) {
+func checkValidStatementOfAffairsDate(statementOfAffairsDate string, resolutionDate string) (bool, string, string, error) {
 	soaDate, err := time.Parse(dateLayout, statementOfAffairsDate)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid statementOfAffairs date [%s]", statementOfAffairsDate), "statement of affairs date"
+		return false, "", "statement of affairs date", fmt.Errorf("invalid statementOfAffairs date [%s]", statementOfAffairsDate)
 	}
 
 	resDate, err := time.Parse(dateLayout, resolutionDate)
 	if err != nil {
-		return false, "", fmt.Errorf("invalid resolution date [%s]", resolutionDate), "resolution date"
+		return false, "", "resolution date", fmt.Errorf("invalid resolution date [%s]", resolutionDate)
 	}
 
 	// Statement Of Affairs Date must not be before Resolution Date
 	if soaDate.Before(resDate) {
-		return false, "error - statement of affairs date must not be before resolution date", nil, ""
+		return false, "error - statement of affairs date must not be before resolution date", "", nil
 	}
 
 	// Statement Of Affairs Date must not be more than 7 days after resolution date
 	if soaDate.Sub(resDate).Hours()/24 > 7 {
-		return false, "error - statement of affairs date must be within 7 days of resolution date", nil, ""
+		return false, "error - statement of affairs date must be within 7 days of resolution date", "", nil
 	}
 
-	return true, "", nil, ""
+	return true, "", "", nil
 }
 
 // addValidationError adds any validation errors to an array of existing errors
@@ -317,82 +317,76 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	for _, practitioner := range practitionerResourceDaos {
 		if practitioner.Data.Appointment != nil {
 			// If a filing is a 600 add a generated filing to the array of filings
-			filing600 := models.NewFiling(
-				generateDataBlockForFiling(insolvencyResource, "600"),
-				fmt.Sprintf("600 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
-				"600",
-				"insolvency#600")
-			filings = append(filings, *filing600)
+			newFiling := generateNewFiling(insolvencyResource, nil, "600")
+			filings = append(filings, *newFiling)
 			break
 		}
 	}
 
-	// Map attachment types
-	attachmentTypes := map[string]struct{}{}
-	for _, attachment := range insolvencyResource.Data.Attachments {
-		attachmentTypes[attachment.Type] = struct{}{}
+	// Map attachments to filing types
+	attachmentsLRESEX := []*models.AttachmentResourceDao{}
+	attachmentsLIQ02 := []*models.AttachmentResourceDao{}
+	attachmentsLIQ03 := []*models.AttachmentResourceDao{}
+	// using range index to allow passing reference not value
+	for i := range insolvencyResource.Data.Attachments {
+		switch insolvencyResource.Data.Attachments[i].Type {
+		case "resolution":
+			attachmentsLRESEX = append(attachmentsLRESEX, &insolvencyResource.Data.Attachments[i])
+		case "statement-of-affairs-director", "statement-of-affairs-liquidator", "statement-of-concurrence":
+			attachmentsLIQ02 = append(attachmentsLIQ02, &insolvencyResource.Data.Attachments[i])
+		case "progress-report":
+			attachmentsLIQ03 = append(attachmentsLIQ03, &insolvencyResource.Data.Attachments[i])
+		}
 	}
-
-	// Check if a "resolution" attachment type is present to determine if there's a LRESEX form
-	if _, hasResolution := attachmentTypes["resolution"]; hasResolution {
-		// If a filing is an LRESEX add a generated filing to the array of filings
-		filingLRESEX := models.NewFiling(
-			generateDataBlockForFiling(insolvencyResource, "LRESEX"),
-			fmt.Sprintf("LRESEX insolvency case for %v", insolvencyResource.Data.CompanyNumber),
-			"LRESEX",
-			"insolvency#LRESEX")
-		filings = append(filings, *filingLRESEX)
+	if len(attachmentsLRESEX) > 0 {
+		newFiling := generateNewFiling(insolvencyResource, attachmentsLRESEX, "LRESEX")
+		filings = append(filings, *newFiling)
 	}
-
-	// Check if a "statement-of-affairs-director" or "statement-of-affairs-liquidator" is present to determine if there's a LIQ02 form
-	_, hasStatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
-	_, hasStatementOfAffairsLiquidator := attachmentTypes["statement-of-affairs-liquidator"]
-	if hasStatementOfAffairsDirector || hasStatementOfAffairsLiquidator {
-		// If a filing is a LIQ02 add a generated filing to the array of filings
-		filingLIQ02 := models.NewFiling(
-			generateDataBlockForFiling(insolvencyResource, "LIQ02"),
-			fmt.Sprintf("LIQ02 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
-			"LIQ02",
-			"insolvency#LIQ02")
-		filings = append(filings, *filingLIQ02)
+	if len(attachmentsLIQ02) > 0 {
+		newFiling := generateNewFiling(insolvencyResource, attachmentsLIQ02, "LIQ02")
+		filings = append(filings, *newFiling)
 	}
-
-	if _, hasProgressReport := attachmentTypes["progress-report"]; hasProgressReport {
-		// Add a generated filing to the array of filings if it's a LIQ03
-		filingLIQ03 := models.NewFiling(
-			generateDataBlockForFiling(insolvencyResource, "LIQ03"),
-			fmt.Sprintf("LIQ03 insolvency case for %v", insolvencyResource.Data.CompanyNumber),
-			"LIQ03",
-			"insolvency#LIQ03")
-		filings = append(filings, *filingLIQ03)
+	if len(attachmentsLIQ03) > 0 {
+		newFiling := generateNewFiling(insolvencyResource, attachmentsLIQ03, "LIQ03")
+		filings = append(filings, *newFiling)
 	}
-
 	return filings, nil
 }
 
-// generateDataBlockForFiling generates the block of data to be included with a filing
-func generateDataBlockForFiling(insolvencyResource *models.InsolvencyResourceDao, form string) map[string]interface{} {
+// generateNewFiling generates a new filing for a specified filing type using data extracted from the InsolvencyResourceDao & a supplied slice of attachments
+func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
 
 	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,
 		"case_type":      &insolvencyResource.Data.CaseType,
-		"case_date":      "",
-		"soa_date":       "",
-		"from_date":      "",
-		"to_date":        "",
 		"company_name":   &insolvencyResource.Data.CompanyName,
 		"practitioners":  &insolvencyResource.Data.Practitioners,
-		"attachments":    &insolvencyResource.Data.Attachments,
 	}
-	if insolvencyResource.Data.Resolution != nil {
-		dataBlock["case_date"] = &insolvencyResource.Data.Resolution.DateOfResolution
+
+	switch filingType {
+	case "LRESEX":
+		if insolvencyResource.Data.Resolution != nil {
+			dataBlock["case_date"] = &insolvencyResource.Data.Resolution.DateOfResolution
+		}
+		delete(dataBlock, "practitioners")
+	case "LIQ02":
+		if insolvencyResource.Data.StatementOfAffairs != nil {
+			dataBlock["soa_date"] = &insolvencyResource.Data.StatementOfAffairs.StatementDate
+		}
+	case "LIQ03":
+		if insolvencyResource.Data.ProgressReport != nil {
+			dataBlock["from_date"] = &insolvencyResource.Data.ProgressReport.FromDate
+			dataBlock["to_date"] = &insolvencyResource.Data.ProgressReport.ToDate
+		}
 	}
-	if insolvencyResource.Data.StatementOfAffairs != nil {
-		dataBlock["soa_date"] = &insolvencyResource.Data.StatementOfAffairs.StatementDate
+	if attachments != nil {
+		dataBlock["attachments"] = attachments
 	}
-	if insolvencyResource.Data.ProgressReport != nil {
-		dataBlock["from_date"] = &insolvencyResource.Data.ProgressReport.FromDate
-		dataBlock["to_date"] = &insolvencyResource.Data.ProgressReport.ToDate
-	}
-	return dataBlock
+
+	newFiling := models.NewFiling(
+		dataBlock,
+		fmt.Sprintf("%s insolvency case for %v", filingType, insolvencyResource.Data.CompanyNumber),
+		filingType,
+		fmt.Sprintf("insolvency#%s", filingType))
+	return newFiling
 }

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/service"
@@ -75,7 +76,7 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 		attachmentDao, err := svc.AddAttachmentToInsolvencyResource(transactionID, fileID, attachmentType)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to add attachment to insolvency resource in db for transaction [%s]: %v", transactionID, err))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
@@ -87,7 +88,7 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 			helperService)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
@@ -101,17 +102,17 @@ func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperServi
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
-		attachmentID := utils.GetAttachmentIDFromVars(vars)
 		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
-			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingTransactionIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingTransactionIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
 		if attachmentID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
-			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingAttachmentIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingAttachmentIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -122,11 +123,10 @@ func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperServi
 		attachmentDao, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency resource in db for transaction [%s] with attachment id of [%s]: %v", transactionID, attachmentID, err))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
-
 		if attachmentDao == (models.AttachmentResourceDao{}) {
 			m := models.NewMessageResponse("attachment id is not valid")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
@@ -135,7 +135,6 @@ func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperServi
 
 		// Calls File Transfer API to get attachment details
 		GetAttachmentDetailsResponse, responseType, err := service.GetAttachmentDetails(attachmentID, req)
-
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error getting attachment details: [%v]", err), log.Data{"service_response_type": responseType.String()})
 
@@ -155,7 +154,7 @@ func HandleGetAttachmentDetails(svc dao.Service, helperService utils.HelperServi
 			helperService)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("error transforming dao to response: [%s]", err))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
@@ -170,16 +169,16 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
 		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
-			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingTransactionIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingTransactionIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
 		attachmentID := utils.GetAttachmentIDFromVars(vars)
 		if attachmentID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
-			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingAttachmentIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingAttachmentIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
@@ -188,7 +187,7 @@ func HandleDownloadAttachment(svc dao.Service) http.Handler {
 		attachmentResource, err := svc.GetAttachmentFromInsolvencyResource(transactionID, attachmentID)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to get attachment from insolvency db resource for transaction [%s] with attachment id [%s]: %v", transactionID, attachmentID, err))
-			m := models.NewMessageResponse("there was a problem handling your request")
+			m := models.NewMessageResponse(constants.MsgHandleReqProblem)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
@@ -250,17 +249,17 @@ func HandleDeleteAttachment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
-		attachmentID := utils.GetAttachmentIDFromVars(vars)
 		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
-			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingTransactionIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingTransactionIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}
 
+		attachmentID := utils.GetAttachmentIDFromVars(vars)
 		if attachmentID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no attachment ID in the URL path"))
-			m := models.NewMessageResponse("attachment ID is not in the URL path")
+			log.ErrorR(req, fmt.Errorf(constants.MsgMissingAttachmentIdInPath))
+			m := models.NewMessageResponse(constants.MsgMissingAttachmentIdInPath)
 			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
 			return
 		}

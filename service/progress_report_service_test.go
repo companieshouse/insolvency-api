@@ -13,7 +13,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestValidProgressReport(t *testing.T) {
+func TestUnitValidProgressReport(t *testing.T) {
 	transactionID := "123"
 
 	insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
@@ -201,6 +201,18 @@ func TestValidProgressReport(t *testing.T) {
 		So(validationErr, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})
+
+	Convey("nil dao", t, func() {
+		mockService, _, _ := mocks.CreateTestObjects(t)
+		httpmock.Activate()
+
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		validationErr, err := ValidateProgressReportDetails(mockService, nil, transactionID, req)
+		So(validationErr, ShouldBeEmpty)
+		So(err.Error(), ShouldContainSubstring, "nil DAO passed to service for validation")
+	})
+
 }
 
 func generateProgressReport() models.ProgressReportResourceDao {

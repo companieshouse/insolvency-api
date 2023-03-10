@@ -11,6 +11,7 @@ import (
 	"github.com/companieshouse/insolvency-api/service"
 	"github.com/companieshouse/insolvency-api/transformers"
 	"github.com/companieshouse/insolvency-api/utils"
+	"github.com/gorilla/mux"
 )
 
 // HandleCreateProgressReport receives a progress report to be stored against the Insolvency case
@@ -31,7 +32,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			return
 		}
 
-		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request, helperService)
+		progressReportDao := transformers.ProgressReportResourceRequestToDB(&request, transactionID, helperService)
 
 		// Validate all mandatory fields
 		errs := utils.Validate(request)
@@ -67,8 +68,7 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", progressReportDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a progress-report"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
@@ -84,6 +84,65 @@ func HandleCreateProgressReport(svc dao.Service, helperService utils.HelperServi
 
 		log.InfoR(req, fmt.Sprintf("successfully added statement of progress report with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
+
+// HandleGetProgressReport retrieves a progress report stored against the Insolvency Case
+func HandleGetProgressReport(svc dao.Service) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		transactionID := utils.GetTransactionIDFromVars(vars)
+		if transactionID == "" {
+			log.ErrorR(req, fmt.Errorf("there is no transaction ID in the URL path"))
+			m := models.NewMessageResponse("transaction ID is not in the URL path")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("start GET request for get progress report with transaction id: %s", transactionID))
+
+		progressReport, err := svc.GetProgressReportResource(transactionID)
+		if err != nil {
+			log.ErrorR(req, fmt.Errorf("failed to get progress report from insolvency resource in db for transaction [%s]: %v", transactionID, err))
+			m := models.NewMessageResponse("there was a problem handling your request")
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+		if progressReport.FromDate == "" || progressReport.ToDate == "" {
+			m := models.NewMessageResponse(fmt.Sprintf("progress report not found on transaction with ID: [%s]", transactionID))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully retrieved progress report resource with transaction ID: %s, from mongo", transactionID))
+
+		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(progressReport), http.StatusOK)
+	})
+}
+
+// HandleDeleteProgressReport deletes a progress report resource from an insolvency case
+func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "progress report", service.CheckIfTransactionClosed)
+		if !isValidTransaction {
+			return
+		}
+
+		// Delete progress report from DB
+		statusCode, err := svc.DeleteProgressReportResource(transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully deleted progress report from insolvency case with transaction ID: %s", transactionID))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+	})
+}
+

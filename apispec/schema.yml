@@ -1,7 +1,8 @@
+---
 openapi: 3.0.0
 info:
   title: Insolvency API
-  description: API specification for submiting insolvency data
+  description: API specification for submitting insolvency data
   version: 1.0.0-dev
 paths:
   /transactions/{transaction_id}/insolvency:
@@ -31,6 +32,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InsolvencyResource'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        404:
+          description: Transaction not found
+        409:
+          description: Insolvency resource already exists.
+
+  /transactions/{transaction_id}/insolvency/validation-status:
+    get:
+      tags:
+        - "Insolvency Resources"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction unique reference
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getInsolvencyValidationStatus
+      summary: Get validation status of an insolvency data change resource
+      responses:
+        200:
+          description:
+            "A validation status response was returned
+            (note: this does not mean there were no validation errors)"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationStatusResource'
+        401:
+          description: Unauthorized.
 
   /transactions/{transaction_id}/insolvency/attachments:
     post:
@@ -54,12 +90,20 @@ paths:
             schema:
               $ref: '#/components/schemas/AttachmentWritable'
       responses:
-        200:
+        201:
           description: The file was accepted for processing.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Attachment'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Transaction not found
 
   /transactions/{transaction_id}/insolvency/attachments/{attachment_id}:
     parameters:
@@ -89,6 +133,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Attachment'
+        401:
+          description: Unauthorized
+        404:
+          description: Transaction not found
 
     delete:
       tags:
@@ -100,6 +148,10 @@ paths:
       responses:
         204:
           description: The attachment was deleted
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
 
   /transactions/{transaction_id}/insolvency/attachments/{attachment_id}/download:
     parameters:
@@ -134,6 +186,8 @@ paths:
               schema:
                 type: string
                 format: binary
+        404:
+          description: Transaction not found
 
   /transactions/{transaction_id}/insolvency/practitioners:
     post:
@@ -162,6 +216,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Practitioner'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+
+    get:
+      tags:
+        - "Practitioner"
+      parameters:
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction that this insolvency case is applied to
+          schema:
+            type: string
+      security:
+        - oauth2: [submit_insolvency_data]
+      operationId: getAllPractitioners
+      summary: Get the practitioner resources (all)
+      responses:
+        200:
+          description: The practitioner resources
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AllPractitionerResources'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        404:
+          description: Transaction not found
 
   /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}:
     get:
@@ -192,6 +280,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Practitioner'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        404:
+          description: Transaction not found
 
     delete:
       tags:
@@ -217,11 +311,19 @@ paths:
       responses:
         204:
           description: The practitioner was deleted
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Transaction not found
 
   /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment:
     post:
       tags:
-        - "Practitioner"
+        - "Appointment"
       parameters:
         - in: path
           name: transaction_id
@@ -252,18 +354,26 @@ paths:
                 made_by:
                   type: string
                   enum:
-                    - company
                     - creditors
       responses:
-        200:
+        201:
           description: Practitioner appointment
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/PractitionerAppointment'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Transaction not found
+
     get:
       tags:
-        - "Practitioner"
+        - "Appointment"
       parameters:
         - in: path
           name: transaction_id
@@ -289,9 +399,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PractitionerAppointment'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        404:
+          description: Transaction not found
+
     delete:
       tags:
-        - "Practitioner"
+        - "Appointment"
       parameters:
         - in: path
           name: transaction_id
@@ -311,8 +428,16 @@ paths:
       operationId: deleteAppointment
       summary: Delete the appointment resource
       responses:
-        200:
+        204:
           description: The appointment was deleted from this transaction
+        400:
+          description: Bad request
+        401:
+          description: Unauthorized
+        403:
+          description: Forbidden
+        404:
+          description: Transaction not found
 
   /transactions/{transaction_id}/insolvency/statement-of-affairs:
     post:
@@ -335,7 +460,7 @@ paths:
             schema:
               $ref: '#/components/schemas/StatementOfAffairsWritable'
       responses:
-        200:
+        201:
           description: Statement of affairs created
           content:
             application/json:
@@ -344,7 +469,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised
+          description: Unauthorized
         403:
           description: Forbidden
         500:
@@ -374,7 +499,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         404:
           description: Not found.
 
@@ -398,7 +523,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         403:
           description: Forbidden.
         404:
@@ -426,7 +551,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ResolutionResourceWritable'
       responses:
-        200:
+        201:
           description: The resolution details was sent successfully
           content:
             application/json:
@@ -435,7 +560,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised
+          description: Unauthorized
         403:
           description: Forbidden
         500:
@@ -451,7 +576,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: getResolution
       summary: Get the resolution resource
       responses:
@@ -464,7 +589,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         404:
           description: not found.
     delete:
@@ -478,7 +603,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: deleteResolution
       summary: Delete the resolution resource
       responses:
@@ -487,7 +612,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         403:
           description: Forbidden.
         404:
@@ -505,7 +630,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: createProgressReport
       summary: Create progress report on case
       requestBody:
@@ -514,7 +639,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ProgressReportWritable'
       responses:
-        200:
+        201:
           description: Progress report created
           content:
             application/json:
@@ -523,7 +648,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised
+          description: Unauthorized
         403:
           description: Forbidden
         500:
@@ -540,7 +665,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: getProgressReport
       summary: Get the progress report resource
       responses:
@@ -553,7 +678,7 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         404:
           description: not found.
     delete:
@@ -567,7 +692,7 @@ paths:
           schema:
             type: string
       security:
-        - oauth2: [ submit_insolvency_data ]
+        - oauth2: [submit_insolvency_data]
       operationId: deleteProgressReport
       summary: Delete the progress report resource
       responses:
@@ -576,13 +701,11 @@ paths:
         400:
           description: Bad request.
         401:
-          description: Unauthorised.
+          description: Unauthorized.
         403:
           description: Forbidden.
         404:
           description: Not found.
-
-
 
 components:
   schemas:
@@ -596,7 +719,6 @@ components:
         case_type:
           type: string
           enum:
-            - members-voluntary-liquidation
             - creditors-voluntary-liquidation
 
     InsolvencyResource:
@@ -607,7 +729,6 @@ components:
         case_type:
           type: string
           enum:
-            - members-voluntary-liquidation
             - creditors-voluntary-liquidation
         etag:
           type: string
@@ -631,21 +752,51 @@ components:
             validation_status:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/validation-status
+              example:
+                /transactions/{transaction_id}/insolvency/validation-status
         liquidators:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}
+              example:
+                /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}
         attachments:
           type: object
           properties:
             <key>:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachments/{attachment_id}
+              example:
+                /transactions/{transaction_id}/insolvency/attachments/{attachment_id}
+
+    ValidationStatusResource:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              error:
+                type: string
+                example:
+                  "error - if no practitioners are present then an attachment of
+                  the type resolution must be present"
+              location:
+                type: string
+                example: "no practitioners and no resolution"
+              location_type:
+                type: string
+                example: "json-path"
+              "type":
+                type: string
+                example: "ch:validation"
+        is_valid:
+          type: boolean
+          example: false
+
     Address:
       type: object
       properties:
@@ -712,11 +863,13 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
+              example:
+                /transactions/{transaction_id}/insolvency/attachment/{attachment_id}
             download:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
+              example:
+                /transactions/{transaction_id}/insolvency/attachment/{attachment_id}/download
     PractitionerWritable:
       type: object
       properties:
@@ -727,7 +880,6 @@ components:
         ip_code:
           type: string
         address:
-          type: object
           $ref: '#/components/schemas/Address'
         role:
           type: string
@@ -758,7 +910,6 @@ components:
         last_name:
           type: string
         address:
-          type: object
           $ref: '#/components/schemas/Address'
         email:
           type: string
@@ -788,7 +939,13 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
+              example:
+                /transactions/{transaction_id}/insolvency/liquidator/{practitioner_id}
+
+    AllPractitionerResources:
+      type: array
+      items:
+        $ref: '#/components/schemas/Practitioner'
 
     PractitionerAppointment:
       type: object
@@ -799,7 +956,6 @@ components:
         made_by:
           type: string
           enum:
-            - company
             - creditors
         links:
           type: object
@@ -807,7 +963,8 @@ components:
             self:
               type: string
               format: uri
-              example: /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
+              example:
+                /transactions/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment
 
     ResolutionResourceWritable:
       type: object
@@ -841,7 +998,8 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/resolution
+                  example:
+                    /transactions/{transaction_id}/insolvency/resolution
 
     StatementOfAffairsWritable:
       type: object
@@ -875,7 +1033,8 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/statement-of-affairs
+                  example:
+                    /transactions/{transaction_id}/insolvency/statement-of-affairs
 
     ProgressReportWritable:
       type: object
@@ -924,17 +1083,18 @@ components:
                 self:
                   type: string
                   format: uri
-                  example: /transactions/{transaction_id}/insolvency/progress-report
+                  example:
+                    /transactions/{transaction_id}/insolvency/progress-report
 
   securitySchemes:
     oauth2:
       type: oauth2
-      description: This API uses OAuth2 with the correct grants to allow insolvency data submission
+      description:
+        This API uses OAuth2 with the correct grants to allow insolvency data
+        submission
       flows:
         authorizationCode:
           tokenUrl: "https://api.companieshouse.gov.uk/oauth2/token"
           authorizationUrl: "https://api.companieshouse.gov.uk/oauth2/authorize"
           scopes:
             submit_insolvency_data: Submit data
-
-

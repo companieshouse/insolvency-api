@@ -269,7 +269,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 	})
 
 	Convey("Attachment is not of type resolution", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
@@ -283,18 +283,11 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		attachment.Type = "not-resolution"
 
 		body, _ := json.Marshal(resolution)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, resolution.Attachments[0]).Return(attachment, nil)
-		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusBadRequest).AnyTimes()
 
-		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
+		res := serveHandleCreateResolution(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 		So(res.Body.String(), ShouldContainSubstring, "attachment is not a resolution")
@@ -381,7 +374,7 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 
 		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Code, ShouldEqual, http.StatusCreated)
 		So(res.Body.String(), ShouldContainSubstring, "\"date_of_resolution\":\"2021-06-06\"")
 	})
 }
@@ -460,6 +453,11 @@ func TestUnitHandleGetResolution(t *testing.T) {
 		res := serveHandleGetResolution(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
+		So(res.Body.String(), ShouldContainSubstring, "etag")
+		So(res.Body.String(), ShouldContainSubstring, "kind")
+		So(res.Body.String(), ShouldContainSubstring, "links")
+		So(res.Body.String(), ShouldContainSubstring, "date_of_resolution")
+		So(res.Body.String(), ShouldContainSubstring, "attachments")
 	})
 }
 

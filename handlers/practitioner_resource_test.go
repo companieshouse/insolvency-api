@@ -507,40 +507,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID))
+		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request")
-	})
-
-	Convey("Error adding practitioners resource to mongo - 5 practitioners already exist", t, func() {
-		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
-		httpmock.Activate()
-
-		// Expect the transaction api to be called and return an open transaction
-		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
-
-		practitioner := generatePractitioner()
-		body, _ := json.Marshal(practitioner)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
-		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
-		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(2)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
-		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
-
-		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
-
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request")
-		So(res.Body.String(), ShouldContainSubstring, "already has 5 practitioners")
+		So(res.Body.String(), ShouldContainSubstring, "not found")
 	})
 
 	Convey("Failed when practitioners are equal or more than 5", t, func() {
@@ -583,7 +556,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "already has 5 practitioners")
 	})
 
 	Convey("Successfully add insolvency resource to mongo", t, func() {
@@ -1047,7 +1021,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, helperService, false, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "transaction ID is not in the URL path")
+		So(res.Body.String(), ShouldContainSubstring, "there is no Transaction ID in the URL path")
 	})
 
 	Convey("Must have a practitioner ID in the url", t, func() {
@@ -1062,6 +1036,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		res := serveHandleAppointPractitioner(body, mockService, helperService, true, false, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "there is no Practitioner ID in the URL path")
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
@@ -1506,7 +1481,8 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		})
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "not found")
 	})
 
 	Convey("empty appointment returned", t, func() {
@@ -1524,7 +1500,8 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 		})
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "no appointment found")
 	})
 
 	Convey("failed -no appointment returned when transactionID is not valid", t, func() {
@@ -1549,7 +1526,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
 	Convey("failed -no appointment returned when practitionerID is not valid", t, func() {
@@ -1574,7 +1551,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 
 		res := serveHandleGetPractitionerAppointment(body, mockService, true, true)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
 
 	Convey("success - appointment returned", t, func() {
