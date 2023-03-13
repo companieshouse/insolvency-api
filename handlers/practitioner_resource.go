@@ -218,12 +218,10 @@ func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 		}
 
 		// check if each practitioner has valid transactionID
-		for _, practitionerResource := range practitionerResources {
-			if practitionerResource.Data.PractitionerId == practitionerID {
-				hasValidTransactionID := utils.CheckStringContainsElement(practitionerResource.Data.Links.Self, "/", transactionID)
-				if hasValidTransactionID {
-					practitionerResourceDao = practitionerResource
-				}
+		if practitionerResources[0].Data.PractitionerId == practitionerID {
+			hasValidTransactionID := utils.CheckStringContainsElement(practitionerResources[0].Data.Links.Self, "/", transactionID)
+			if hasValidTransactionID {
+				practitionerResourceDao = practitionerResources[0]
 			}
 		}
 

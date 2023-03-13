@@ -82,6 +82,13 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 			log.Info(msg)
 			errs = append(errs, msg)
 		}
+		
+		hasValidTransactionID := utils.CheckStringContainsElement(practitioner.Data.Links.Self, "/", transactionID)
+		if !hasValidTransactionID {
+			msg := fmt.Sprintf("practitioner ID [%s] and transactionID[%s] are not valid to create appointment", practitionerID, transactionID)
+			log.Info(msg)
+			errs = append(errs, msg)
+		}
 	}
 
 	// Retrieve company incorporation date
