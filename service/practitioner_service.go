@@ -77,19 +77,20 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 	}
 
 	for _, practitioner := range practitionerResourceDaos {
-		if practitioner.Data.PractitionerId == practitionerID && practitioner.Data.Appointment != nil && practitioner.Data.Appointment.Data.AppointedOn != "" {
-			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
-			log.Info(msg)
-			errs = append(errs, msg)
-		}
-		
-		hasValidTransactionID := utils.CheckStringContainsElement(practitioner.Data.Links.Self, "/", transactionID)
-		if !hasValidTransactionID {
-			msg := fmt.Sprintf("practitioner ID [%s] and transactionID[%s] are not valid to create appointment", practitionerID, transactionID)
-			log.Info(msg)
-			errs = append(errs, msg)
-		}
-	}
+        practitionerHasValidAppointment := utils.CheckStringContainsElement(practitioner.Data.Links.Appointment, "/", practitionerID)
+        if practitionerHasValidAppointment {
+            msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
+            log.Info(msg)
+            errs = append(errs, msg)
+        }
+
+        hasValidTransactionID := utils.CheckStringContainsElement(practitioner.Data.Links.Self, "/", transactionID)
+        if !hasValidTransactionID {
+            msg := fmt.Sprintf("practitioner ID [%s] and transactionID[%s] are not valid to create appointment", practitionerID, transactionID)
+            log.Info(msg)
+            errs = append(errs, msg)
+        }
+    }
 
 	// Retrieve company incorporation date
 	incorporatedOn, err := GetCompanyIncorporatedOn(insolvencyResource.Data.CompanyNumber, req)

@@ -209,6 +209,7 @@ func HandleGetFilings(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
+
 		if !isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is not closed so the filings cannot be generated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is not closed so the filings cannot be generated", transactionID))

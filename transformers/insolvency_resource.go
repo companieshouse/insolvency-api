@@ -51,6 +51,66 @@ func InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDao *models.Insolv
 }
 
 // AppointmentResourceDaoToAppointedResponse transforms an appointment resource dao into a response entity
+func PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResourceDaos []models.PractitionerResourceDao) []models.CreatedPractitionerResource {
+
+	var practitionerResponses []models.CreatedPractitionerResource
+	var appointedPractitionerResource models.AppointedPractitionerResource
+
+	for _, practitioner := range practitionerResourceDaos {
+
+		practitionerResponse := models.CreatedPractitionerResource{}
+		practitionerResourceLinksDao := models.PractitionerResourceLinksDao{}
+
+		practitionerResourceLinksDao.Appointment = practitioner.Data.Links.Appointment
+		practitionerResourceLinksDao.Self = practitioner.Data.Links.Self
+
+		practitionerResponse.PractitionerId = practitioner.Data.PractitionerId
+		practitionerResponse.IPCode = practitioner.Data.IPCode
+		practitionerResponse.FirstName = practitioner.Data.FirstName
+		practitionerResponse.LastName = practitioner.Data.LastName
+		practitionerResponse.Email = practitioner.Data.Email
+		practitionerResponse.TelephoneNumber = practitioner.Data.TelephoneNumber
+		practitionerResponse.Address = models.CreatedAddressResource{
+			Premises:     practitioner.Data.Address.Premises,
+			AddressLine1: practitioner.Data.Address.AddressLine1,
+			AddressLine2: practitioner.Data.Address.AddressLine2,
+			Country:      practitioner.Data.Address.Country,
+			Locality:     practitioner.Data.Address.Locality,
+			Region:       practitioner.Data.Address.Region,
+			PostalCode:   practitioner.Data.Address.PostalCode,
+			POBox:        practitioner.Data.Address.POBox,
+		}
+		practitionerResponse.Role = practitioner.Data.Role
+		practitionerResponse.Etag = practitioner.Data.Etag
+		practitionerResponse.Kind = practitioner.Data.Kind
+
+		if practitioner.Data.Appointment != nil {
+			appointedPractitionerResource = models.AppointedPractitionerResource{
+				AppointedOn: practitioner.Data.Appointment.Data.AppointedOn,
+				MadeBy:      practitioner.Data.Appointment.Data.MadeBy,
+				Links:       practitioner.Data.Appointment.Data.Links,
+				Etag:        practitioner.Data.Appointment.Data.Etag,
+				Kind:        practitioner.Data.Appointment.Data.Kind,
+			}
+
+			practitionerResponse.Appointment = &appointedPractitionerResource
+		}
+
+		if len(practitioner.Data.Links.Appointment) > 0 {
+			practitionerResponse.Links.Appointment = &practitionerResourceLinksDao.Appointment
+		}
+
+		if len(practitioner.Data.Links.Self) > 0 {
+			practitionerResponse.Links.Self = &practitionerResourceLinksDao.Self
+		}
+
+		practitionerResponses = append(practitionerResponses, practitionerResponse)
+	}
+
+	return practitionerResponses
+}
+
+// AppointmentResourceDaoToAppointedResponse transforms an appointment resource dao into a response entity
 func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResourceDao) *models.AppointedPractitionerResource {
 
 	return &models.AppointedPractitionerResource{

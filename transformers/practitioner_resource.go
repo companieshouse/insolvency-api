@@ -42,7 +42,8 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, practition
 // PractitionerResourceDaoToCreatedResponse transforms the dao model to the created response model
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
 	practitionerResourceDao := model.Data
-	return &models.CreatedPractitionerResource{
+
+	practitionerResource := &models.CreatedPractitionerResource{
 		PractitionerId:  practitionerResourceDao.PractitionerId,
 		IPCode:          practitionerResourceDao.IPCode,
 		FirstName:       practitionerResourceDao.FirstName,
@@ -62,11 +63,17 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 			POBox:        practitionerResourceDao.Address.POBox,
 		},
 		Role: practitionerResourceDao.Role,
-		Links: models.PractitionerResourceLinksDao{
-			Self:        practitionerResourceDao.Links.Self,
-			Appointment: practitionerResourceDao.Links.Appointment,
-		},
 	}
+	if len(practitionerResourceDao.Links.Appointment) > 0 {
+		practitionerResource.Links.Appointment = &practitionerResourceDao.Links.Appointment
+	}
+
+	if len(practitionerResourceDao.Links.Self) > 0 {
+		practitionerResource.Links.Self = &practitionerResourceDao.Links.Self
+	}
+
+	return practitionerResource
+
 }
 
 // PractitionerResourceDaoListToCreatedResponseList transforms a list of practitioner dao models to

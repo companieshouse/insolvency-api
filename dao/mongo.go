@@ -286,7 +286,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 		filterAppointmentToDelete := bson.M{"practitioner_id": practitionerID}
 		appointmentCollection := m.db.Collection(AppointmentCollectionName)
 
-		_, err = deleteCollection(practitionerID, filterAppointmentToDelete, appointmentCollection)
+		_, err = deleteCollection(filterAppointmentToDelete, appointmentCollection)
 		if err != nil {
 			log.Error(err)
 			return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s not able to delete practitioners appointment", transactionID)
@@ -296,7 +296,7 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 		filterPractitionersToDelete := bson.M{"data.practitioner_id": practitionerID}
 		practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
-		_, err = deleteCollection(practitionerID, filterPractitionersToDelete, practitionerCollection)
+		_, err = deleteCollection(filterPractitionersToDelete, practitionerCollection)
 		if err != nil {
 			log.Error(err)
 			return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s not able to delete practitioners", transactionID)
@@ -402,7 +402,7 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 
 		//delete appointment
 		filterAppointmentToDelete := bson.M{"practitioner_id": practitionerID}
-		_, err = deleteCollection(practitionerID, filterAppointmentToDelete, appointmentCollection)
+		_, err = deleteCollection(filterAppointmentToDelete, appointmentCollection)
 		if err != nil {
 			log.Error(err)
 			return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to delete practitioners appointment", transactionID)
