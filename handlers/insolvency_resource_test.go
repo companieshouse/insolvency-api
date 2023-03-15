@@ -127,6 +127,21 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "company_number is a required field")
 	})
 
+	Convey("Incoming request has invalid company number", t, func() {
+		mockService, _, rec := mock_dao.CreateTestObjects(t)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{
+			CaseType:      constants.MVL.String(),
+			CompanyName:   companyName,
+			CompanyNumber: "companyNumberWithPercent%",
+		})
+
+		res := serveHandleCreateInsolvencyResource(body, mockService, true, helperService, rec)
+
+		So(res.Code, ShouldEqual, http.StatusBadRequest)
+		So(res.Body.String(), ShouldContainSubstring, "invalid request body: company_number can only contain alphanumeric characters")
+	})
+
 	Convey("Incoming request has company name missing", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
