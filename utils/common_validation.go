@@ -2,9 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/models"
-	"net/http"
 )
 
 // HelperService interface declares

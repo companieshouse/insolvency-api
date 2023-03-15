@@ -89,9 +89,9 @@ func TestUnitGetPractitionerAppointmentResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerAppointment("practitionerID","transactionID")
+		_, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -201,7 +201,7 @@ func TestUnitCreateResolutionResource(t *testing.T) {
 
 		_, err := mongoService.CreateResolutionResource(&resolutionResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -215,7 +215,7 @@ func TestUnitCreateStatementOfAffairsResource(t *testing.T) {
 
 		_, err := mongoService.CreateStatementOfAffairsResource(&statementResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -253,7 +253,32 @@ func TestUnitCreateProgressReportResource(t *testing.T) {
 
 		_, err := mongoService.CreateProgressReportResource(&progressReport, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+	})
+}
+
+func TestUnitGetProgressReportResource(t *testing.T) {
+
+	Convey("Get progress report resource", t, func() {
+
+		mongoService := setUp(t)
+
+		_, err := mongoService.GetProgressReportResource("transactionID")
+
+		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+	})
+}
+
+func TestUnitDeleteProgressReportResource(t *testing.T) {
+
+	Convey("Delete progress report", t, func() {
+
+		MongoService := setUp(t)
+
+		_, err := MongoService.DeleteProgressReportResource("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+
 	})
 }
 
@@ -275,6 +300,17 @@ func TestUnitDeleteResolutionResource(t *testing.T) {
 		mongoService := setUp(t)
 
 		_, err := mongoService.DeleteResolutionResource("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+	})
+}
+
+func TestUnitDeleteResource(t *testing.T) {
+	Convey("DeleteResource", t, func() {
+
+		MongoService := setUp(t)
+
+		_, err := MongoService.DeleteResource("transactionID", "progress-report")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})

@@ -1,0 +1,15 @@
+package constants
+
+const MsgResourceNotFound = "no insolvency resource found for transaction id"
+const MsgCaseNotFound = "no insolvency case found for transaction id"
+const MsgCaseForTransactionNotFound = "there was a problem handling your request for transaction id [%s] - insolvency case not found"
+const MsgReqTransactionNotFound = "there was a problem handling your request for transaction id [%s] not found"
+const MsgHandleReqTransactionId = "there was a problem handling your request for transaction id [%s]"
+const MsgHandleReqProblem = "there was a problem handling your request"
+const MsgMissingTransactionIdInPath = "transaction ID is not in the URL path"
+const MsgMissingAttachmentIdInPath = "attachment ID is not in the URL path"
+const MsgCompanyInvalidProfileAPI = "company was not found valid when checking company profile API [%v]"
+const MsgCompanyInvalidForInsolvency = "company [%s] was not found valid for insolvency: %v"
+const MsgErrorCheckTransactionStatus = "error checking transaction status for [%v]: [%s]"
+const MsgNoUpdateTransactionClosed = "transaction [%v] is already closed and cannot be updated"
+const MsgErrorCommsFileTransferAPI = "error communicating with the File Transfer API: [%v]"

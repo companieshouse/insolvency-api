@@ -62,7 +62,9 @@ func ValidateTransaction(helperService HelperService, req *http.Request, res htt
 		return transactionID, isValidTransaction
 	}
 
-	log.InfoR(req, fmt.Sprintf("start POST request for submit "+startMessage+"with transaction id: %s", transactionID))
+	reqMethod := req.Method
+
+	log.InfoR(req, fmt.Sprintf("start %s request for submit "+startMessage+" with transaction id: %s", reqMethod, transactionID))
 
 	// Check if transaction is checkIfTransactionClosedFn
 	var isTransactionClosed, err, httpStatus = checkIfTransactionClosedFn(transactionID, req)

@@ -15,6 +15,12 @@ import (
 func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *models.ProgressReportResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
+	if progressReportStatementDao == nil {
+		err := fmt.Errorf("nil DAO passed to service for validation")
+		log.ErrorR(req, err)
+		return "", err
+	}
+
 	// Check that the attachment has been submitted correctly
 	if len(progressReportStatementDao.Attachments) == 0 || len(progressReportStatementDao.Attachments) > 1 {
 		errs = append(errs, "please supply only one attachment")

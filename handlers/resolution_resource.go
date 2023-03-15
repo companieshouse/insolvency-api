@@ -76,8 +76,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", resolutionDao.Attachments[0], attachment.Type)
 			responseMessage := "attachment is not a resolution"
 
-			httpStatusCode := helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
-			http.Error(w, responseMessage, httpStatusCode)
+			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return
 		}
 
@@ -92,7 +91,7 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 
 		log.InfoR(req, fmt.Sprintf("successfully added resolution resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, daoResponse, http.StatusCreated)
 	})
 }
 
@@ -118,14 +117,14 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 			return
 		}
 		if resolution.DateOfResolution == "" {
-			m := models.NewMessageResponse("resolution not found on transaction")
+			m := models.NewMessageResponse(fmt.Sprintf("resolution not found on transaction with ID: [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully retrieved resolution resource with transaction ID: %s, from mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, resolution, http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.ResolutionDaoToResponse(&resolution), http.StatusOK)
 	})
 }
 
@@ -154,7 +153,6 @@ func HandleDeleteResolution(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
-
 		if isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is already closed and cannot be updated", transactionID))

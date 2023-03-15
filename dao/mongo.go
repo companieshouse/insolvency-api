@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/companieshouse/chs.go/log"
@@ -121,7 +122,7 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
+			log.Debug(constants.MsgResourceNotFound, log.Data{"transaction_id": transactionID})
 			return nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
 		}
 		log.Error(err)
@@ -162,17 +163,17 @@ func (m *MongoService) GetPractitionerAppointment(practitionerID string, transac
 	err := storedAppointment.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no appointment resource found for transaction id", log.Data{"transaction_id": transactionID})
+			log.Debug(constants.MsgResourceNotFound, log.Data{"transaction_id": transactionID})
 			return nil, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
 		}
 		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return nil, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	err = storedAppointment.Decode(&appointmentResourceDao)
 	if err != nil {
 		log.Error(err)
-		return nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return nil, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	return &appointmentResourceDao, nil
@@ -515,7 +516,7 @@ func (m *MongoService) GetAttachmentFromInsolvencyResource(transactionID string,
 	err := storedAttachment.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
 			return models.AttachmentResourceDao{}, nil
 		}
 
@@ -545,10 +546,10 @@ func (m *MongoService) DeleteAttachmentResource(transactionID, attachmentID stri
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Error(err)
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+			return http.StatusNotFound, fmt.Errorf(constants.MsgCaseForTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	// Choose specific attachment to delete
@@ -589,10 +590,10 @@ func (m *MongoService) UpdateAttachmentStatus(transactionID, attachmentID string
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Error(err)
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+			return http.StatusNotFound, fmt.Errorf(constants.MsgCaseForTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	err = storedAttachment.Decode(&insolvencyResource)
@@ -647,17 +648,17 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+			log.Debug(constants.MsgResourceNotFound, log.Data{"transaction_id": transactionID})
+			return http.StatusNotFound, fmt.Errorf(constants.MsgReqTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	update := bson.M{
@@ -669,7 +670,7 @@ func (m *MongoService) CreateResolutionResource(dao *models.ResolutionResourceDa
 	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	return http.StatusCreated, nil
@@ -687,6 +688,9 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	statementDao := models.StatementOfAffairsResourceDao{
 		StatementDate: dao.StatementDate,
 		Attachments:   dao.Attachments,
+		Kind:          dao.Kind,
+		Etag:          dao.Etag,
+		Links:         dao.Links,
 	}
 
 	// Retrieve insolvency case from Mongo
@@ -694,17 +698,17 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+			log.Debug(constants.MsgResourceNotFound, log.Data{"transaction_id": transactionID})
+			return http.StatusNotFound, fmt.Errorf(constants.MsgReqTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	update := bson.M{
@@ -716,7 +720,7 @@ func (m *MongoService) CreateStatementOfAffairsResource(dao *models.StatementOfA
 	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	return http.StatusCreated, nil
@@ -732,12 +736,12 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 		"transaction_id": transactionID,
 	}
 
-	// Retrieve statement of affairs from Mongo
-	storedStatementOfAffairs := collection.FindOne(context.Background(), filter)
-	err := storedStatementOfAffairs.Err()
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
 			return models.StatementOfAffairsResourceDao{}, nil
 		}
 
@@ -745,10 +749,13 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 		return models.StatementOfAffairsResourceDao{}, err
 	}
 
-	err = storedStatementOfAffairs.Decode(&insolvencyResource)
+	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return models.StatementOfAffairsResourceDao{}, err
+	}
+	if insolvencyResource.Data.StatementOfAffairs == nil {
+		return models.StatementOfAffairsResourceDao{}, nil
 	}
 
 	return *insolvencyResource.Data.StatementOfAffairs, nil
@@ -757,39 +764,9 @@ func (m *MongoService) GetStatementOfAffairsResource(transactionID string) (mode
 // DeleteStatementOfAffairsResource deletes the statement of affairs filed for an insolvency case
 func (m *MongoService) DeleteStatementOfAffairsResource(transactionID string) (int, error) {
 
-	collection := m.db.Collection(m.CollectionName)
+	httpStatus, err := m.DeleteResource(transactionID, "statement-of-affairs")
+	return httpStatus, err
 
-	// Choose specific transaction for insolvency case with attachment to be removed
-	filter := bson.M{"transaction_id": transactionID}
-
-	// Check if insolvency case exists for specified transactionID
-	storedInsolvency := collection.FindOne(context.Background(), filter)
-	err := storedInsolvency.Err()
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Error(err)
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
-		}
-		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
-	}
-
-	query := bson.M{"data.statement-of-affairs": ""}
-
-	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
-	if err != nil {
-		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete statement of affairs", transactionID)
-	}
-
-	// Return error if Mongo could not update the document
-	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - statement of affairs not found", transactionID)
-		log.Error(err)
-		return http.StatusNotFound, err
-	}
-
-	return http.StatusNoContent, nil
 }
 
 // CreateProgressReportResource stores the statement of affairs resource for the insolvency case
@@ -807,6 +784,7 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 		Attachments: dao.Attachments,
 		Etag:        dao.Etag,
 		Kind:        dao.Kind,
+		Links:       dao.Links,
 	}
 
 	// Retrieve insolvency case from Mongo
@@ -814,17 +792,17 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency resource found for transaction id", log.Data{"transaction_id": transactionID})
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction %s not found", transactionID)
+			log.Debug(constants.MsgResourceNotFound, log.Data{"transaction_id": transactionID})
+			return http.StatusNotFound, fmt.Errorf(constants.MsgReqTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	update := bson.M{
@@ -836,10 +814,53 @@ func (m *MongoService) CreateProgressReportResource(dao *models.ProgressReportRe
 	_, err = collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	return http.StatusCreated, nil
+}
+
+// GetProgressReportResource retrieves the progress report filed for an Insolvency Case
+func (m *MongoService) GetProgressReportResource(transactionID string) (*models.ProgressReportResourceDao, error) {
+
+	var insolvencyResource models.InsolvencyResourceDao
+	collection := m.db.Collection(m.CollectionName)
+
+	filter := bson.M{
+		"transaction_id": transactionID,
+	}
+
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
+			return &models.ProgressReportResourceDao{}, nil
+		}
+
+		log.Error(err)
+		return &models.ProgressReportResourceDao{}, err
+	}
+
+	err = storedInsolvency.Decode(&insolvencyResource)
+	if err != nil {
+		log.Error(err)
+		return &models.ProgressReportResourceDao{}, err
+	}
+	if insolvencyResource.Data.ProgressReport == nil {
+		return &models.ProgressReportResourceDao{}, nil
+	}
+
+	return insolvencyResource.Data.ProgressReport, nil
+}
+
+// DeleteProgressReportResource deletes the progress report filed for an insolvency case
+func (m *MongoService) DeleteProgressReportResource(transactionID string) (int, error) {
+
+	httpStatus, err := m.DeleteResource(transactionID, "progress-report")
+	return httpStatus, err
+
 }
 
 // GetResolutionResource retrieves the resolution filed for an Insolvency Case
@@ -852,12 +873,12 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 		"transaction_id": transactionID,
 	}
 
-	// Retrieve resolution from Mongo
-	storedResolution := collection.FindOne(context.Background(), filter)
-	err := storedResolution.Err()
+	// Retrieve insolvency resource from Mongo
+	storedInsolvency := collection.FindOne(context.Background(), filter)
+	err := storedInsolvency.Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Debug("no insolvency case found for transaction id", log.Data{"transaction_id": transactionID})
+			log.Debug(constants.MsgCaseNotFound, log.Data{"transaction_id": transactionID})
 			return models.ResolutionResourceDao{}, nil
 		}
 
@@ -865,18 +886,27 @@ func (m *MongoService) GetResolutionResource(transactionID string) (models.Resol
 		return models.ResolutionResourceDao{}, err
 	}
 
-	err = storedResolution.Decode(&insolvencyResource)
+	err = storedInsolvency.Decode(&insolvencyResource)
 	if err != nil {
 		log.Error(err)
 		return models.ResolutionResourceDao{}, err
+	}
+	if insolvencyResource.Data.Resolution == nil {
+		return models.ResolutionResourceDao{}, nil
 	}
 
 	return *insolvencyResource.Data.Resolution, nil
 }
 
-// DeleteResolutionResource deletes an resource filed for an Insolvency Case
+// DeleteResolutionResource deletes a resolution resource filed for an Insolvency Case
 func (m *MongoService) DeleteResolutionResource(transactionID string) (int, error) {
 
+	httpStatus, err := m.DeleteResource(transactionID, "resolution")
+	return httpStatus, err
+
+}
+
+func (m *MongoService) DeleteResource(transactionID string, resType string) (int, error) {
 	collection := m.db.Collection(m.CollectionName)
 
 	// Choose specific transaction for insolvency case with attachment to be removed
@@ -888,28 +918,28 @@ func (m *MongoService) DeleteResolutionResource(transactionID string) (int, erro
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Error(err)
-			return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id [%s] - insolvency case not found", transactionID)
+			return http.StatusNotFound, fmt.Errorf(constants.MsgCaseForTransactionNotFound, transactionID)
 		}
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s]", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)
 	}
 
 	// Choose specific attachment to delete
-
-	query := bson.M{"data.resolution": ""}
+	query := bson.M{"data." + resType: ""}
 
 	update, err := collection.UpdateOne(context.Background(), filter, bson.M{"$unset": query})
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete resolution", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id [%s] - could not delete %v", transactionID, strings.ReplaceAll(resType, "-", " "))
 	}
 
 	// Return error if Mongo could not update the document
 	if update.ModifiedCount == 0 {
-		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - resolution not found", transactionID)
+		err = fmt.Errorf("there was a problem handling your request for transaction id [%s] - %v not found", transactionID, strings.ReplaceAll(resType, "-", " "))
 		log.Error(err)
 		return http.StatusNotFound, err
 	}
 
 	return http.StatusNoContent, nil
+
 }

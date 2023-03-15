@@ -103,7 +103,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 		// Check if there are already 5 practitioners in database
 		if len(practitionersMapResource) >= maxPractitioners {
 			err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
@@ -247,11 +247,11 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err)})
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err)})
 			return
 		}
 		if isTransactionClosed {
-			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID)})
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID)})
 			return
 		}
 
@@ -281,10 +281,10 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 			return
 		}
 
-		// Check transaction id exists in path
-		incomingTransactionId, practitionerID, _ := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
-		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
-		if !isValidTransactionId {
+		// Check transaction id & practitioner id exist in path
+		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
@@ -392,7 +392,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		// Check if practitioner is empty (not found).
 		if len(practitionerResourceDaos) == 0 {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)})
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "info", []error{fmt.Errorf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
@@ -412,7 +412,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 		// check and returns error when practitioner has no appointment
 		if practitionerResourceDao.Data.Appointment == nil {
-			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] and transactionID [%s]", practitionerID, transactionID)})
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] andd transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
@@ -438,11 +438,11 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf("error checking transaction status for [%v]: [%s]", transactionID, err)})
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err)})
 			return
 		}
 		if isTransactionClosed {
-			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf("transaction [%v] is already closed and cannot be updated", transactionID)})
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID)})
 			return
 		}
 
