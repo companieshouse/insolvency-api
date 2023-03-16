@@ -110,7 +110,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao) 
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 	}
 
-	// Check if "statement-of-affairs-director" or "statement-of-affairs-liquidator" has been filed, if so, then a statement date must be present
+	// Check if SOA-D and/or SOC, or SOA-L has been filed, if so, then a statement date must be present
 	_, hasStatementOfConcurrence := attachmentTypes[constants.StatementOfConcurrence.String()]
 	_, hasStatementOfAffairsDirector := attachmentTypes[constants.StatementOfAffairsDirector.String()]
 	if (hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator || hasStatementOfConcurrence) && (insolvencyResource.Data.StatementOfAffairs == nil || insolvencyResource.Data.StatementOfAffairs.StatementDate == "") {

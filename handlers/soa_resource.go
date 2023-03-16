@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/service"
@@ -64,9 +65,9 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		}
 
 		// Validate the supplied attachment is a valid type
-		if attachment.Type != "statement-of-affairs-director" && attachment.Type != "statement-of-affairs-liquidator"  && attachment.Type != "statement-of-concurrence" {
+		if attachment.Type != constants.StatementOfAffairsDirector.String() && attachment.Type != constants.StatementOfAffairsLiquidator.String() && attachment.Type != constants.StatementOfConcurrence.String() {
 			err := fmt.Errorf("attachment id [%s] is an invalid type for this request: %v", statementDao.Attachments[0], attachment.Type)
-			responseMessage := "attachment is not a statement-of-affairs-director, statement-of-affairs-liquidator or a statement-of-concurrence"
+			responseMessage := ("attachment is not a " + constants.StatementOfAffairsDirector.String() + ", " + constants.StatementOfAffairsLiquidator.String() + " or a " + constants.StatementOfConcurrence.String())
 
 			helperService.HandleAttachmentTypeValidation(w, req, responseMessage, err)
 			return

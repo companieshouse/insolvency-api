@@ -445,7 +445,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 	// Loop through SOA attachment types to repeat test to convey the following:
 	// error - <attachment type> filed but no statement date/resource exists in DB
-	attachmentTypes := []string{"statement-of-affairs-director","statement-of-affairs-liquidator","statement-of-concurrence"}
+	attachmentTypes := []string{constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), constants.StatementOfConcurrence.String()}
 	contextList := []string{"date", "resource"}
 	for _, attachment := range attachmentTypes {
 		for _, contextItem := range contextList {
