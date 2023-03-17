@@ -217,7 +217,7 @@ func checkValidStatementOfAffairsDate(statementOfAffairsDate string, resolutionD
 		return false, "", "resolution date", fmt.Errorf("invalid resolution date [%s]", resolutionDate)
 	}
 
-	// Statement of Affairs Date must be on or before the resolution date
+	// Statement of Affairs Date cannot be after the resolution date
 	if soaDate.After(resDate) {
 		return false, "error - statement of affairs date [" + statementOfAffairsDate + "] must not be after the resolution date" + " [" + resolutionDate + "]", "", nil
 	}
