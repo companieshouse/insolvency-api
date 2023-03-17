@@ -84,6 +84,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
 	} else if cfg.EnableNonLiveRouteHandlers {
 		log.Info("Non-live endpoints enabled")
+		// Register any in-development endpoints here
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}
