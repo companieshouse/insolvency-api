@@ -58,8 +58,8 @@ func TestUnitRegisterRoutes(t *testing.T) {
 		So(router.GetRoute("getStatementOfAffairs"), ShouldNotBeNil)
 		So(router.GetRoute("deleteStatementOfAffairs"), ShouldNotBeNil)
 
-		So(router.GetRoute("createProgressReport"), ShouldBeNil)
-		So(router.GetRoute("getProgressReport"), ShouldBeNil)
+		So(router.GetRoute("createProgressReport"), ShouldNotBeNil)
+		So(router.GetRoute("getProgressReport"), ShouldNotBeNil)
 	})
 
 	// Simulate ENABLE_NON_LIVE_ROUTE_HANDLERS feature toggle being enabled

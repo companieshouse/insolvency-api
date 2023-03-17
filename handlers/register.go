@@ -71,6 +71,10 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	publicAppRouter.Handle(statementOfAffairsPath, HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
 	publicAppRouter.Handle(statementOfAffairsPath, HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
 
+	publicAppRouter.Handle(progressReportPath, HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
+	publicAppRouter.Handle(progressReportPath, HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
+	publicAppRouter.Handle(progressReportPath, HandleDeleteProgressReport(svc, helperService)).Methods(http.MethodDelete).Name("deleteProgressReport")
+
 	// Get environment config - only required whilst feature flag in use to disable
 	// non-live form handling routes unless set to true
 	cfg, err := config.Get()
@@ -79,9 +83,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	if err != nil {
 		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
 	} else if cfg.EnableNonLiveRouteHandlers {
-		publicAppRouter.Handle(progressReportPath, HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
-		publicAppRouter.Handle(progressReportPath, HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
-		publicAppRouter.Handle(progressReportPath, HandleDeleteProgressReport(svc, helperService)).Methods(http.MethodDelete).Name("deleteProgressReport")
+		log.Info("Non-live endpoints enabled")
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}
