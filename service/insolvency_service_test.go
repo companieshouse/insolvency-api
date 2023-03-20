@@ -613,24 +613,34 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid resolution date")
 		})
 
-		Convey("Statement date before resolution date", func() {
+		Convey("Statement date is after the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
-			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-20"
-			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-26"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
 			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must not be before resolution date")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be after the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
 		})
 
-		Convey("Statement date > 7 days after resolution date", func() {
+		Convey("Statement date more than 14 days prior to the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
-			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-29"
-			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-10"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
 			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must be within 7 days of resolution date")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be more than 14 days prior to the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
+		})
+
+		Convey("Statement date is 14 days prior to the resolution date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-11"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
+			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
+
+			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			So(validationErrors, ShouldHaveLength, 0)
 		})
 
 	})
