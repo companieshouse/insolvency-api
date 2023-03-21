@@ -320,7 +320,6 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	// Check for an appointed practitioner to determine if there's a 600 insolvency form
 	for _, practitioner := range practitionerResources {
 		if practitioner.Data.Appointment != nil {
-			// Check for an appointed practitioner to determine if there's a 600 insolvency form
 			newFiling := generateNewFiling(insolvencyResource, &practitionerResourcesData, nil, "600")
 			filings = append(filings, *newFiling)
 			break
