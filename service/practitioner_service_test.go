@@ -266,6 +266,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
+
 		So(err.Error(), ShouldContainSubstring, "err")
 		So(validationErr[0], ShouldEqual, "err")
 	})
@@ -286,8 +287,13 @@ func TestUnitIsValidAppointment(t *testing.T) {
 		appointmentResourceDao.Data.MadeBy = "creditors"
 
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self: "/transactions/123/insolvency/practitioners/456",
+			Appointment: "{\"456\":\"/transactions/123/insolvency/practitioners/456/appointment\"}",
+		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+		
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
 		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
@@ -354,6 +360,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error parsing date")
 	})
@@ -374,6 +381,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, generateAppointment(), transactionID, practitionerID, req)
+
 		So(validationErr, ShouldBeEmpty)
 		So(err.Error(), ShouldContainSubstring, "error parsing date")
 	})
@@ -397,6 +405,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr[0], ShouldContainSubstring, "should not be in the future")
 		So(err, ShouldBeNil)
 	})
@@ -420,6 +429,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr[0], ShouldContainSubstring, "before the company was incorporated")
 		So(err, ShouldBeNil)
 	})
@@ -478,6 +488,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr[0], ShouldEqual, fmt.Sprintf("made_by cannot be [%s] for insolvency case of type CVL", appointment.MadeBy))
 		So(err, ShouldBeNil)
 	})
@@ -504,9 +515,37 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr, ShouldNotBeEmpty)
 		So(err, ShouldBeNil)
 		So(validationErr[0], ShouldEqual, "practitioner ID [456] and transactionID[123] are not valid to create appointment")
+	})
+
+	Convey("create appointment when practitioner has no appointment links", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		mockService := mock_dao.NewMockService(mockCtrl)
+
+		insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self: "/transactions/123/insolvency/practitioners/456",
+		}
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+
+		appointment := generateAppointment()
+		appointment.MadeBy = "creditors"
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
+		So(validationErr, ShouldBeEmpty)
+		So(err, ShouldBeNil)
 	})
 
 	Convey("valid appointment", t, func() {
@@ -528,6 +567,7 @@ func TestUnitIsValidAppointment(t *testing.T) {
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateAppointmentDetails(mockService, appointment, transactionID, practitionerID, req)
+
 		So(validationErr, ShouldBeEmpty)
 		So(err, ShouldBeNil)
 	})

@@ -1178,6 +1178,10 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		practitionerResourceDao := models.PractitionerResourceDao{}
 		practitionerResourceDao.Data.PractitionerId = practitionerID
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self: "/transactions/12345678/insolvency/practitioners/00001234",
+			Appointment: "{\"00001234\":\"/transactions/12345678/insolvency/practitioners/00001234/appointment\"}",
+		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 

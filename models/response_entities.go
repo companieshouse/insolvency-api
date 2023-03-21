@@ -19,17 +19,21 @@ type CreatedInsolvencyResourceLinks struct {
 
 // CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
 type CreatedPractitionerResource struct {
-	PractitionerId  string                       `json:"practitioner_id"`
-	IPCode          string                       `json:"ip_code"`
-	FirstName       string                       `json:"first_name"`
-	LastName        string                       `json:"last_name"`
-	Email           string                       `json:"email"`
-	TelephoneNumber string                       `json:"telephone_number"`
-	Address         CreatedAddressResource       `json:"address"`
-	Role            string                       `json:"role"`
-	Etag            string                       `json:"etag"`
-	Kind            string                       `json:"kind"`
-	Links           PractitionerResourceLinksDao `json:"links"`
+	PractitionerId  string                 `json:"practitioner_id"`
+	IPCode          string                 `json:"ip_code"`
+	FirstName       string                 `json:"first_name"`
+	LastName        string                 `json:"last_name"`
+	Email           string                 `json:"email"`
+	TelephoneNumber string                 `json:"telephone_number"`
+	Address         CreatedAddressResource `json:"address"`
+	Role            string                 `json:"role"`
+	Etag            string                 `json:"etag"`
+	Kind            string                 `json:"kind"`
+	Links           struct {
+		Self        *string `json:"self,omitempty"`
+		Appointment *string `json:"appointment,omitempty"`
+	} `json:"links"`
+	Appointment *AppointedPractitionerResource `json:"appointment,omitempty"`
 }
 
 // CreatedAddressResource contains the address fields for the created practitioner resource

@@ -30,7 +30,7 @@ func updateCollection(filter bson.M, updateDocument bson.M, collection *mongo.Co
 }
 
 //delete from Collection
-func deleteCollection(practitionerID string, filter bson.M, collection *mongo.Collection) (*mongo.DeleteResult, error) {
+func deleteCollection(filter bson.M, collection *mongo.Collection) (*mongo.DeleteResult, error) {
 	opts := options.Delete().SetHint(bson.M{"_id": 1})
 	result, err := collection.DeleteMany(context.TODO(), filter, opts)
 	if err != nil {
@@ -58,19 +58,19 @@ func getInsolvencyPractitionersDetails(practitionersString string, transactionID
 
 func getPractitioners(practitionerIDs []string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
 	var practitionerResourceDaos []models.PractitionerResourceDao
-	var practitionerResourceDao models.PractitionerResourceDao
 
 	matchQuery := bson.D{{"$match", bson.D{{"data.practitioner_id", bson.D{{"$in", practitionerIDs}}}}}}
 	lookupQuery := bson.D{{"$lookup", bson.D{{"from", AppointmentCollectionName}, {"localField", "data.practitioner_id"}, {"foreignField", "practitioner_id"}, {"as", "data.appointment"}}}}
 	unwindQuery := bson.D{{"$unwind", bson.D{{"path", "$data.appointment"}, {"preserveNullAndEmptyArrays", true}}}}
 
 	// Retrieve practitioners and appointments from DB
-	practitionerCursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{lookupQuery, matchQuery, unwindQuery})
+	practitionerCursor, err := collection.Aggregate(context.Background(), mongo.Pipeline{matchQuery, lookupQuery, unwindQuery})
 	if err != nil {
 		return nil, err
 	}
 
 	for practitionerCursor.Next(context.Background()) {
+		var practitionerResourceDao models.PractitionerResourceDao
 		err := practitionerCursor.Decode(&practitionerResourceDao)
 		if err != nil {
 			errMsg := fmt.Errorf("error decoding models")

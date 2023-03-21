@@ -1066,9 +1066,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		practitionerResourceDao := models.PractitionerResourceDao{}
+		var practitionerResourceDao, practitionerResourceDao1 models.PractitionerResourceDao
 		practitionerResourceDao.Data.Appointment = nil
-		practitionerResourceDao1 := models.PractitionerResourceDao{}
 		practitionerResourceDao1.Data.Appointment = nil
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 

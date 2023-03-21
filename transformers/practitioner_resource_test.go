@@ -68,7 +68,7 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 		So(response.Address.AddressLine1, ShouldEqual, dao.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, dao.Address.Locality)
 		So(response.Role, ShouldEqual, dao.Role)
-		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+		So(*response.Links.Self, ShouldEqual, dao.Links.Self)
 	})
 }
 

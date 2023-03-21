@@ -9,6 +9,7 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/transformers"
 )
 
 // layout for parsing dates
@@ -305,7 +306,7 @@ func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyReso
 func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, error) {
 
 	// Retrieve details for the insolvency resource from DB
-	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, practitionerResources, err := svc.GetInsolvencyPractitionersResource(transactionID)
 	if err != nil {
 		message := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
 		return nil, message
@@ -313,20 +314,21 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 
 	var filings []models.Filing
 
+	//transform practitioner resources to expected response
+	practitionerResourcesData := transformers.PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResources)
+
 	// Check for an appointed practitioner to determine if there's a 600 insolvency form
-	for _, practitioner := range practitionerResourceDaos {
+	for _, practitioner := range practitionerResources {
 		if practitioner.Data.Appointment != nil {
-			// If a filing is a 600 add a generated filing to the array of filings
-			newFiling := generateNewFiling(insolvencyResource, nil, "600")
+			newFiling := generateNewFiling(insolvencyResource, &practitionerResourcesData, nil, "600")
 			filings = append(filings, *newFiling)
 			break
 		}
 	}
 
 	// Map attachments to filing types
-	attachmentsLRESEX := []*models.AttachmentResourceDao{}
-	attachmentsLIQ02 := []*models.AttachmentResourceDao{}
-	attachmentsLIQ03 := []*models.AttachmentResourceDao{}
+	var attachmentsLRESEX, attachmentsLIQ02, attachmentsLIQ03 []*models.AttachmentResourceDao
+
 	// using range index to allow passing reference not value
 	for i := range insolvencyResource.Data.Attachments {
 		switch insolvencyResource.Data.Attachments[i].Type {
@@ -339,28 +341,28 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 		}
 	}
 	if len(attachmentsLRESEX) > 0 {
-		newFiling := generateNewFiling(insolvencyResource, attachmentsLRESEX, "LRESEX")
+		newFiling := generateNewFiling(insolvencyResource, nil, attachmentsLRESEX, "LRESEX")
 		filings = append(filings, *newFiling)
 	}
 	if len(attachmentsLIQ02) > 0 {
-		newFiling := generateNewFiling(insolvencyResource, attachmentsLIQ02, "LIQ02")
+		newFiling := generateNewFiling(insolvencyResource, &practitionerResourcesData, attachmentsLIQ02, "LIQ02")
 		filings = append(filings, *newFiling)
 	}
 	if len(attachmentsLIQ03) > 0 {
-		newFiling := generateNewFiling(insolvencyResource, attachmentsLIQ03, "LIQ03")
+		newFiling := generateNewFiling(insolvencyResource, &practitionerResourcesData, attachmentsLIQ03, "LIQ03")
 		filings = append(filings, *newFiling)
 	}
 	return filings, nil
 }
 
 // generateNewFiling generates a new filing for a specified filing type using data extracted from the InsolvencyResourceDao & a supplied slice of attachments
-func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
+func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, practitionerResources *[]models.CreatedPractitionerResource, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
 
 	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,
 		"case_type":      &insolvencyResource.Data.CaseType,
 		"company_name":   &insolvencyResource.Data.CompanyName,
-		"practitioners":  &insolvencyResource.Data.Practitioners,
+		"practitioners":  practitionerResources,
 	}
 
 	switch filingType {
