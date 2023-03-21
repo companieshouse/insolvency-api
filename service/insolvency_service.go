@@ -313,23 +313,17 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	}
 
 	var filings []models.Filing
-	var hasAppointment bool = false
-
-	// Check for an appointed practitioner to determine if there's a 600 insolvency form
-	for _, practitioner := range practitionerResources {
-		if practitioner.Data.Appointment != nil {
-			hasAppointment = true
-		}
-	}
 
 	//transform practitioner resources to expected response
 	practitionerResourcesData := transformers.PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResources)
 
-	if len(practitionerResources) > 0 && hasAppointment {
-		// Check for an appointed practitioner to determine if there's a 600 insolvency form
-		if len(practitionerResourcesData) > 0 {
+	// Check for an appointed practitioner to determine if there's a 600 insolvency form
+	for _, practitioner := range practitionerResources {
+		if practitioner.Data.Appointment != nil {
+			// Check for an appointed practitioner to determine if there's a 600 insolvency form
 			newFiling := generateNewFiling(insolvencyResource, &practitionerResourcesData, nil, "600")
 			filings = append(filings, *newFiling)
+			break
 		}
 	}
 

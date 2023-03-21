@@ -30,10 +30,10 @@ type CreatedPractitionerResource struct {
 	Etag            string                 `json:"etag"`
 	Kind            string                 `json:"kind"`
 	Links           struct {
-		Self        *string `json:",omitempty"`
-		Appointment *string `json:",omitempty"`
-	}
-	Appointment *AppointedPractitionerResource `json:",omitempty"`
+		Self        *string `json:"self,omitempty"`
+		Appointment *string `json:"appointment,omitempty"`
+	} `json:"links"`
+	Appointment *AppointedPractitionerResource `json:"appointment,omitempty"`
 }
 
 // CreatedAddressResource contains the address fields for the created practitioner resource
