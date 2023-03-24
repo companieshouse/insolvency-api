@@ -22,8 +22,8 @@ func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfA
 	}
 
 	// Check that the attachment has been submitted correctly
-	if len(statementDao.Attachments) == 0 || len(statementDao.Attachments) > 1 {
-		errs = append(errs, "please supply only one attachment")
+	if len(statementDao.Attachments) == 0 || len(statementDao.Attachments) > 2 {
+		errs = append(errs, "please supply at least one attachment ID (up to a maximum of two attachment IDs)")
 	}
 
 	// Check if statement date supplied is in the future or before company was incorporated
