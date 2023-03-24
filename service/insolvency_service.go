@@ -70,20 +70,8 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 		attachmentTypes[attachment.Type] = struct{}{}
 	}
 
-	// Check if attachment type is statement-of-concurrence, if true then statement-of-affairs-director attachment must be present
-	_, hasStatementOfConcurrence := attachmentTypes["statement-of-concurrence"]
-
-	if hasStatementOfConcurrence {
-		_, hasStatementOfAffairsDirector := attachmentTypes["statement-of-affairs-director"]
-		if !hasStatementOfAffairsDirector {
-			validationError := fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyResource.TransactionID)
-			log.Info(validationError)
-			validationErrors = addValidationError(validationErrors, validationError, "statement of concurrence attachment type")
-		}
-	}
-
 	// Check if attachment type is statement-of-affairs-liquidator, if true then no practitioners must be appointed, but at least one should be present
-	_, hasStateOfAffairsLiquidator := attachmentTypes["statement-of-affairs-liquidator"]
+	_, hasStateOfAffairsLiquidator := attachmentTypes[constants.StatementOfAffairsLiquidator.String()]
 
 	if hasStateOfAffairsLiquidator && hasAppointedPractitioner {
 		validationError := fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyResource.TransactionID)
@@ -125,22 +113,23 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 		validationErrors = addValidationError(validationErrors, validationError, "attachment ids do not match")
 	}
 
-	// Check if "statement-of-affairs-director" or "statement-of-affairs-liquidator" has been filed, if so, then a statement date must be present
+	// Check if SOA-D and/or SOC, or SOA-L has been filed, if so, then a statement date must be present
+	_, hasStatementOfConcurrence := attachmentTypes[constants.StatementOfConcurrence.String()]
 	_, hasStatementOfAffairsDirector := attachmentTypes[constants.StatementOfAffairsDirector.String()]
-	if (hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator) && (insolvencyResource.Data.StatementOfAffairs == nil || insolvencyResource.Data.StatementOfAffairs.StatementDate == "") {
-		validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]",
+	if (hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator || hasStatementOfConcurrence) && (insolvencyResource.Data.StatementOfAffairs == nil || insolvencyResource.Data.StatementOfAffairs.StatementDate == "") {
+		validationError := fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with a type of [%s], [%s], or a [%s] for insolvency case with transaction id [%s]",
 			constants.StatementOfAffairsDirector.String(),
-			constants.StatementOfAffairsLiquidator.String(),
+			constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(),
 			insolvencyResource.TransactionID)
 		log.Info(validationError)
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
 	}
 
-	// Check if SOA resource exists or statement date is not empty in DB, if not, then an SOA-D or SOA-L attachment must be filed
-	if insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != "" && !(hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator) {
-		validationError := fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]",
+	// Check if SOA resource exists or statement date is not empty in DB, if not, then an SOA-D and/or SOC, or SOA-L attachment must be filed
+	if insolvencyResource.Data.StatementOfAffairs != nil && insolvencyResource.Data.StatementOfAffairs.StatementDate != "" && !(hasStatementOfAffairsDirector || hasStateOfAffairsLiquidator || hasStatementOfConcurrence) {
+		validationError := fmt.Sprintf("error - an attachment of type [%s], [%s], or a [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]",
 			constants.StatementOfAffairsDirector.String(),
-			constants.StatementOfAffairsLiquidator.String(),
+			constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(),
 			insolvencyResource.TransactionID)
 		log.Info(validationError)
 		validationErrors = addValidationError(validationErrors, validationError, "statement-of-affairs")
@@ -237,14 +226,13 @@ func checkValidStatementOfAffairsDate(statementOfAffairsDate string, resolutionD
 		return false, "", "resolution date", fmt.Errorf("invalid resolution date [%s]", resolutionDate)
 	}
 
-	// Statement Of Affairs Date must not be before Resolution Date
-	if soaDate.Before(resDate) {
-		return false, "error - statement of affairs date must not be before resolution date", "", nil
+	// Statement of Affairs Date cannot be after the resolution date
+	if soaDate.After(resDate) {
+		return false, "error - statement of affairs date [" + statementOfAffairsDate + "] must not be after the resolution date" + " [" + resolutionDate + "]", "", nil
 	}
-
-	// Statement Of Affairs Date must not be more than 7 days after resolution date
-	if soaDate.Sub(resDate).Hours()/24 > 7 {
-		return false, "error - statement of affairs date must be within 7 days of resolution date", "", nil
+	// Statement Of Affairs Date must be within 14 days prior to the resolution date
+	if resDate.Sub(soaDate).Hours()/24 > 14 {
+		return false, "error - statement of affairs date [" + statementOfAffairsDate + "] must not be more than 14 days prior to the resolution date" + " [" + resolutionDate + "]", "", nil
 	}
 
 	return true, "", "", nil
