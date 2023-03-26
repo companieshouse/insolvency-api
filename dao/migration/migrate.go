@@ -235,12 +235,14 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to drop practitioner collection")
 	}
+	fmt.Println("practitioners collection found and dropped...")
 
 	//drop appoinment
 	err = appointmentCollectionName.Drop(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to drop appointment collection")
 	}
+	fmt.Println("appointment collection found and dropped...")
 
 	// Retrieve insolvency case from insolvency_backup
 	var insolvencyDaosFromBackup []InsolvencyMigrationDao
@@ -255,12 +257,14 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 	//fetch all insolvency from backup if exist
 	if len(insolvencyDaosFromBackup) > 0 {
 		insolvencyFromBackup := transform(insolvencyDaosFromBackup)
+		fmt.Println("insolvency retrieved from backup collection...")
 		if len(insolvencyFromBackup) > 0 {
 			// drop insolvency
 			err = collection.Drop(context.Background())
 			if err != nil {
 				return nil, fmt.Errorf("failed to drop appointment collection")
 			}
+			fmt.Println("old insolvency collection found and dropped...")
 		}
 
 		// transfer backup to insolvency
@@ -268,7 +272,7 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 		if err != nil {
 			return nil, fmt.Errorf(err.Error())
 		}
-
+		fmt.Println("new insolvency collection backed up...")
 	}
 
 	var insolvencyMigrationDaos []InsolvencyMigrationDao
@@ -279,12 +283,13 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
-
+	fmt.Println("new insolvency collection retrieved...")
 	// drop back up and recreate to prevent error
 	err = insolvencyBackUpCollectionName.Drop(context.Background())
 	if err != nil {
 		return nil, fmt.Errorf("failed to drop insolvency backup collection")
 	}
+	fmt.Println("old insolvency backup collection found and dropped...")
 
 	//backup insolvency incase of any issue if not exist
 	insolvencyDaos := transform(insolvencyMigrationDaos)
@@ -292,8 +297,8 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
+	fmt.Println("new insolvency backed up...")
 
-	fmt.Println(insolvencyMigrationDaos)
 	for _, insolvency := range insolvencyMigrationDaos {
 		practitionersMapResource := make(map[string]string)
 		practitioners := insolvency.Data.Practitioners
@@ -357,6 +362,7 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 				}
 				//practitioners links
 				practitionersMapResource[practitioner.Id] = fmt.Sprintf(constants.TransactionsPath + insolvency.TransactionID + constants.PractitionersPath + string(practitioner.Id))
+				fmt.Println("practitioners links created===>")
 
 				practitionerMigrationDaos = append(practitionerMigrationDaos, practitionerModel)
 			}
@@ -372,6 +378,8 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 				fmt.Println("problem inserting practitioner===>" + err.Error())
 			}
 
+			fmt.Println("practitioners saved...")
+
 			filter := bson.M{"_id": insolvency.ID}
 
 			//remove practitioners
@@ -381,6 +389,7 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 				fmt.Println("problem unset insolvency practitioner===>" + err.Error())
 			}
 
+			fmt.Println("practitioners unset from old insolvency...")
 			// add practitioner link to insolvency
 			practitionersString, _ := utils.ConvertMapToString(practitionersMapResource)
 			update := bson.M{"$set": bson.M{"data.practitioners": practitionersString, "data.etag": insolvency.Etag, "data.kind": insolvency.Kind}}
@@ -388,6 +397,8 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 			if err != nil {
 				fmt.Println("problem update insolvency practitioner link===>" + err.Error())
 			}
+
+			fmt.Println("practitioners links updated....")
 		}
 
 	}
@@ -414,8 +425,11 @@ func main() {
 	insolvencyMigrationDao, err := svc.Migrate()
 	if err != nil {
 		fmt.Println("error:", err)
+		fmt.Println("Migration not completed...")
 	}
+
 	if insolvencyMigrationDao != nil {
 		fmt.Println(insolvencyMigrationDao)
+		fmt.Println("Migration completed...")
 	}
 }
