@@ -39,15 +39,14 @@ func deleteCollection(filter bson.M, collection *mongo.Collection) (*mongo.Delet
 	return result, nil
 }
 
-func getInsolvencyPractitionersDetails(practitionersString string, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
-	_, practitionerIDs, err := utils.ConvertStringToMapObjectAndStringList(practitionersString)
-	if err != nil {
-		return nil, err
+func getInsolvencyPractitionersDetails(practitionerLinksMap models.InsolvencyResourcePractitionersDao, transactionID string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
+	practitionerIDs := utils.GetMapKeysAsStringSlice(practitionerLinksMap)
+	if len(practitionerIDs) == 0 {
+		return nil, fmt.Errorf("no practitioners to retrieve")
 	}
 
 	// make a call to fetch all practitioners from the string array
-	var practitionerResourceDao []models.PractitionerResourceDao
-	practitionerResourceDao, err = getPractitioners(practitionerIDs, collection)
+	practitionerResourceDao, err := getPractitioners(practitionerIDs, collection)
 	if err != nil {
 		log.Debug(err.Error(), log.Data{"transaction_id": transactionID})
 		return nil, err

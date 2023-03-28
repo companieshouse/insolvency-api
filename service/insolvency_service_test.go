@@ -24,10 +24,10 @@ var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 func createInsolvencyResource() *models.InsolvencyResourceDao {
 	_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 
-	jsonPractitionersDao := `{
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
 		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
-		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442"
-	}`
+		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
+	}
 
 	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
 	appointmentResourceDao.Data.MadeBy = "creditors"
@@ -58,7 +58,7 @@ func createInsolvencyResource() *models.InsolvencyResourceDao {
 	insolvencyResourceDao.Data.CompanyNumber = companyNumber
 	insolvencyResourceDao.Data.CompanyName = companyName
 	insolvencyResourceDao.Data.CaseType = "insolvency"
-	insolvencyResourceDao.Data.Practitioners = jsonPractitionersDao
+	insolvencyResourceDao.Data.Practitioners = &insolvencyResourcePractitionersDao
 	insolvencyResourceDao.Data.Attachments = []models.AttachmentResourceDao{
 		{
 			ID:     "id",
@@ -535,7 +535,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 				// Remove practitioner for SOA-L to prevent triggering another error
 				if attachment == constants.StatementOfAffairsLiquidator.String() {
-					insolvencyCase.Data.Practitioners = ""
+					insolvencyCase.Data.Practitioners = nil
 				}
 
 				validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)

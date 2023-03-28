@@ -109,8 +109,10 @@ func PractitionerAppointmentDaoToResponse(appointment *models.AppointmentResourc
 	return models.AppointedPractitionerResource{
 		AppointedOn: appointment.Data.AppointedOn,
 		MadeBy:      appointment.Data.MadeBy,
-		Links:       appointment.Data.Links,
-		Etag:        appointment.Data.Etag,
-		Kind:        appointment.Data.Kind,
+		Links: models.AppointedPractitionerLinksResource{
+			Self: appointment.Data.Links.Self,
+		},
+		Etag: appointment.Data.Etag,
+		Kind: appointment.Data.Kind,
 	}
 }

@@ -136,9 +136,9 @@ func (m *MongoService) GetInsolvencyPractitionersResource(transactionID string) 
 	}
 
 	// make a call to get insolvency practitioner details
-	practitionersString := insolvencyResourceDao.Data.Practitioners
-	if len(practitionersString) > 0 {
-		practitionerResourceDaos, err := getInsolvencyPractitionersDetails(practitionersString, transactionID, practitionerCollection)
+	if insolvencyResourceDao.Data.Practitioners != nil {
+		practitionerLinksMap := *insolvencyResourceDao.Data.Practitioners
+		practitionerResourceDaos, err := getInsolvencyPractitionersDetails(practitionerLinksMap, transactionID, practitionerCollection)
 		if err != nil {
 			log.Error(err)
 			return nil, nil, fmt.Errorf("there was a problem getting insolvency and practitioners' details for transaction [%s]", err)
@@ -269,18 +269,19 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 		return http.StatusInternalServerError, err
 	}
 
-	// get insolvency practitioners
-	mappedInsolvencyPractitioners, _, err := utils.ConvertStringToMapObjectAndStringList(insolvencyResource.Data.Practitioners)
-	if err != nil {
-		log.Error(err)
+	if insolvencyResource.Data.Practitioners == nil {
+		log.Debug("Cannot delete practitioner - no practitioners found for insolvency case", log.Data{"transaction_id": transactionID})
 		return http.StatusBadRequest, fmt.Errorf("there was a problem handling your request for transaction id %s no insolvency practitioners found", transactionID)
 	}
 
+	// get insolvency practitioner links
+	practitionerLinksMap := *insolvencyResource.Data.Practitioners
+
 	// check if practitionerID exists
-	_, isPresent := mappedInsolvencyPractitioners[practitionerID]
+	_, isPresent := practitionerLinksMap[practitionerID]
 	if isPresent {
-		// delete slice out the practitioner to delete from the map before updating insolvency
-		delete(mappedInsolvencyPractitioners, practitionerID)
+		// delete the practitioner from the map before updating insolvency
+		delete(practitionerLinksMap, practitionerID)
 
 		// delete practitioner appointment
 		filterAppointmentToDelete := bson.M{"practitioner_id": practitionerID}
@@ -303,13 +304,12 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 		}
 
 		// update insolvency
-		remainingPractitionerString, _ := utils.ConvertMapToString(mappedInsolvencyPractitioners)
 
 		insolvencyToUpdate := bson.M{"transaction_id": transactionID}
-		if remainingPractitionerString == "{}" {
+		if len(practitionerLinksMap) == 0 {
 			insolvencyDocumentToUpdate = bson.M{"$unset": bson.M{"data.practitioners": ""}}
 		} else {
-			insolvencyDocumentToUpdate = bson.M{"$set": bson.M{"data.practitioners": remainingPractitionerString}}
+			insolvencyDocumentToUpdate = bson.M{"$set": bson.M{"data.practitioners": practitionerLinksMap}}
 		}
 
 		statusCode, err := updateCollection(insolvencyToUpdate, insolvencyDocumentToUpdate, collection)
@@ -326,28 +326,16 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 
 // UpdatePractitionerAppointment adds appointment details into practitioner case with the specified transactionID and practitionerID
 func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
-	//var practitionerMapAppointmentResource map[string]string
-	practitionerMapAppointmentResource := make(map[string]string)
 
 	// practitioner collection
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
 
-	// Create appointment link for a practitoner to be stored
-	practitionerMapAppointmentResource[practitionerID] = appointmentResourceDao.Data.Links.Self
-
-	// Convert the map to string
-	appointmentLinks, err := utils.ConvertMapToString(practitionerMapAppointmentResource)
-	if err != nil {
-		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to convert mapped practitioner's appointment to string %s", transactionID, practitionerID)
-	}
-
-	// Choose specific practitioner to update with appointment
+	// Select specific practitioner and specify appointment link to add
 	practitionerToUpdate := bson.M{"data.practitioner_id": practitionerID}
-	pratitionerDocumentToUpdate := bson.M{"$set": bson.M{"data.links.appointment": appointmentLinks}}
+	practitionerDocumentToUpdate := bson.M{"$set": bson.M{"data.links.appointment": appointmentResourceDao.Data.Links.Self}}
 
 	//update practitioner collection with appointment link
-	status, err := updateCollection(practitionerToUpdate, pratitionerDocumentToUpdate, practitionerCollection)
+	status, err := updateCollection(practitionerToUpdate, practitionerDocumentToUpdate, practitionerCollection)
 	if err != nil {
 		log.Error(err)
 		return status, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to update practitioner's appointment %s", transactionID, practitionerID)
@@ -386,19 +374,14 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 	}
 
 	// get practitioner appointment(s)
-	mappedPractitionerAppointment, _, err := utils.ConvertStringToMapObjectAndStringList(practitionerResourceDao.Data.Links.Appointment)
-	if err != nil {
-		log.Error(err)
+	if practitionerResourceDao.Data.Links.Appointment == "" {
+		log.Debug("Cannot delete practitioner appointment - no appointment found for practitioner", log.Data{"transaction_id": transactionID})
 		return http.StatusNotFound, fmt.Errorf("there was a problem handling your request for transaction id %s - no practitioner's appointment found", transactionID)
 	}
 
-	// check if practitionerID exists and validate transactionID
-	value, isPresent := mappedPractitionerAppointment[practitionerID]
-	hasValidTransactionID := utils.CheckStringContainsElement(value, "/", transactionID)
+	hasValidTransactionID := utils.CheckStringContainsElement(practitionerResourceDao.Data.Links.Appointment, "/", transactionID)
 
-	if isPresent && hasValidTransactionID {
-		// remove unwanted appointment from the slice
-		delete(mappedPractitionerAppointment, practitionerID)
+	if hasValidTransactionID {
 
 		//delete appointment
 		filterAppointmentToDelete := bson.M{"practitioner_id": practitionerID}
@@ -408,15 +391,9 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 			return http.StatusInternalServerError, fmt.Errorf("there was a problem handling your request for transaction id %s - not able to delete practitioners appointment", transactionID)
 		}
 
-		//update practitioners
-		practitionerAppointmentString, _ := utils.ConvertMapToString(mappedPractitionerAppointment)
-
+		//remove appointment link from practitioner
 		practitionerToUpdate := bson.M{"data.practitioner_id": practitionerID}
-		if practitionerAppointmentString == "{}" {
-			practitionerDocumentToUpdate = bson.M{"$unset": bson.M{"data.links.appointment": ""}}
-		} else {
-			practitionerDocumentToUpdate = bson.M{"$set": bson.M{"data.links.appointment": practitionerAppointmentString}}
-		}
+		practitionerDocumentToUpdate = bson.M{"$unset": bson.M{"data.links.appointment": ""}}
 
 		statusCode, err := updateCollection(practitionerToUpdate, practitionerDocumentToUpdate, practitionerCollection)
 		if err != nil {

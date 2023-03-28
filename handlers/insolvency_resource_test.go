@@ -515,10 +515,10 @@ func serveHandleGetFilings(service dao.Service, tranIDSet bool) *httptest.Respon
 
 func createInsolvencyResource() *models.InsolvencyResourceDao {
 
-	jsonPractitionersDao := `{
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
 		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
-		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442"
-	}`
+		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
+	}
 
 	practitionerResourceDao := models.PractitionerResourceDao{}
 	appointmentResourceDao := models.AppointmentResourceDao{}
@@ -536,7 +536,7 @@ func createInsolvencyResource() *models.InsolvencyResourceDao {
 	insolvencyResourceDao.Data.CompanyName = companyName
 	insolvencyResourceDao.Data.CaseType = "insolvency"
 
-	insolvencyResourceDao.Data.Practitioners = jsonPractitionersDao
+	insolvencyResourceDao.Data.Practitioners = &insolvencyResourcePractitionersDao
 	insolvencyResourceDao.Data.Links = models.InsolvencyResourceLinksDao{
 		Self:             "/transactions/123456789/insolvency",
 		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
@@ -722,7 +722,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.Practitioners = ""
+		insolvencyCase.Data.Practitioners = nil
 		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
 			Attachments: []string{
