@@ -234,7 +234,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "please supply at least one attachment ID (up to a maximum of two attachment IDs)")
+		So(res.Body.String(), ShouldContainSubstring, "please supply a maximum of two attachments")
 	})
 
 	Convey("Validation errors are present - no attachment is present", t, func() {
@@ -255,7 +255,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "please supply at least one attachment ID (up to a maximum of two attachment IDs)")
+		So(res.Body.String(), ShouldContainSubstring, "please supply a maximum of two attachments")
 	})
 
 	Convey("Attachment is not of type statement-of-affairs-director, liquidator or concurrence", t, func() {
