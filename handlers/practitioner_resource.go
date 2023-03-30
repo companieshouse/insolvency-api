@@ -20,7 +20,7 @@ import (
 // incoming list of practitioners
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		var insolvencyResource models.InsolvencyResourceDao
+
 		var practitionerResourceDao models.PractitionerResourceDao
 
 		practitionerLinksMap := models.InsolvencyResourcePractitionersDao{}
@@ -83,6 +83,9 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
+		// Create new practitioner data to be stored
+		practitionerLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerID))
+
 		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, practitionerID, transactionID)
 		practitionerDao.Data.Etag = etag
 		practitionerDao.Data.Kind = "insolvency#practitioner"
@@ -113,9 +116,6 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			}
 		}
 
-		// Create new practitoner data to be stored
-		practitionerLinksMap[practitionerID] = fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerID))
-
 		// Create new practitioner for the insolvency
 		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDao, transactionID)
 		if err != nil {
@@ -123,10 +123,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
-		insolvencyResource.Data.Practitioners = &practitionerLinksMap
-
 		// //Update the insolvency practitioner
-		statusCode, err = svc.UpdateInsolvencyPractitioners(insolvencyResource, transactionID)
+		statusCode, err = svc.AddPractitionerToInsolvencyResource(practitionerID, practitionerLink, transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, statusCode, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s", transactionID), err})
 			return

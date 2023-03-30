@@ -207,20 +207,20 @@ func (m *MongoService) CreateAppointmentResource(appointmentResourceDao *models.
 	return http.StatusCreated, nil
 }
 
-// UpdateInsolvencyPractitioners updates the practitoners for an Insolvency Case
-func (m *MongoService) UpdateInsolvencyPractitioners(insolvencyResource models.InsolvencyResourceDao, transactionID string) (int, error) {
+// AddPractitionerToInsolvencyResource will update insolvency by adding a link to a practitioner resource
+func (m *MongoService) AddPractitionerToInsolvencyResource(practitionerID string, practitionerLink string, transactionID string) (int, error) {
 
 	collection := m.db.Collection(m.CollectionName)
 
 	filter := bson.M{"transaction_id": transactionID}
-	update := bson.M{"$set": bson.M{"data.practitioners": insolvencyResource.Data.Practitioners}}
+	update := bson.M{"$set": bson.M{"data.practitioners." + practitionerID: practitionerLink}}
 
 	//Update the insolvency practitioner
 	_, err := collection.UpdateOne(context.Background(), filter, update)
 
 	if err != nil {
 		log.Error(err)
-		return http.StatusInternalServerError, fmt.Errorf("there was a problem updating insolvency with practitioners for transaction %s", transactionID)
+		return http.StatusInternalServerError, fmt.Errorf("there was a problem adding a practitioner to insolvency resource for transaction %s", transactionID)
 	}
 
 	return http.StatusNoContent, nil
@@ -280,8 +280,6 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 	// check if practitionerID exists
 	_, isPresent := practitionerLinksMap[practitionerID]
 	if isPresent {
-		// delete the practitioner from the map before updating insolvency
-		delete(practitionerLinksMap, practitionerID)
 
 		// delete practitioner appointment
 		filterAppointmentToDelete := bson.M{"practitioner_id": practitionerID}
@@ -304,12 +302,11 @@ func (m *MongoService) DeletePractitioner(practitionerID string, transactionID s
 		}
 
 		// update insolvency
-
 		insolvencyToUpdate := bson.M{"transaction_id": transactionID}
-		if len(practitionerLinksMap) == 0 {
+		if len(practitionerLinksMap) == 1 {
 			insolvencyDocumentToUpdate = bson.M{"$unset": bson.M{"data.practitioners": ""}}
 		} else {
-			insolvencyDocumentToUpdate = bson.M{"$set": bson.M{"data.practitioners": practitionerLinksMap}}
+			insolvencyDocumentToUpdate = bson.M{"$unset": bson.M{"data.practitioners." + practitionerID: ""}}
 		}
 
 		statusCode, err := updateCollection(insolvencyToUpdate, insolvencyDocumentToUpdate, collection)

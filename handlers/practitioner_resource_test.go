@@ -470,7 +470,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -509,7 +509,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
@@ -556,7 +556,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
@@ -600,7 +600,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyCase, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
