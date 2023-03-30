@@ -36,7 +36,7 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 
-		So(validationErr, ShouldContainSubstring, "please supply a maximum of two attachments")
+		So(validationErr, ShouldContainSubstring, "please supply at least one attachment")
 		So(err, ShouldBeNil)
 	})
 
