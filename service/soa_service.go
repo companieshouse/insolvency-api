@@ -22,7 +22,10 @@ func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfA
 	}
 
 	// Check that the attachment has been submitted correctly
-	if len(statementDao.Attachments) == 0 || len(statementDao.Attachments) > 2 {
+	if len(statementDao.Attachments) == 0 {
+		errs = append(errs, "please supply at least one attachment")
+	}
+	if len(statementDao.Attachments) > 2 {
 		errs = append(errs, "please supply a maximum of two attachments")
 	}
 
