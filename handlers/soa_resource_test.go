@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
@@ -256,7 +257,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "please supply only one attachment")
 	})
 
-	Convey("Attachment is not of type statement-of-affairs-director or liquidator", t, func() {
+	Convey("Attachment is not of type statement-of-affairs-director, liquidator or concurrence", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
@@ -278,7 +279,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "attachment is not a statement-of-affairs-director or statement-of-affairs-liquidator")
+		So(res.Body.String(), ShouldContainSubstring, "attachment is not a " + constants.StatementOfAffairsDirector.String() + ", " + constants.StatementOfAffairsLiquidator.String() + " or a " + constants.StatementOfConcurrence.String())
 	})
 
 	Convey("Generic error when adding statement of affairs resource to mongo", t, func() {

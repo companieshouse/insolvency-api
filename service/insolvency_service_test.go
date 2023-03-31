@@ -24,10 +24,10 @@ var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 func createInsolvencyResource() *models.InsolvencyResourceDao {
 	_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 
-	jsonPractitionersDao := `{
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
 		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
-		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442"
-	}`
+		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
+	}
 
 	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
 	appointmentResourceDao.Data.MadeBy = "creditors"
@@ -58,7 +58,7 @@ func createInsolvencyResource() *models.InsolvencyResourceDao {
 	insolvencyResourceDao.Data.CompanyNumber = companyNumber
 	insolvencyResourceDao.Data.CompanyName = companyName
 	insolvencyResourceDao.Data.CaseType = "insolvency"
-	insolvencyResourceDao.Data.Practitioners = jsonPractitionersDao
+	insolvencyResourceDao.Data.Practitioners = &insolvencyResourcePractitionersDao
 	insolvencyResourceDao.Data.Attachments = []models.AttachmentResourceDao{
 		{
 			ID:     "id",
@@ -306,24 +306,6 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
-	Convey("error - attachment type is statement-of-concurrence and attachment type statement-of-affairs-director is not present", t, func() {
-		insolvencyCase := createInsolvencyResource()
-		// Set attachment type to "statement-of-concurrence"
-		insolvencyCase.Data.Attachments = append(insolvencyCase.Data.Attachments, models.AttachmentResourceDao{Type: "statement-of-concurrence"})
-		// Remove SOA director
-		insolvencyCase.Data.Attachments[1].Type = "type"
-		// Remove SOA
-		insolvencyCase.Data.StatementOfAffairs = nil
-
-		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
-
-		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment statement-of-concurrence must be accompanied by statement-of-affairs-director attachment for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement of concurrence attachment type")
-	})
-
 	Convey("successful validation of statement-of-concurrence attachment - attachment type is statement-of-concurrence and statement-of-affairs-director are present", t, func() {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Resolution = nil
@@ -525,87 +507,97 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
-	Convey("error - statement-of-affairs-director filed but no statement date exists in DB", t, func() {
+	// Loop through SOA attachment types to repeat test to convey the following:
+	// error - <attachment type> filed but no statement date/resource exists in DB
+	attachmentTypes := []string{constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), constants.StatementOfConcurrence.String()}
+	contextList := []string{"date", "resource"}
+	for _, attachment := range attachmentTypes {
+		for _, contextItem := range contextList {
+			conveyTitle := "error - " + attachment + " filed but no statement " + contextItem + " exists in DB"
+			// Convey.. e.g. error - statement-of-affairs-director filed but no statement date exists in DB
+			Convey(conveyTitle, t, func() {
+				// Create insolvency case
+				insolvencyCase := createInsolvencyResource()
+				switch contextItem {
+				case "date":
+					// Remove the date value
+					insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
+						StatementDate: "",
+					}
+				case "resource":
+					// Remove the SOA resource
+					insolvencyCase.Data.StatementOfAffairs = nil
+				}
 
-		// Create insolvency case and remove SOA date
-		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
-			StatementDate: "",
+				// Change attachment type
+				insolvencyCase.Data.Attachments[1].Type = attachment
+				practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+
+				// Remove practitioner for SOA-L to prevent triggering another error
+				if attachment == constants.StatementOfAffairsLiquidator.String() {
+					insolvencyCase.Data.Practitioners = nil
+				}
+
+				validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+				So(validationErrors, ShouldHaveLength, 1)
+				So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with a type of [%s], [%s], or a [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
+				So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
+			})
 		}
-
-		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
-		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
-	})
-
-	Convey("error - statement-of-affairs-liquidator filed but no statement resource exists in DB", t, func() {
-
-		// Create insolvency case
-		insolvencyCase := createInsolvencyResource()
-
-		// Change attachment type to SOA-L
-		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-liquidator"
-
-		// Make statement date an empty string
-		insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
-			StatementDate: "",
-		}
-
-		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
-	})
-
-	Convey("error - statement-of-affairs-director filed but no statement resource exists in DB", t, func() {
-
-		// Create insolvency case and remove SOA date
-		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.StatementOfAffairs = nil
-
-		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
-
-		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
-	})
-
-	Convey("error - statement-of-affairs-liquidator filed but no statement resource exists in DB", t, func() {
-
-		// Create insolvency case
-		insolvencyCase := createInsolvencyResource()
-
-		// Change attachment type to SOA-L
-		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-liquidator"
-
-		// Remove statement resource
-		insolvencyCase.Data.StatementOfAffairs = nil
-
-		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
-
-		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with type [%s] or [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
-	})
+	}
 
 	Convey("error - statement resource exists in DB but no statement-of-affairs attachment filed", t, func() {
 
-		// Create insolvency case and remove SOA date
+		// Create insolvency case
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[1].Type = "random"
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+
 		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - an attachment of type [%s] or [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - an attachment of type [%s], [%s], or a [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
+	})
+
+	Convey("error - attachment type is statement-of-concurrence and practitioner object empty", t, func() {
+
+		// Create insolvency case
+		insolvencyCase := createInsolvencyResource()
+
+		// Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
+		insolvencyCase.Data.Attachments[0].Type = "type"
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[2].Type = "type2"
+
+		// Remove the resolution and progress report details
+		insolvencyCase.Data.Resolution = nil
+		insolvencyCase.Data.ProgressReport = nil
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
+		So(validationErrors, ShouldHaveLength, 2)
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[1].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
+	})
+
+	Convey("successful validation of statement-of-concurrence - attachment type is statement-of-concurrence and at least one practitioner present", t, func() {
+		insolvencyCase := createInsolvencyResource()
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+		// Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
+		insolvencyCase.Data.Attachments[0].Type = "type"
+		insolvencyCase.Data.Attachments[1].Type = "statement-of-concurrence"
+		insolvencyCase.Data.Attachments[2].Type = "type2"
+
+		// Remove the resolution and progress report details
+		insolvencyCase.Data.Resolution = nil
+		insolvencyCase.Data.ProgressReport = nil
+
+		practitionerResourceDaos := []models.PractitionerResourceDao{practitionerResourceDao}
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("error - practitioner appointment is before date of resolution", t, func() {
@@ -709,22 +701,31 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid resolution date")
 		})
 
-		Convey("Statement date before resolution date", func() {
+		Convey("Statement date is after the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
-			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-20"
-			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-26"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
 
 			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must not be before resolution date")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be after the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
 		})
 
-		Convey("Statement date > 7 days after resolution date", func() {
+		Convey("Statement date more than 14 days prior to the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
-			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-29"
-			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-21"
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-10"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
 
 			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date must be within 7 days of resolution date")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be more than 14 days prior to the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
+		})
+
+		Convey("Statement date is 14 days prior to the resolution date", func() {
+			insolvencyCase := createInsolvencyResource()
+			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-11"
+			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
+			So(validationErrors, ShouldHaveLength, 0)
 		})
 
 	})

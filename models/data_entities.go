@@ -7,19 +7,23 @@ type InsolvencyResourceDao struct {
 	ID            primitive.ObjectID `bson:"_id"`
 	TransactionID string             `bson:"transaction_id"`
 	Data          struct {
-		CompanyNumber      string                         `bson:"company_number"`
-		CaseType           string                         `bson:"case_type"`
-		CompanyName        string                         `bson:"company_name"`
-		Etag               string                         `bson:"etag"`
-		Kind               string                         `bson:"kind"`
-		Practitioners      string                         `bson:"practitioners,omitempty"`
-		Links              InsolvencyResourceLinksDao     `bson:"links,omitempty"`
-		Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
-		Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
-		StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
-		ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
+		CompanyNumber      string                              `bson:"company_number"`
+		CaseType           string                              `bson:"case_type"`
+		CompanyName        string                              `bson:"company_name"`
+		Etag               string                              `bson:"etag"`
+		Kind               string                              `bson:"kind"`
+		Practitioners      *InsolvencyResourcePractitionersDao `bson:"practitioners,omitempty"`
+		Links              InsolvencyResourceLinksDao          `bson:"links,omitempty"`
+		Attachments        []AttachmentResourceDao             `bson:"attachments,omitempty"`
+		Resolution         *ResolutionResourceDao              `bson:"resolution,omitempty"`
+		StatementOfAffairs *StatementOfAffairsResourceDao      `bson:"statement-of-affairs,omitempty"`
+		ProgressReport     *ProgressReportResourceDao          `bson:"progress-report,omitempty"`
 	}
 }
+
+// InsolvencyResourcePractitionersDao contains a map of links to the practitioner
+// resources associated with an insolvency resource, keyed by PractitionerID
+type InsolvencyResourcePractitionersDao map[string]string
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
 type InsolvencyResourceLinksDao struct {

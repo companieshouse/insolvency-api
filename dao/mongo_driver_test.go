@@ -19,9 +19,9 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	cfg, _ := config.Get()
 	dataBase := NewGetMongoDatabase("mongoDBURL", "databaseName")
 
-	jsonPractitionersDao := `{
-		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
-	}`
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+	}
 
 	mongoService := MongoService{
 		db:             dataBase,
@@ -52,7 +52,7 @@ func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceD
 	dataInsolvency.Data.CompanyNumber = "CompanyNumber"
 	dataInsolvency.Data.CaseType = "CaseType"
 	dataInsolvency.Data.CompanyName = "CompanyName"
-	dataInsolvency.Data.Practitioners = jsonPractitionersDao
+	dataInsolvency.Data.Practitioners = &insolvencyResourcePractitionersDao
 	dataInsolvency.Data.Attachments = []models.AttachmentResourceDao{}
 	dataInsolvency.Data.Resolution = &models.ResolutionResourceDao{}
 	dataInsolvency.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{}
@@ -79,32 +79,24 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 
 	defer mt.Close()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
-	}
-
 	bsonDataAttachment := bson.M{
 		"id":     "ID",
 		"type":   "type",
 		"status": "status",
 	}
 
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
+	bsonAttachmentArrays := bson.A{bsonDataAttachment}
 
-	bsonAttachmentArrays := bson.A{}
-	bsonAttachmentArrays = append(bsonAttachmentArrays, bsonDataAttachment)
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
+	}
 
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", "bsonArrays"},
+		{"practitioners", bsonPractitionerLinksMap},
 		{"attachments", bsonAttachmentArrays},
 	}
 
@@ -492,26 +484,16 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
+	bsonPractitionerLinksMap := bson.M{
+		"VM04221441":    "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
 	}
 
-	jsonPractitionersDao := `{
-		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
-	}`
-
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", jsonPractitionersDao},
+		{"practitioners", bsonPractitionerLinksMap},
 	}
 
 	mt := mtest.New(t, opts)
@@ -526,12 +508,12 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
 	})
 
-	mt.Run("DeletePractitioner runs with error with invalid practitioner links", func(mt *mtest.T) {
+	mt.Run("DeletePractitioner runs with error with missing practitioner links", func(mt *mtest.T) {
+
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "jsonPractitionersDao"},
 		}
 
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
@@ -549,7 +531,31 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID no insolvency practitioners found")
 	})
 
-	mt.Run("DeletePractitioner run successfully with incorrect practitionerID", func(mt *mtest.T) {
+	mt.Run("DeletePractitioner runs with error when practitioner ID not matched", func(mt *mtest.T) {
+
+		bsonInsolvency := bson.D{
+			{"company_number", "CompanyNumber"},
+			{"case_type", "CaseType"},
+			{"company_name", "CompanyName"},
+			{"practitioners", bsonPractitionerLinksMap},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+
+		assert.Equal(t, 404, code)
+		assert.Equal(t, "there was a problem handling your request for transaction id transactionID not able to find practitioner practitionerID to delete", err.Error())
+	})
+
+	mt.Run("DeletePractitioner run successfully with correct practitionerID", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
 			{"_id", expectedInsolvency.ID},
 			{"transaction_id", expectedInsolvency.TransactionID},
@@ -742,26 +748,16 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
 	}
 
-	jsonPractitionersDao := `{
-		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"
-	}`
-
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", jsonPractitionersDao},
+		{"practitioners", bsonPractitionerLinksMap},
 	}
 
 	mt.Run("DeletePractitionerAppointment runs with error", func(mt *mtest.T) {
@@ -774,17 +770,17 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
 	})
 
-	mt.Run("DeletePractitionerAppointment runs with error with invalid appointment links", func(mt *mtest.T) {
+	mt.Run("DeletePractitionerAppointment runs with error with missing appointment link", func(mt *mtest.T) {
+
 		practitionerLinks := models.PractitionerResourceLinksDao{
-			Self:        "",
-			Appointment: "jsonPractitionersDao",
+			Self: "",
 		}
 
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "jsonPractitionersDao"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"links", practitionerLinks},
 		}
 
@@ -804,16 +800,17 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	})
 
 	mt.Run("DeletePractitionerAppointment run successfully with ModifiedCount", func(mt *mtest.T) {
+
 		practitionerLinks := models.PractitionerResourceLinksDao{
 			Self:        "",
-			Appointment: jsonPractitionersDao,
+			Appointment: "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441/appointment",
 		}
 
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "jsonPractitionersDao"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"links", practitionerLinks},
 		}
 
@@ -854,14 +851,14 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mt.Run("DeletePractitionerAppointment with ModifiedCount zero", func(mt *mtest.T) {
 		practitionerLinks := models.PractitionerResourceLinksDao{
 			Self:        "",
-			Appointment: jsonPractitionersDao,
+			Appointment: "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441/appointment",
 		}
 
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "jsonPractitionersDao"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"links", practitionerLinks},
 		}
 
@@ -905,14 +902,14 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mt.Run("DeletePractitionerAppointment runs failed to delete practitioner after sucessfully deleted appointment", func(mt *mtest.T) {
 		practitionerLinks := models.PractitionerResourceLinksDao{
 			Self:        "",
-			Appointment: jsonPractitionersDao,
+			Appointment: "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441/appointment",
 		}
 
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "jsonPractitionersDao"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"links", practitionerLinks},
 		}
 
@@ -1038,13 +1035,9 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
 	}
 
 	bsonDataAttachment := bson.M{
@@ -1053,11 +1046,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 		"status": "status",
 	}
 
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
-
-	bsonAttachmentArrays := bson.A{}
-	bsonAttachmentArrays = append(bsonAttachmentArrays, bsonDataAttachment)
+	bsonAttachmentArrays := bson.A{bsonDataAttachment}
 
 	mt := mtest.New(t, opts)
 	defer mt.Close()
@@ -1067,7 +1056,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "bsonArrays"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"attachments", bsonAttachmentArrays},
 			{"etag", expectedInsolvency.Data.Etag},
 			{"kind", expectedInsolvency.Data.Kind},
@@ -1095,7 +1084,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "bsonArrays"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"attachments", nil},
 			{"etag", expectedInsolvency.Data.Etag},
 			{"kind", expectedInsolvency.Data.Kind},
@@ -1143,13 +1132,10 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 	})
 
 	mt.Run("GetAttachmentFromInsolvencyResource runs successfully", func(mt *mtest.T) {
-		bsonData := bson.M{
-			"id":               "ID",
-			"ip_code":          "IPCode",
-			"first_name":       "FirstName",
-			"last_name":        "LastName",
-			"telephone_number": "TelephoneNumber",
-			"email":            "Email",
+
+		bsonPractitionerLinksMap := bson.M{
+			"PractionerID1": "PractitionerLink1",
+			"PractionerID2": "PractitionerLink2",
 		}
 
 		bsonDataAttachment := bson.M{
@@ -1158,17 +1144,13 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 			"status": "status",
 		}
 
-		bsonArrays := bson.A{}
-		bsonArrays = append(bsonArrays, bsonData)
-
-		bsonAttachmentArrays := bson.A{}
-		bsonAttachmentArrays = append(bsonAttachmentArrays, bsonDataAttachment)
+		bsonAttachmentArrays := bson.A{bsonDataAttachment}
 
 		bsonInsolvency := bson.D{
 			{"company_number", "CompanyNumber"},
 			{"case_type", "CaseType"},
 			{"company_name", "CompanyName"},
-			{"practitioners", "bsonArrays"},
+			{"practitioners", bsonPractitionerLinksMap},
 			{"attachments", bsonAttachmentArrays},
 		}
 
@@ -1197,22 +1179,16 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
 	}
 
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", "bsonArrays"},
+		{"practitioners", bsonPractitionerLinksMap},
 	}
 
 	mt := mtest.New(t, opts)
@@ -1515,11 +1491,16 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 		{"attachments", []string{"attachments"}},
 	}
 
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
+	}
+
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", "bsonArrays"},
+		{"practitioners", bsonPractitionerLinksMap},
 		{"attachments", bsonAttachmentArrays},
 		{"statement-of-affairs", bsonStatementOfAffairsResourceDao},
 	}
@@ -1582,7 +1563,7 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 			{Key: "company_number", Value: "CompanyNumber"},
 			{Key: "case_type", Value: "CaseType"},
 			{Key: "company_name", Value: "CompanyName"},
-			{Key: "practitioners", Value: "bsonArrays"},
+			{Key: "practitioners", Value: bsonPractitionerLinksMap},
 			{Key: "attachments", Value: bsonAttachmentArrays},
 		}
 
@@ -1607,22 +1588,16 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
-	bsonData := bson.M{
-		"id":               "ID",
-		"ip_code":          "IPCode",
-		"first_name":       "FirstName",
-		"last_name":        "LastName",
-		"telephone_number": "TelephoneNumber",
-		"email":            "Email",
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
 	}
 
-	bsonArrays := bson.A{}
-	bsonArrays = append(bsonArrays, bsonData)
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", bsonArrays},
+		{"practitioners", bsonPractitionerLinksMap},
 	}
 
 	mt := mtest.New(t, opts)
@@ -2028,11 +2003,16 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 		{"attachments", []string{"attachments"}},
 	}
 
+	bsonPractitionerLinksMap := bson.M{
+		"PractionerID1": "PractitionerLink1",
+		"PractionerID2": "PractitionerLink2",
+	}
+
 	bsonInsolvency := bson.D{
 		{"company_number", "CompanyNumber"},
 		{"case_type", "CaseType"},
 		{"company_name", "CompanyName"},
-		{"practitioners", "bsonArrays"},
+		{"practitioners", bsonPractitionerLinksMap},
 		{"attachments", bsonAttachmentArrays},
 		{"resolution", bsonResolution},
 		{"statement-of-affairs", bsonStatementOfAffairsResourceDao},
@@ -2042,7 +2022,7 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 		{Key: "company_number", Value: "CompanyNumber"},
 		{Key: "case_type", Value: "CaseType"},
 		{Key: "company_name", Value: "CompanyName"},
-		{Key: "practitioners", Value: "bsonArrays"},
+		{Key: "practitioners", Value: bsonPractitionerLinksMap},
 		{Key: "attachments", Value: bsonAttachmentArrays},
 		{Key: "statement-of-affairs", Value: bsonStatementOfAffairsResourceDao},
 	}

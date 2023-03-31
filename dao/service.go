@@ -17,8 +17,8 @@ type Service interface {
 	// CreatePractitionerResource will persist a newly created practitioner resource
 	CreatePractitionerResource(dao *models.PractitionerResourceDao, transactionID string) (int, error)
 
-	// UpdateInsolvencyPractitioners will update insolvency with practitioners resource
-	UpdateInsolvencyPractitioners(practitionersResource models.InsolvencyResourceDao, transactionID string) (int, error)
+	// AddPractitionerToInsolvencyResource will update insolvency by adding a link to a practitioner resource
+	AddPractitionerToInsolvencyResource(practitionerID string, practitionerLink string, transactionID string) (int, error)
 
 	// GetPractitionerAppointment will retrieve a practitioner appointment
 	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)

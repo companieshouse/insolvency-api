@@ -88,9 +88,11 @@ func PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResourceD
 			appointedPractitionerResource = models.AppointedPractitionerResource{
 				AppointedOn: practitioner.Data.Appointment.Data.AppointedOn,
 				MadeBy:      practitioner.Data.Appointment.Data.MadeBy,
-				Links:       practitioner.Data.Appointment.Data.Links,
-				Etag:        practitioner.Data.Appointment.Data.Etag,
-				Kind:        practitioner.Data.Appointment.Data.Kind,
+				Links: models.AppointedPractitionerLinksResource{
+					Self: practitioner.Data.Appointment.Data.Links.Self,
+				},
+				Etag: practitioner.Data.Appointment.Data.Etag,
+				Kind: practitioner.Data.Appointment.Data.Kind,
 			}
 
 			practitionerResponse.Appointment = &appointedPractitionerResource
@@ -116,8 +118,9 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 	return &models.AppointedPractitionerResource{
 		AppointedOn: model.Data.AppointedOn,
 		MadeBy:      model.Data.MadeBy,
-		Links:       model.Data.Links,
-	}
+		Links: models.AppointedPractitionerLinksResource{
+			Self: model.Data.Links.Self,
+		}}
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity

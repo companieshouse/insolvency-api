@@ -470,7 +470,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -488,7 +488,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner := generatePractitioner()
 		body, _ := json.Marshal(practitioner)
 
-		jsonPractitionersDaoMap := `{"VM04221441":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441"}`
+		insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+		}
 
 		dataDto := models.InsolvencyResourceDao{}
 		dataDto.Data.CompanyNumber = "company_number"
@@ -496,7 +498,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		dataDto.Data.CompanyName = "company_name"
 		dataDto.Data.Etag = "etag"
 		dataDto.Data.Kind = "kind"
-		dataDto.Data.Practitioners = jsonPractitionersDaoMap
+		dataDto.Data.Practitioners = &insolvencyResourcePractitionersDao
 
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
@@ -507,7 +509,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
@@ -520,11 +522,13 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
-		jsonPractitionersDaoMap := `{"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+		insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
 			"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
 			"VM04221444": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221444",
 			"VM04221445": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221445",
-			"VM04221446": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446"}`
+			"VM04221446": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446",
+		}
 
 		dataDto := models.InsolvencyResourceDao{}
 		dataDto.Data.CompanyNumber = "company_number"
@@ -532,7 +536,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		dataDto.Data.CompanyName = "company_name"
 		dataDto.Data.Etag = "etag"
 		dataDto.Data.Kind = "kind"
-		dataDto.Data.Practitioners = jsonPractitionersDaoMap
+		dataDto.Data.Practitioners = &insolvencyResourcePractitionersDao
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -552,7 +556,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
@@ -564,9 +568,11 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
 
-		jsonPractitionersDaoMap := `{"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+		insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+			"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
 			"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
-			"VM04221446": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446"}`
+			"VM04221446": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446",
+		}
 
 		dataDto := models.InsolvencyResourceDao{}
 		dataDto.Data.CompanyNumber = "company_number"
@@ -574,7 +580,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		dataDto.Data.CompanyName = "company_name"
 		dataDto.Data.Etag = "etag"
 		dataDto.Data.Kind = "kind"
-		dataDto.Data.Practitioners = jsonPractitionersDaoMap
+		dataDto.Data.Practitioners = &insolvencyResourcePractitionersDao
 
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
@@ -594,7 +600,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyCase, nil, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
-		mockService.EXPECT().UpdateInsolvencyPractitioners(gomock.Any(), gomock.Any()).Return(200, nil)
+		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, mockHelperService, true, rec)
 
@@ -705,7 +711,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(nil, nil, nil).Times(1)
+		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyCase, nil, nil).Times(1)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
 
 		res := serveGetPractitionersByIdssRequest(mockService, true)
@@ -717,13 +723,14 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		jsonPractitionersDaoMap := `
+		insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
 			"VM04221441":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
 			"VM042214412": "/transactions/168570-809316-704268/insolvency/practitioners/VM042214412",
 			"VM04221443":  "/transactions/168570-809316-704268/insolvency/practitioners/VM042214413",
 			"VM04221444":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221444",
 			"VM04221445":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221445",
-			"VM04221446":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446"}`
+			"VM04221446":  "/transactions/168570-809316-704268/insolvency/practitioners/VM04221446",
+		}
 
 		dataDto := models.InsolvencyResourceDao{}
 		dataDto.Data.CompanyNumber = "company_number"
@@ -731,7 +738,7 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		dataDto.Data.CompanyName = "company_name"
 		dataDto.Data.Etag = "etag"
 		dataDto.Data.Kind = "kind"
-		dataDto.Data.Practitioners = jsonPractitionersDaoMap
+		dataDto.Data.Practitioners = &insolvencyResourcePractitionersDao
 
 		mockService := mock_dao.NewMockService(mockCtrl)
 		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
@@ -1179,8 +1186,8 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		practitionerResourceDao.Data.PractitionerId = practitionerID
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
-			Self: "/transactions/12345678/insolvency/practitioners/00001234",
-			Appointment: "{\"00001234\":\"/transactions/12345678/insolvency/practitioners/00001234/appointment\"}",
+			Self:        "/transactions/12345678/insolvency/practitioners/00001234",
+			Appointment: "/transactions/12345678/insolvency/practitioners/00001234/appointment",
 		}
 
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
@@ -1381,7 +1388,6 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
 
-
 	Convey("successful appointment", t, func() {
 		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()
@@ -1581,7 +1587,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 
 		practitionerResourceDaos[0].Data.PractitionerId = practitionerID
 		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
-		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/X/insolvency/practitioners/00001234/appointment\"}"
+		practitionerResourceDaos[0].Data.Links.Appointment = "/transactions/X/insolvency/practitioners/00001234/appointment"
 
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 
@@ -1606,7 +1612,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 
 		practitionerResourceDaos[0].Data.PractitionerId = "practitionerID"
 		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
-		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/123456789/insolvency/practitioners/00001234/appointment\"}"
+		practitionerResourceDaos[0].Data.Links.Appointment = "/transactions/123456789/insolvency/practitioners/00001234/appointment"
 
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 
@@ -1631,7 +1637,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 
 		practitionerResourceDaos[0].Data.PractitionerId = practitionerID
 		practitionerResourceDaos[0].Data.Appointment = &appointmentResourceDao
-		practitionerResourceDaos[0].Data.Links.Appointment = "{\"00001234\":\"/transactions/12345678/insolvency/practitioners/00001234/appointment\"}"
+		practitionerResourceDaos[0].Data.Links.Appointment = "00001234\":\"/transactions/12345678/insolvency/practitioners/00001234/appointment"
 
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 
