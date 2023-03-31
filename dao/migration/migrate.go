@@ -324,9 +324,9 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 				}
 				practitionerModel.Data.Role = practitioner.Role
 				practitionerModel.Data.Etag = insolvency.Etag
-				practitionerModel.Data.Kind = insolvency.Kind
+				practitionerModel.Data.Kind = "insolvency#practitioner"
 				practitionerModel.Data.Links = models.PractitionerResourceLinksDao{
-					Self: insolvency.Links.Self,
+					Self: practitioner.Links.Self,
 				}
 				if practitioner.Appointment != nil {
 					practitionerMapAppointmentResource := make(map[string]string)
