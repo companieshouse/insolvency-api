@@ -15,7 +15,6 @@ import (
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -329,10 +328,7 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 					Self: practitioner.Links.Self,
 				}
 				if practitioner.Appointment != nil {
-					practitionerMapAppointmentResource := make(map[string]string)
-					practitionerMapAppointmentResource[practitioner.Id] = practitioner.Appointment.Links.Self
-					appointmentLink, _ := utils.ConvertMapToString(practitionerMapAppointmentResource)
-					practitionerModel.Data.Links.Appointment = appointmentLink
+					practitionerModel.Data.Links.Appointment = practitioner.Appointment.Links.Self
 					appointment := models.AppointmentResourceDao{
 						PractitionerId: practitioner.Id,
 					}
@@ -379,26 +375,24 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 			}
 
 			fmt.Println("practitioners saved...")
+		}
+		filter := bson.M{"_id": insolvency.ID}
+		unsetUpdateDocument := bson.M{"$unset": bson.M{"etag": "", "kind": "", "links": ""}}
+		setUpdateDocument := bson.M{"$set": bson.M{"data.etag": insolvency.Etag, "data.kind": insolvency.Kind, "data.links": insolvency.Links}}
+		if len(practitioners) > 0 {
+			unsetUpdateDocument = bson.M{"$unset": bson.M{"data.practitioners": "", "etag": "", "kind": "", "links": ""}}
+			setUpdateDocument = bson.M{"$set": bson.M{"data.practitioners": practitionersMapResource, "data.etag": insolvency.Etag, "data.kind": insolvency.Kind, "data.links": insolvency.Links}}
+		}
+		//unset operation (practitioners if present, etag, kind & links for all docs)
+		_, err = collection.UpdateOne(context.Background(), filter, unsetUpdateDocument)
+		if err != nil {
+			fmt.Println("problem unsetting data for insolvency resource ===>" + err.Error())
+		}
 
-			filter := bson.M{"_id": insolvency.ID}
-
-			//remove practitioners
-			updateDocument := bson.M{"$unset": bson.M{"data.practitioners": "", "etag": "", "kind": ""}}
-			_, err = collection.UpdateOne(context.Background(), filter, updateDocument)
-			if err != nil {
-				fmt.Println("problem unset insolvency practitioner===>" + err.Error())
-			}
-
-			fmt.Println("practitioners unset from old insolvency...")
-			// add practitioner link to insolvency
-			practitionersString, _ := utils.ConvertMapToString(practitionersMapResource)
-			update := bson.M{"$set": bson.M{"data.practitioners": practitionersString, "data.etag": insolvency.Etag, "data.kind": insolvency.Kind}}
-			_, err = collection.UpdateOne(context.Background(), filter, update)
-			if err != nil {
-				fmt.Println("problem update insolvency practitioner link===>" + err.Error())
-			}
-
-			fmt.Println("practitioners links updated....")
+		// set operation (practitioners if present, etag, kind & links for all docs)
+		_, err = collection.UpdateOne(context.Background(), filter, setUpdateDocument)
+		if err != nil {
+			fmt.Println("problem updating data for insolvency resource ===>" + err.Error())
 		}
 
 	}
