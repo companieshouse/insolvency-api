@@ -10,7 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/config"
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
@@ -21,13 +20,23 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// this can be run multiple times with the same output using the command go run ./dao/migration/migrate.go depending on your file structure.
-// if error at any point it would stop without completing or distrupt or damage any file.
-// please look at whatever error message it outputs and rectify, i hope it does not get to that based on the tests alrady done.
-// A successfull migration would back up the insolvency to insolvency_backup collection,with the backup, if any issue(s) you can revert insolvency_bacup to original insolvency.
-// once happy with your migration you may drop the insolvency_backup or keep for reference.
-// please note some models are recreated in order to be able to complete the migration without distorting the documents.
-// also note this script would only migrate practitioner and its appointments.However, could be extended on lines 363-365.
+// This can be run using the command go run ./dao/migration/migrate.go depending on your file structure.
+//
+// The following environment variables are required (example values, replace with correct for environment):
+// MONGODB_URL="mongodb://127.0.0.1:27017"
+// INSOLVENCY_MONGODB_DATABASE="transactions_insolvency"
+// INSOLVENCY_MONGODB_COLLECTION="insolvency"
+//
+// A new backup is taken on each run to an insolvency_backup_<DATETIME> collection
+// If errors are encountered at any point it would stop without completing.
+// Please look at whatever error message it outputs and rectify.
+// Before re-attempting, carefully review the output & ensure that the data is in the expected starting state:
+// - insolvency colection contains old-format data only (may need to restore from insolvency_backup_<DATETIME>)
+// - practitioners & appointments collections are not present
+//
+// Please note some models are recreated in order to be able to complete the migration without distorting the documents.
+// Also note this script only includes the new practitioners and appointments collections,
+// a further similar script will need to be created for onward work on other new collections.
 
 type InsolvencyMigrationDao struct {
 	ID            primitive.ObjectID `bson:"_id"`
@@ -141,7 +150,7 @@ func getMongoClient(mongoDBURL string) *mongo.Client {
 	client, err := mongo.Connect(ctx, clientOptions)
 
 	if err != nil {
-		log.Error(err)
+		fmt.Println(fmt.Errorf("error connecting to mongodb: %s. Exiting", err))
 		os.Exit(1)
 	}
 
@@ -150,11 +159,11 @@ func getMongoClient(mongoDBURL string) *mongo.Client {
 	defer cancel()
 	err = client.Ping(pingContext, nil)
 	if err != nil {
-		log.Error(errors.New("ping to mongodb timed out. please check the connection to mongodb and that it is running"))
+		fmt.Println(errors.New("ping to mongodb timed out. please check the connection to mongodb and that it is running"))
 		os.Exit(1)
 	}
 
-	log.Info("connected to mongodb successfully")
+	fmt.Println("connected to mongodb successfully")
 
 	return client
 }
@@ -199,106 +208,79 @@ func generateEtag() string {
 	return sha1Hash
 }
 
-func transform(insolvencyMigrationDaos []InsolvencyMigrationDao) []interface{} {
-	var insolvencyFromBackup []interface{}
-	for _, insolvency := range insolvencyMigrationDaos {
-		insolvencyModel := InsolvencyMigrationDao{}
-		insolvencyModel.ID = insolvency.ID
-		insolvencyModel.Etag = insolvency.Etag
-		insolvencyModel.Kind = insolvency.Kind
-		insolvencyModel.TransactionID = insolvency.TransactionID
-		insolvencyModel.Data.CompanyNumber = insolvency.Data.CompanyNumber
-		insolvencyModel.Data.CaseType = insolvency.Data.CaseType
-		insolvencyModel.Data.CompanyName = insolvency.Data.CompanyNumber
-		insolvencyModel.Data.Attachments = insolvency.Data.Attachments
-		insolvencyModel.Data.Practitioners = insolvency.Data.Practitioners
-		insolvencyModel.Data.StatementOfAffairs = insolvency.Data.StatementOfAffairs
-		insolvencyModel.Data.Resolution = insolvency.Data.Resolution
-		insolvencyModel.Data.ProgressReport = insolvency.Data.ProgressReport
-		insolvencyModel.Links = insolvency.Links
+// get count of documents in a collection
 
-		insolvencyFromBackup = append(insolvencyFromBackup, insolvencyModel)
+func getCollectionCount(collection *mongo.Collection) (int64, error) {
+	count, err := collection.CountDocuments(context.Background(), bson.D{})
+	if err != nil {
+		return 0, fmt.Errorf("failed to get count of [%s] collection: [%s]", collection.Name(), err)
 	}
-	return insolvencyFromBackup
+	return count, nil
 }
 
 func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 
-	collection := m.db.Collection(m.CollectionName)
-	practitionerCollectionName := m.db.Collection(dao.PractitionerCollectionName)
-	appointmentCollectionName := m.db.Collection(dao.AppointmentCollectionName)
-	insolvencyBackUpCollectionName := m.db.Collection("insolvency_backup")
-	// drop previous created collections, change insolvency_backup to insolvency to start rerun
+	insolvencyCollection := m.db.Collection(m.CollectionName)
+	practitionerCollection := m.db.Collection(dao.PractitionerCollectionName)
+	appointmentCollection := m.db.Collection(dao.AppointmentCollectionName)
+	t := time.Now()
+	insolvencyBackUpCollectionName := "insolvency_backup_" + t.Format("20060102150405")
+	insolvencyBackUpCollection := m.db.Collection(insolvencyBackUpCollectionName)
 
-	err := practitionerCollectionName.Drop(context.Background())
+	// check for data in new collections and abort if already present
+	count, err := getCollectionCount(practitionerCollection)
 	if err != nil {
-		return nil, fmt.Errorf("failed to drop practitioner collection")
+		return nil, err
 	}
-	fmt.Println("practitioners collection found and dropped...")
-
-	//drop appoinment
-	err = appointmentCollectionName.Drop(context.Background())
+	if count > 0 {
+		return nil, fmt.Errorf("[%s] already populated (count = [%v]), has migration script already been run?", dao.PractitionerCollectionName, count)
+	}
+	count, err = getCollectionCount(appointmentCollection)
 	if err != nil {
-		return nil, fmt.Errorf("failed to drop appointment collection")
+		return nil, err
 	}
-	fmt.Println("appointment collection found and dropped...")
-
-	// Retrieve insolvency case from insolvency_backup
-	var insolvencyDaosFromBackup []InsolvencyMigrationDao
-	storedInsolvencyBackup, _ := insolvencyBackUpCollectionName.Find(context.Background(), bson.M{})
-	if storedInsolvencyBackup != nil {
-		err = storedInsolvencyBackup.All(context.Background(), &insolvencyDaosFromBackup)
-		if err != nil {
-			return nil, fmt.Errorf(err.Error())
-		}
+	if count > 0 {
+		return nil, fmt.Errorf("[%s] already populated (count = [%v]), has migration script already been run?", dao.AppointmentCollectionName, count)
 	}
 
-	//fetch all insolvency from backup if exist
-	if len(insolvencyDaosFromBackup) > 0 {
-		insolvencyFromBackup := transform(insolvencyDaosFromBackup)
-		fmt.Println("insolvency retrieved from backup collection...")
-		if len(insolvencyFromBackup) > 0 {
-			// drop insolvency
-			err = collection.Drop(context.Background())
-			if err != nil {
-				return nil, fmt.Errorf("failed to drop appointment collection")
-			}
-			fmt.Println("old insolvency collection found and dropped...")
-		}
-
-		// transfer backup to insolvency
-		_, err = collection.InsertMany(context.Background(), insolvencyFromBackup)
-		if err != nil {
-			return nil, fmt.Errorf(err.Error())
-		}
-		fmt.Println("new insolvency collection backed up...")
+	// check for new-format data in insolvency collection and abort if already present
+	count, err = insolvencyCollection.CountDocuments(context.Background(), bson.D{{Key: "data.etag", Value: bson.M{"$exists": 1}}})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get count of [%s] collection where 'data.etag' exists: [%s]", insolvencyCollection.Name(), err)
+	}
+	if count > 0 {
+		return nil, fmt.Errorf("[%s] already contains updated format 'data.etag' (count = [%v]), has migration script already been run?", insolvencyCollection.Name(), count)
 	}
 
 	var insolvencyMigrationDaos []InsolvencyMigrationDao
 
-	// Retrieve insolvency case from Mongo
-	storedInsolvency, _ := collection.Find(context.Background(), bson.M{})
+	// Retrieve insolvency cases from Mongo
+	storedInsolvency, _ := insolvencyCollection.Find(context.Background(), bson.M{})
 	err = storedInsolvency.All(context.Background(), &insolvencyMigrationDaos)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
-	fmt.Println("new insolvency collection retrieved...")
-	// drop back up and recreate to prevent error
-	err = insolvencyBackUpCollectionName.Drop(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("failed to drop insolvency backup collection")
-	}
-	fmt.Println("old insolvency backup collection found and dropped...")
+	fmt.Printf("existing insolvency collection retrieved ([%v] docs)\n", len(insolvencyMigrationDaos))
 
-	//backup insolvency incase of any issue if not exist
-	insolvencyDaos := transform(insolvencyMigrationDaos)
-	_, err = insolvencyBackUpCollectionName.InsertMany(context.Background(), insolvencyDaos)
+	//back up insolvency collection using aggregation with only an '$out' stage
+	pipeline := []bson.D{{{Key: "$out", Value: insolvencyBackUpCollectionName}}}
+	_, err = insolvencyCollection.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, fmt.Errorf(err.Error())
 	}
-	fmt.Println("new insolvency backed up...")
+
+	// check that backup collection is the expected size before proceeding
+	count, err = getCollectionCount(insolvencyBackUpCollection)
+	if err != nil {
+		return nil, err
+	}
+	if count != int64(len(insolvencyMigrationDaos)) {
+		return nil, fmt.Errorf("insolvency ([%v]) & [%s] ([%v]) counts don't match ", len(insolvencyMigrationDaos), insolvencyBackUpCollectionName, count)
+	}
+	fmt.Printf("existing insolvency collection backed up to [%s] ([%v] docs)\n\n", insolvencyBackUpCollectionName, count)
 
 	for _, insolvency := range insolvencyMigrationDaos {
+		fmt.Printf("starting to process insolvency resource data for transactionID [%s]\n", insolvency.TransactionID)
 		practitionersMapResource := make(map[string]string)
 		practitioners := insolvency.Data.Practitioners
 		var practitionerMigrationDaos []interface{}
@@ -351,30 +333,28 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 					}
 
 					//save appointment
-					_, err := appointmentCollectionName.InsertOne(context.Background(), appointment)
+					_, err := appointmentCollection.InsertOne(context.Background(), appointment)
 					if err != nil {
-						fmt.Println("problem inserting appointment===>" + err.Error())
+						return nil, fmt.Errorf("problem inserting appointment===>" + err.Error())
 					}
+					fmt.Printf("--- appointment saved for practitionerID [%s]\n", practitioner.Id)
 				}
 				//practitioners links
 				practitionersMapResource[practitioner.Id] = fmt.Sprintf(constants.TransactionsPath + insolvency.TransactionID + constants.PractitionersPath + string(practitioner.Id))
-				fmt.Println("practitioners links created===>")
+				fmt.Printf("-- practitioner resource data prepared for practitionerID [%s]\n", practitioner.Id)
 
 				practitionerMigrationDaos = append(practitionerMigrationDaos, practitionerModel)
 			}
 
-			//TODO HERE
-			// attachments
-			// state-of-affairs
-			//resolutions
-
 			// save practitioners
-			_, err := practitionerCollectionName.InsertMany(context.Background(), practitionerMigrationDaos)
+			practitionerResult, err := practitionerCollection.InsertMany(context.Background(), practitionerMigrationDaos)
 			if err != nil {
-				fmt.Println("problem inserting practitioner===>" + err.Error())
+				return nil, fmt.Errorf("problem inserting practitioner===>" + err.Error())
 			}
+			fmt.Printf("- practitioners saved for transactionID [%s] ([%v] docs)\n", insolvency.TransactionID, len(practitionerResult.InsertedIDs))
 
-			fmt.Println("practitioners saved...")
+		} else {
+			fmt.Printf("- insolvency resource for transactionID [%s] has no practitioners\n", insolvency.TransactionID)
 		}
 		filter := bson.M{"_id": insolvency.ID}
 		unsetUpdateDocument := bson.M{"$unset": bson.M{"etag": "", "kind": "", "links": ""}}
@@ -384,34 +364,54 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 			setUpdateDocument = bson.M{"$set": bson.M{"data.practitioners": practitionersMapResource, "data.etag": insolvency.Etag, "data.kind": insolvency.Kind, "data.links": insolvency.Links}}
 		}
 		//unset operation (practitioners if present, etag, kind & links for all docs)
-		_, err = collection.UpdateOne(context.Background(), filter, unsetUpdateDocument)
+		_, err = insolvencyCollection.UpdateOne(context.Background(), filter, unsetUpdateDocument)
 		if err != nil {
-			fmt.Println("problem unsetting data for insolvency resource ===>" + err.Error())
+			return nil, fmt.Errorf("problem unsetting data for insolvency resource ===>" + err.Error())
 		}
 
 		// set operation (practitioners if present, etag, kind & links for all docs)
-		_, err = collection.UpdateOne(context.Background(), filter, setUpdateDocument)
+		_, err = insolvencyCollection.UpdateOne(context.Background(), filter, setUpdateDocument)
 		if err != nil {
-			fmt.Println("problem updating data for insolvency resource ===>" + err.Error())
+			return nil, fmt.Errorf("problem updating data for insolvency resource ===>" + err.Error())
 		}
+		fmt.Printf("insolvency resource data updated for transactionID [%s]\n\n", insolvency.TransactionID)
 
 	}
-	// drop insolvency_back to refresh --run this only when you are sure all migration done successfully
-	// err = insolvencyBackUpCollectionName.Drop(context.Background())
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to drop insolvency backup collection")
-	// }
+
+	// for each created or updated collection, print out final count
+	collections := []*mongo.Collection{insolvencyBackUpCollection, appointmentCollection, practitionerCollection, insolvencyCollection}
+	for _, coll := range collections {
+		count, err = getCollectionCount(coll)
+		if err != nil {
+			return nil, err
+		}
+		if count > 0 {
+			fmt.Printf("collection [%s] contains [%v] docs\n", coll.Name(), count)
+		}
+		// check that the insolvency collection's final count matches count of migrated docs
+		if coll.Name() == insolvencyCollection.Name() {
+			if count > int64(len(insolvencyMigrationDaos)) {
+				return nil, fmt.Errorf("final validation check failed - collection [%s] count [%v] > migration update count of [%v] - has new data come in?", coll.Name(), count, len(insolvencyMigrationDaos))
+			} else if count < int64(len(insolvencyMigrationDaos)) {
+				return nil, fmt.Errorf("final validation check failed - collection [%s] count [%v] < migration update count of [%v] - has data been lost?", coll.Name(), count, len(insolvencyMigrationDaos))
+			}
+		}
+	}
 
 	return &insolvencyMigrationDaos, nil
 }
 
 func main() {
-	// configure the address of the database you intended to run the migration here.
-	cfg := &config.Config{
-		BindAddr:        ":10092",
-		MongoDBURL:      "mongodb://127.0.0.1:27017",
-		Database:        "transactions_insolvency",
-		MongoCollection: "insolvency",
+
+	// Get environment config
+	cfg, err := config.Get()
+	if err != nil {
+		fmt.Println(fmt.Errorf("error configuring service: %s. Exiting", err), nil)
+		return
+	}
+	if cfg.MongoDBURL == "" || cfg.Database == "" || cfg.MongoCollection == "" {
+		fmt.Println(fmt.Errorf("config required: MONGODB_URL, INSOLVENCY_MONGODB_DATABASE, INSOLVENCY_MONGODB_COLLECTION. Exiting"))
+		return
 	}
 
 	svc := NewDAOMigrationService(cfg)
@@ -419,11 +419,14 @@ func main() {
 	insolvencyMigrationDao, err := svc.Migrate()
 	if err != nil {
 		fmt.Println("error:", err)
-		fmt.Println("Migration not completed...")
+		fmt.Println("Migration *** NOT ***  completed")
+		return
 	}
 
-	if insolvencyMigrationDao != nil {
-		fmt.Println(insolvencyMigrationDao)
-		fmt.Println("Migration completed...")
+	if insolvencyMigrationDao != nil && len(*insolvencyMigrationDao) > 0 {
+		fmt.Println("Migration completed")
+		fmt.Println()
+	} else {
+		fmt.Println("Migration *** NOT ***  completed - no insolvency records processed")
 	}
 }

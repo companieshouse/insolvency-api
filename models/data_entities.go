@@ -97,11 +97,11 @@ type AttachmentResourceLinksDao struct {
 
 // ResolutionResourceDao contains the data for the resolution DB resource
 type ResolutionResourceDao struct {
-	Etag             string                     `bson:"etag,omitempty"`
-	Kind             string                     `bson:"kind,omitempty"`
-	DateOfResolution string                     `bson:"date_of_resolution,omitempty"`
-	Attachments      []string                   `bson:"attachments,omitempty"`
-	Links            ResolutionResourceLinksDao `bson:"links,omitempty"`
+	Etag             string                     `bson:"etag"`
+	Kind             string                     `bson:"kind"`
+	DateOfResolution string                     `bson:"date_of_resolution"`
+	Attachments      []string                   `bson:"attachments"`
+	Links            ResolutionResourceLinksDao `bson:"links"`
 }
 
 // ResolutionResourceLinksDao contains the Links data for a resolution
@@ -111,11 +111,11 @@ type ResolutionResourceLinksDao struct {
 
 // StatementOfAffairsResourceDao contains the data for the statement of affairs DB resource
 type StatementOfAffairsResourceDao struct {
-	Etag          string                             `bson:"etag,omitempty"`
-	Kind          string                             `bson:"kind,omitempty"`
-	StatementDate string                             `bson:"statement_date,omitempty"`
-	Attachments   []string                           `bson:"attachments,omitempty"`
-	Links         StatementOfAffairsResourceLinksDao `bson:"links,omitempty"`
+	Etag          string                             `bson:"etag"`
+	Kind          string                             `bson:"kind"`
+	StatementDate string                             `bson:"statement_date"`
+	Attachments   []string                           `bson:"attachments"`
+	Links         StatementOfAffairsResourceLinksDao `bson:"links"`
 }
 
 // StatementOfAffairsResourceLinksDao contains the Links data for a statement of affairs
