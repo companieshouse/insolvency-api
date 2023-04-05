@@ -38,11 +38,11 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 
-		So(validationErr, ShouldContainSubstring, "please supply only one attachment")
+		So(validationErr, ShouldContainSubstring, "please supply at least one attachment")
 		So(err, ShouldBeNil)
 	})
 
-	Convey("request supplied is invalid - more than one attachment has been supplied", t, func() {
+	Convey("request supplied is invalid - more than two attachments have been supplied", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
@@ -58,12 +58,36 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		statement.Attachments = []string{
 			"1234567890",
 			"0987654321",
+			"2468097531",
 		}
 
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 
-		So(validationErr, ShouldContainSubstring, "please supply only one attachment")
+		So(validationErr, ShouldContainSubstring, "please supply a maximum of two attachments")
 		So(err, ShouldBeNil)
+	})
+
+	Convey("valid request supplied - a minimum of one and a maximum of two attachments have been supplied", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		defer httpmock.Reset()
+		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		statement := generateStatement()
+		i := 1
+		for i <= 2 {
+			mockService := mocks.NewMockService(mockCtrl)
+			mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+			validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
+			So(validationErr, ShouldBeEmpty)
+			So(err, ShouldBeNil)
+			attachID := fmt.Sprintf("098765432%d", i)
+			statement.Attachments = append(statement.Attachments, attachID)
+			i = i + 1
+		}
+
 	})
 
 	Convey("error retrieving insolvency resource", t, func() {
