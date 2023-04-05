@@ -26,15 +26,16 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 			Role: constants.FinalLiquidator.String(),
 		}
 
-		response := PractitionerResourceRequestToDB(incomingRequest, practitionerID, transactionID).Data
+		response := PractitionerResourceRequestToDB(incomingRequest, practitionerID, transactionID)
 
-		So(response.IPCode, ShouldEqual, "00001111")
-		So(response.FirstName, ShouldEqual, incomingRequest.FirstName)
-		So(response.LastName, ShouldEqual, incomingRequest.LastName)
-		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
-		So(response.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
-		So(response.Role, ShouldEqual, incomingRequest.Role)
-		So(response.Links.Self, ShouldNotBeEmpty)
+		So(response.TransactionID, ShouldEqual, "1234")
+		So(response.Data.IPCode, ShouldEqual, "00001111")
+		So(response.Data.FirstName, ShouldEqual, incomingRequest.FirstName)
+		So(response.Data.LastName, ShouldEqual, incomingRequest.LastName)
+		So(response.Data.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
+		So(response.Data.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
+		So(response.Data.Role, ShouldEqual, incomingRequest.Role)
+		So(response.Data.Links.Self, ShouldNotBeEmpty)
 	})
 }
 
@@ -109,6 +110,7 @@ func TestUnitPractitionerAppointmentRequestToDB(t *testing.T) {
 
 		response := PractitionerAppointmentRequestToDB(dao, transactionID, practitionerID)
 
+		So(response.TransactionID, ShouldEqual, "123")
 		So(response.Data.AppointedOn, ShouldEqual, dao.AppointedOn)
 		So(response.Data.MadeBy, ShouldEqual, dao.MadeBy)
 		So(response.Data.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
