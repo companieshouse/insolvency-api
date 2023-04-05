@@ -78,7 +78,8 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		i := 1
 		for i <= 2 {
 			mockService := mocks.NewMockService(mockCtrl)
-			mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+			insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+			mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
 
 			validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 			So(validationErr, ShouldBeEmpty)
