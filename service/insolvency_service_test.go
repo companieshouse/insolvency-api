@@ -186,7 +186,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - attachment type is not resolution and practitioners key is absent", t, func() {
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
 		insolvencyCase := models.InsolvencyResourceDao{}
 		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
 			{
@@ -928,8 +928,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(createInsolvencyResource(), nil, errors.New("insolvency case does not exist")).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return an error for the insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(createInsolvencyResource(), nil, errors.New("insolvency case does not exist")).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -953,8 +953,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -989,8 +989,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, nil, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, nil, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1030,8 +1030,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = nil
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1072,8 +1072,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		practitionerResourceDao1.Data.Appointment = nil
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1121,8 +1121,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1163,8 +1163,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1228,8 +1228,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1284,8 +1284,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1325,8 +1325,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyPractitionersResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 

@@ -334,8 +334,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Role = "error-role"
 		body, _ := json.Marshal(practitioner)
 
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -350,10 +350,10 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyCase, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil)
 
 		practitioner := generatePractitioner()
 		practitioner.Role = constants.Receiver.String()
@@ -376,8 +376,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Role = constants.Receiver.String()
 		body, _ := json.Marshal(practitioner)
 
-		// Expect GetInsolvencyPractitionersResource to return an error
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("failed to get insolvency"))
+		// Expect GetInsolvencyResource to return an error
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(&models.InsolvencyResourceDao{}, fmt.Errorf("failed to get insolvency"))
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -397,8 +397,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.Email = ""
 		body, _ := json.Marshal(practitioner)
 
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -417,8 +417,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		practitioner.FirstName = "J4ck"
 		body, _ := json.Marshal(practitioner)
 
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreatePractitionersResource(body, mockService, helperService, true, rec)
 
@@ -433,8 +433,8 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil)
 
 		practitioner := generatePractitioner()
 		practitioner.LastName = "wr0ng"
@@ -465,9 +465,9 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-		// Expect GetInsolvencyPractitionersResource to return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, nil).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
+		// Expect GetInsolvencyResource to return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(generateInsolvencyResource(), nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
 		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
@@ -506,7 +506,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(&dataDto, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
 		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(404, fmt.Errorf("there was a problem handling your request for transaction id [%s] not found", transactionID))
@@ -541,7 +541,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
 		practitioner := generatePractitioner()
@@ -553,7 +553,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&dataDto, nil, nil).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(&dataDto, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
 		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
@@ -585,7 +585,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		// Expect the transaction api to be called and return an open transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
 		practitioner := generatePractitioner()
@@ -597,7 +597,7 @@ func TestUnitHandleCreatePractitionersResource(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(insolvencyCase, nil, nil).Times(2)
+		mockService.EXPECT().GetInsolvencyResource(gomock.Any()).Return(insolvencyCase, nil).Times(2)
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 		mockService.EXPECT().CreatePractitionerResource(gomock.Any(), gomock.Any()).Return(200, nil)
 		mockService.EXPECT().AddPractitionerToInsolvencyResource(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
@@ -625,7 +625,7 @@ func generatePractitioner() models.PractitionerRequest {
 	}
 }
 
-func serveGetPractitionersByIdssRequest(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleGetPractitionerResourcesRequest(service dao.Service, tranIDSet bool) *httptest.ResponseRecorder {
 	path := constants.TransactionsPath + transactionID + "/insolvency/practitioners"
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	if tranIDSet {
@@ -660,13 +660,11 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 
 	practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 
-	practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
-
 	Convey("Must need a transactionID in the URL", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveGetPractitionersByIdssRequest(mock_dao.NewMockService(mockCtrl), false)
+		res := serveHandleGetPractitionerResourcesRequest(mock_dao.NewMockService(mockCtrl), false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -676,13 +674,12 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(nil, nil, fmt.Errorf("there was a problem handling your request for transaction %s", transactionID)).Times(1)
 
-		res := serveGetPractitionersByIdssRequest(mockService, true)
+		res := serveHandleGetPractitionerResourcesRequest(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -692,13 +689,12 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(nil, nil, nil).Times(1)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(nil, nil, nil).Times(1)
 
-		res := serveGetPractitionersByIdssRequest(mockService, true)
+		res := serveHandleGetPractitionerResourcesRequest(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
@@ -708,13 +704,12 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyCase, nil, nil).Times(1)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyCase, nil, nil).Times(1)
 
-		res := serveGetPractitionersByIdssRequest(mockService, true)
+		res := serveHandleGetPractitionerResourcesRequest(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
@@ -741,19 +736,18 @@ func TestUnitHandleGetPractitionerResources(t *testing.T) {
 		dataDto.Data.Practitioners = &insolvencyResourcePractitionersDao
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		insolvencyCase := generateInsolvencyPractitionerAppointmentResources()
+		insolvencyCase := generateInsolvencyResource()
 		insolvencyCase.Data.CaseType = constants.CVL.String()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&dataDto, nil, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&dataDto, nil, fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)).Times(1)
 
-		res := serveGetPractitionersByIdssRequest(mockService, true)
+		res := serveHandleGetPractitionerResourcesRequest(mockService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
 }
 
-func serveGetPractitionersByIdsRequest(service dao.Service, tranIDSet bool, practIDSet bool) *httptest.ResponseRecorder {
+func serveHandleGetPractitionerResourceRequest(service dao.Service, tranIDSet bool, practIDSet bool) *httptest.ResponseRecorder {
 	path := constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	vars := make(map[string]string)
@@ -800,7 +794,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveGetPractitionersByIdsRequest(mock_dao.NewMockService(mockCtrl), false, true)
+		res := serveHandleGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), false, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -809,7 +803,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveGetPractitionersByIdsRequest(mock_dao.NewMockService(mockCtrl), true, false)
+		res := serveHandleGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), true, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -818,7 +812,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveGetPractitionersByIdsRequest(mock_dao.NewMockService(mockCtrl), false, false)
+		res := serveHandleGetPractitionerResourceRequest(mock_dao.NewMockService(mockCtrl), false, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -831,7 +825,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		// Expect GetPractitionersResource to return an error
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, fmt.Errorf("error retrieving practitioner"))
 
-		res := serveGetPractitionersByIdsRequest(mockService, true, true)
+		res := serveHandleGetPractitionerResourceRequest(mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -844,7 +838,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		// Expect GetPractitionersResource to return an empty practitioner resource
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(nil, nil)
 
-		res := serveGetPractitionersByIdsRequest(mockService, true, true)
+		res := serveHandleGetPractitionerResourceRequest(mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusNotFound)
 	})
@@ -857,7 +851,7 @@ func TestUnitHandleGetPractitionerResource(t *testing.T) {
 		// Expect GetPractitionersResource to successfully return a practitioner resource
 		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
 
-		res := serveGetPractitionersByIdsRequest(mockService, true, true)
+		res := serveHandleGetPractitionerResourceRequest(mockService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusOK)
 	})
@@ -1152,7 +1146,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(generateInsolvencyPractitionerAppointmentResources(), nil, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(gomock.Any()).Return(generateInsolvencyResource(), nil, fmt.Errorf("error"))
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
@@ -1203,8 +1197,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&insolvencyDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&insolvencyDao, practitionerResourceDaos, nil)
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 		mockService.EXPECT().GetPractitionerAppointment(gomock.Any(), gomock.Any()).Return(&appointmentResourceDao, nil)
@@ -1237,8 +1230,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, fmt.Errorf("error"))
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, practitionerResourceDaos, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&models.InsolvencyResourceDao{}, practitionerResourceDaos, fmt.Errorf("error"))
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
@@ -1288,8 +1280,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil).AnyTimes()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&insolvencyDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&insolvencyDao, practitionerResourceDaos, nil)
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
@@ -1324,8 +1315,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&insolvencyDao, nil, nil)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(nil, nil)
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(gomock.Any()).Return(&insolvencyDao, nil, nil)
 		mockService.EXPECT().GetPractitionerAppointment(gomock.Any(), gomock.Any()).Return(&models.AppointmentResourceDao{}, fmt.Errorf("error occured"))
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
@@ -1378,8 +1368,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
 		mockService.EXPECT().GetPractitionerAppointment(gomock.Any(), gomock.Any()).Return(&models.AppointmentResourceDao{}, nil)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&insolvencyDao, practitionerResourceDaos, nil)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(gomock.Any()).Return(&insolvencyDao, practitionerResourceDaos, nil)
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 
@@ -1431,8 +1420,7 @@ func TestUnitHandleAppointPractitioner(t *testing.T) {
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 
 		mockService.EXPECT().GetPractitionerAppointment(gomock.Any(), gomock.Any()).Return(&models.AppointmentResourceDao{}, nil)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(gomock.Any()).Return(&insolvencyDao, practitionerResourceDaos, nil)
-		mockService.EXPECT().GetPractitionersResource(gomock.Any()).Return(practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(gomock.Any()).Return(&insolvencyDao, practitionerResourceDaos, nil)
 		mockService.EXPECT().CreateAppointmentResource(gomock.Any()).Return(200, nil)
 		mockService.EXPECT().UpdatePractitionerAppointment(gomock.Any(), gomock.Any(), gomock.Any()).Return(200, nil)
 

@@ -45,13 +45,25 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyPractitionersResource(t *testing.T) {
+func TestUnitGetInsolvencyAndExpandedPractitionerResources(t *testing.T) {
 
 	Convey("Get Insolvency Resource", t, func() {
 
 		mongoService := setUp(t)
 
-		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+	})
+}
+
+func TestUnitGetInsolvencyResource(t *testing.T) {
+
+	Convey("Get Insolvency Resource", t, func() {
+
+		mongoService := setUp(t)
+
+		_, err := mongoService.GetInsolvencyResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -68,18 +80,6 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID (insert practitioner to collection)")
-	})
-}
-
-func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
-
-	Convey("Get practitioner resources", t, func() {
-
-		mongoService := setUp(t)
-
-		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
-
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 

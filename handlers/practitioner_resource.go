@@ -16,8 +16,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// HandleCreatePractitionersResource updates the insolvency resource with the
-// incoming list of practitioners
+// HandleCreatePractitionersResource creates a new practitioner resource and
+// updates the insolvency resource with a link to it
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
@@ -57,8 +57,8 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
-		// GetInsolvencyPractitionersResource retrieves previously stored practitioners
-		insolvencyResourceDao, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
+		// Retrieve insolvency resource containing links to previously stored practitioners
+		insolvencyResourceDao, err := svc.GetInsolvencyResource(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
@@ -151,7 +151,7 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
 
-		insolvencyResourceDao, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
+		insolvencyResourceDao, practitionerResourceDaos, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return

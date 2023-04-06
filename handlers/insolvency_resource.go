@@ -147,7 +147,7 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for validating insolvency resource with transaction id: %s", transactionID))
 
-		insolvencyResource, practitionerResourceDao, err := svc.GetInsolvencyPractitionersResource(transactionID)
+		insolvencyResource, practitionerResourceDao, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 		if err != nil {
 			// Check if insolvency case was not found
 			if err.Error() == fmt.Sprintf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {

@@ -294,7 +294,7 @@ func ValidateAntivirus(svc dao.Service, insolvencyResource models.InsolvencyReso
 func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, error) {
 
 	// Retrieve details for the insolvency resource from DB
-	insolvencyResource, practitionerResources, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, practitionerResources, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 	if err != nil {
 		message := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
 		return nil, message

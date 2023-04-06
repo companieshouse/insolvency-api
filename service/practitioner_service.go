@@ -68,7 +68,7 @@ func ValidateAppointmentDetails(svc dao.Service, appointment models.Practitioner
 
 	var errs []string
 
-	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 	if err != nil {
 		errs = append(errs, err.Error())
 		err = fmt.Errorf("error getting practitioner and insolvency resources from DB: [%s]", err)

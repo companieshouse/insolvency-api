@@ -30,7 +30,7 @@ func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfA
 	}
 
 	// Check if statement date supplied is in the future or before company was incorporated
-	insolvencyResource, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
 		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
 		log.ErrorR(req, err)

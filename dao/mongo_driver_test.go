@@ -236,7 +236,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyPractitionersResourceDriver(t *testing.T) {
+func TestUnitGetInsolvencyAndExpandedPractitionerResourcesDriver(t *testing.T) {
 	t.Parallel()
 
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
@@ -244,16 +244,16 @@ func TestUnitGetInsolvencyPractitionersResourceDriver(t *testing.T) {
 	mt := mtest.New(t, opts)
 	defer mt.Close()
 
-	mt.Run("GetInsolvencyPractitionersResource runs with error", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyAndExpandedPractitionerResources runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
 		mongoService.db = mt.DB
-		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
 
 		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction transactionID")
 	})
 
-	mt.Run("GetInsolvencyPractitionersResource runs successfully", func(mt *mtest.T) {
+	mt.Run("GetInsolvencyAndExpandedPractitionerResources runs successfully", func(mt *mtest.T) {
 		id1 := primitive.NewObjectID()
 		id2 := primitive.NewObjectID()
 
@@ -277,7 +277,7 @@ func TestUnitGetInsolvencyPractitionersResourceDriver(t *testing.T) {
 		mt.AddMockResponses(first, second, killCursors)
 
 		mongoService.db = mt.DB
-		insolvencyResource, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
+		insolvencyResource, _, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
 
 		assert.Nil(t, err)
 		assert.NotNil(t, insolvencyResource)

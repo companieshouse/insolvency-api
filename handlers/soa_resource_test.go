@@ -161,7 +161,8 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement := generateStatement()
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return an empty attachment model, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(models.AttachmentResourceDao{}, nil)
 
@@ -183,7 +184,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement := generateStatement()
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(&models.InsolvencyResourceDao{}, fmt.Errorf("error"))
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
@@ -204,7 +205,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement.StatementDate = "1999-01-01"
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
@@ -229,7 +230,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		}
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
@@ -250,7 +251,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		statement.Attachments = []string{}
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
@@ -273,14 +274,14 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment.Type = "not-soa"
 
 		body, _ := json.Marshal(statement)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "attachment is not a " + constants.StatementOfAffairsDirector.String() + ", " + constants.StatementOfAffairsLiquidator.String() + " or a " + constants.StatementOfConcurrence.String())
+		So(res.Body.String(), ShouldContainSubstring, "attachment is not a "+constants.StatementOfAffairsDirector.String()+", "+constants.StatementOfAffairsLiquidator.String()+" or a "+constants.StatementOfConcurrence.String())
 	})
 
 	Convey("Generic error when adding statement of affairs resource to mongo", t, func() {
@@ -298,7 +299,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "statement-of-affairs-director"
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
@@ -325,7 +326,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		attachment := generateAttachment()
 		attachment.Type = "statement-of-affairs-director"
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
@@ -356,7 +357,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 			Links:  models.AttachmentResourceLinksDao{},
 		}
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(generateInsolvencyPractitionerAppointmentResources(), []models.PractitionerResourceDao{}, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
 		// Expect GetAttachmentFromInsolvencyResource to be called once and return attachment, nil
 		mockService.EXPECT().GetAttachmentFromInsolvencyResource(transactionID, statement.Attachments[0]).Return(attachment, nil)
 		// Expect CreateStatementOfAffairsResource to be called once and return an error
