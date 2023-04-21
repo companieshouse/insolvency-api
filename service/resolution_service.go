@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
@@ -22,7 +23,9 @@ func ValidateResolutionRequest(resolution models.Resolution) string {
 	return strings.Join(errs, ", ")
 }
 
-// ValidateResolutionDate checks that the incoming resolution date is valid
+// ValidateResolutionDate checks that the incoming resolution date is valid.
+// Returns an error based on constants.MsgCaseNotFound if insolvency case is not
+// found for transactionID
 func ValidateResolutionDate(svc dao.Service, resolution *models.ResolutionResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
@@ -33,6 +36,10 @@ func ValidateResolutionDate(svc dao.Service, resolution *models.ResolutionResour
 		log.ErrorR(req, err)
 		return "", err
 	}
+	if insolvencyResource == nil {
+		return "", fmt.Errorf(constants.MsgCaseNotFound)
+	}
+
 	// Retrieve company incorporation date
 	incorporatedOn, err := GetCompanyIncorporatedOn(insolvencyResource.Data.CompanyNumber, req)
 	if err != nil {

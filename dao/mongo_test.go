@@ -89,21 +89,21 @@ func TestUnitGetPractitionerAppointmentResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+		_, err := mongoService.GetPractitionerAppointment("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
-func TestUnitGetPractitionersResource(t *testing.T) {
+func TestUnitGetSinglePractitionerResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"})
+		_, err := mongoService.GetSinglePractitionerResource("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "no practitioner found for practitioner id(s) [practitionerID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -113,7 +113,7 @@ func TestUnitDeletePractitioner(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		_, err := mongoService.DeletePractitioner("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
@@ -127,7 +127,7 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 

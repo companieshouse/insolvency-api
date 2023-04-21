@@ -159,7 +159,7 @@ func ValidateInsolvencyDetails(insolvencyResource models.InsolvencyResourceDao, 
 			}
 
 			if !ok {
-				validationError := fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]", practitioner.Data.Appointment.Data.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
+				validationError := fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", practitioner.Data.PractitionerId, practitioner.Data.Appointment.Data.AppointedOn, insolvencyResource.Data.Resolution.DateOfResolution)
 				validationErrors = addValidationError(validationErrors, validationError, "practitioner")
 			}
 		}
@@ -295,7 +295,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 
 	// Retrieve details for the insolvency resource from DB
 	insolvencyResource, practitionerResources, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
-	if err != nil {
+	if err != nil || insolvencyResource == nil {
 		message := fmt.Errorf("error getting insolvency resource from DB [%s]", err)
 		return nil, message
 	}

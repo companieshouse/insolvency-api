@@ -616,6 +616,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		// Appoint practitioner before resolution
 		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.PractitionerId = "practitionerID"
 		appointmentResourceDao := models.AppointmentResourceDao{}
 		appointmentResourceDao.Data.AppointedOn = "2021-05-05"
 		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
@@ -623,8 +624,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner appointed on [%s] is before the resolution date [%s]",
-			practitionerResourceDaos[0].Data.Appointment.Data.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]",
+			practitionerResourceDao.Data.PractitionerId, appointmentResourceDao.Data.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 

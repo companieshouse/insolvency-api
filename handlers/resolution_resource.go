@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/service"
@@ -52,6 +53,12 @@ func HandleCreateResolution(svc dao.Service, helperService utils.HelperService) 
 		// Validate the provided resolution date is in the correct format
 		validationErrs, err := service.ValidateResolutionDate(svc, resolutionDao, transactionID, req)
 		if err != nil {
+			if err.Error() == constants.MsgCaseNotFound {
+				log.ErrorR(req, fmt.Errorf("failed to validate resolution: [%s]", err))
+				m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCaseForTransactionNotFound, transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+				return
+			}
 			log.ErrorR(req, fmt.Errorf("failed to validate resolution: [%s]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)

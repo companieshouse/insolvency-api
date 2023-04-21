@@ -22,16 +22,19 @@ type Service interface {
 	CreatePractitionerResource(dao *models.PractitionerResourceDao, transactionID string) (int, error)
 
 	// AddPractitionerToInsolvencyResource will update insolvency by adding a link to a practitioner resource
-	AddPractitionerToInsolvencyResource(practitionerID string, practitionerLink string, transactionID string) (int, error)
+	AddPractitionerToInsolvencyResource(transactionID string, practitionerID string, practitionerLink string) (int, error)
 
 	// GetPractitionerAppointment will retrieve a practitioner appointment
-	GetPractitionerAppointment(practitionerID string, transactionID string) (*models.AppointmentResourceDao, error)
+	GetPractitionerAppointment(transactionID string, practitionerID string) (*models.AppointmentResourceDao, error)
 
-	// GetPractitionersResource will retrieve practitioner(s) from the insolvency resource
-	GetPractitionersResource(practitionerIDs []string) ([]models.PractitionerResourceDao, error)
+	// GetSinglePractitionerResource gets a specific practitioner by transactionID & practitionerID
+	GetSinglePractitionerResource(transactionID string, practitionerID string) (*models.PractitionerResourceDao, error)
+
+	// GetAllPractitionerResourcesForTransactionID gets all practitioner resources linked to by the insolvency case with the given transactionID
+	GetAllPractitionerResourcesForTransactionID(transactionID string) ([]models.PractitionerResourceDao, error)
 
 	// DeletePractitioner will delete a practitioner from the Insolvency resource
-	DeletePractitioner(practitionerID, transactionID string) (int, error)
+	DeletePractitioner(transactionID, practitionerID string) (int, error)
 
 	// CreateAppointmentResource will create appointment resource
 	CreateAppointmentResource(dao *models.AppointmentResourceDao) (int, error)

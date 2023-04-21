@@ -102,7 +102,7 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		// Add new insolvency resource to mongo
 		insolvencyResourceDto := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
 		if insolvencyResourceDto == nil {
-			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction id [%s]", transactionID))
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgHandleReqTransactionId, transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
@@ -149,21 +149,20 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 
 		insolvencyResource, practitionerResourceDao, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 		if err != nil {
-			// Check if insolvency case was not found
-			if err.Error() == fmt.Sprintf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {
-				message := fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID)
-				log.Info(message)
-				m := models.NewMessageResponse(message)
-				// Returning OK instead of NOT FOUND because endpoint is specifically for validation not for insolvency case
-				utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
-				return
-			}
 			log.ErrorR(req, fmt.Errorf("error getting insolvency resource from DB: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
-
+		// Check if insolvency case was not found
+		if insolvencyResource == nil {
+			message := fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID)
+			log.Info(message)
+			m := models.NewMessageResponse(message)
+			// Returning OK instead of NOT FOUND because endpoint is specifically for validation not for insolvency case
+			utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
+			return
+		}
 		validationErrors := service.ValidateInsolvencyDetails(*insolvencyResource, practitionerResourceDao)
 		antivirusValidationErrors := service.ValidateAntivirus(svc, *insolvencyResource, req)
 

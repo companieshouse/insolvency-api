@@ -571,8 +571,8 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return nil for the insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(nil, nil, nil).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
