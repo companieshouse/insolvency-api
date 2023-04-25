@@ -30,8 +30,8 @@ type CreatedPractitionerResource struct {
 	Etag            string                 `json:"etag"`
 	Kind            string                 `json:"kind"`
 	Links           struct {
-		Self        *string `json:"self,omitempty"`
-		Appointment *string `json:"appointment,omitempty"`
+		Self        string `json:"self,omitempty"`
+		Appointment string `json:"appointment,omitempty"`
 	} `json:"links"`
 	Appointment *AppointedPractitionerResource `json:"appointment,omitempty"`
 }
@@ -46,11 +46,6 @@ type CreatedAddressResource struct {
 	Region       string `json:"region"`
 	PostalCode   string `json:"postal_code"`
 	POBox        string `json:"po_box"`
-}
-
-// CreatedPractitionerLinksResource contains the links details for a practitioner
-type CreatedPractitionerLinksResource struct {
-	Self string `json:"self"`
 }
 
 // AppointedPractitionerResource contains the details of an appointed practitioner

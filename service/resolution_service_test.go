@@ -51,13 +51,28 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("err"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(&models.InsolvencyResourceDao{}, fmt.Errorf("err"))
 
 		resolution := generateResolutionDao()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
 		So(err.Error(), ShouldContainSubstring, "err")
+		So(validationErr, ShouldBeEmpty)
+	})
+
+	Convey("insolvency resource not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		resolution := generateResolutionDao()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
 		So(validationErr, ShouldBeEmpty)
 	})
 
@@ -71,7 +86,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		resolution := generateResolutionDao()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -90,7 +105,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		resolution := generateResolutionDao()
 		resolution.DateOfResolution = "2001/1/2"
@@ -112,7 +127,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateResolutionDate(mockService, &resolution, transactionID, req)
@@ -130,7 +145,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		resolution := generateResolutionDao()
 		resolution.DateOfResolution = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -151,7 +166,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		resolution := generateResolutionDao()
 		resolution.DateOfResolution = "1999-01-01"
@@ -172,7 +187,7 @@ func TestUnitIsValidResolutionDate(t *testing.T) {
 		mockService := mocks.NewMockService(mockCtrl)
 
 		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, nil, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		resolution := generateResolutionDao()
 

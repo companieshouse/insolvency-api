@@ -46,7 +46,7 @@ func getInsolvencyPractitionersDetails(practitionerLinksMap models.InsolvencyRes
 	}
 
 	// make a call to fetch all practitioners from the string array
-	practitionerResourceDao, err := getPractitioners(practitionerIDs, collection)
+	practitionerResourceDao, err := getPractitionersWithAppointments(practitionerIDs, collection)
 	if err != nil {
 		log.Debug(err.Error(), log.Data{"transaction_id": transactionID})
 		return nil, err
@@ -55,7 +55,7 @@ func getInsolvencyPractitionersDetails(practitionerLinksMap models.InsolvencyRes
 	return practitionerResourceDao, nil
 }
 
-func getPractitioners(practitionerIDs []string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
+func getPractitionersWithAppointments(practitionerIDs []string, collection *mongo.Collection) ([]models.PractitionerResourceDao, error) {
 	var practitionerResourceDaos []models.PractitionerResourceDao
 
 	matchQuery := bson.D{{"$match", bson.D{{"data.practitioner_id", bson.D{{"$in", practitionerIDs}}}}}}
@@ -80,4 +80,28 @@ func getPractitioners(practitionerIDs []string, collection *mongo.Collection) ([
 	}
 
 	return practitionerResourceDaos, nil
+}
+
+// checkIDsMatch returns true only if the practitionerID is referenced from an
+// insolvency case with the transactionID.  If the insolvency case is not found
+// or the practitionerID is not referenced from it, then it returns false.  It
+// returns an error only if an error is returned by the DB.
+func checkIDsMatch(transactionID, practitionerID string, s Service) (bool, error) {
+
+	insolvencyDao, err := s.GetInsolvencyResource(transactionID)
+	if err != nil {
+		return false, err
+	}
+
+	if insolvencyDao == nil || insolvencyDao.Data.Practitioners == nil {
+		return false, nil
+	}
+
+	practitionerLinksMap := *insolvencyDao.Data.Practitioners
+	_, ok := practitionerLinksMap[practitionerID]
+	if !ok {
+		return false, nil
+
+	}
+	return true, nil
 }

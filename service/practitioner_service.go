@@ -63,33 +63,37 @@ func ValidatePractitionerDetails(insolvencyCase *models.InsolvencyResourceDao, t
 	return strings.Join(errs, ", "), nil
 }
 
-// ValidateAppointmentDetails checks that the incoming appointment details are valid
+// ValidateAppointmentDetails checks that the incoming appointment details are valid.
+// Returns errors based on constants.MsgCaseNotFound & constants.MsgPractitionerNotFound
+// if insolvency case is not found for transactionID or does not reference the practitionerID
 func ValidateAppointmentDetails(svc dao.Service, appointment models.PractitionerAppointment, transactionID string, practitionerID string, req *http.Request) ([]string, error) {
 
 	var errs []string
 
-	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, practitionerResourceDaos, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 	if err != nil {
 		errs = append(errs, err.Error())
 		err = fmt.Errorf("error getting practitioner and insolvency resources from DB: [%s]", err)
 		log.ErrorR(req, err)
 		return errs, err
 	}
-
+	if insolvencyResource == nil {
+		return errs, fmt.Errorf(constants.MsgCaseNotFound)
+	}
+	practitionerMatched := false
 	for _, practitioner := range practitionerResourceDaos {
-		practitionerHasValidAppointment := utils.CheckStringContainsElement(practitioner.Data.Links.Appointment, "/", practitionerID)
-		if practitionerHasValidAppointment {
-			msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
-			log.Info(msg)
-			errs = append(errs, msg)
+		if practitioner.Data.PractitionerId == practitionerID {
+			practitionerMatched = true
+			practitionerAlreadyAppointed := (practitioner.Data.Links.Appointment != "")
+			if practitionerAlreadyAppointed {
+				msg := fmt.Sprintf("practitioner ID [%s] already appointed to transaction ID [%s]", practitionerID, transactionID)
+				log.Info(msg)
+				errs = append(errs, msg)
+			}
 		}
-
-		hasValidTransactionID := utils.CheckStringContainsElement(practitioner.Data.Links.Self, "/", transactionID)
-		if !hasValidTransactionID {
-			msg := fmt.Sprintf("practitioner ID [%s] and transactionID[%s] are not valid to create appointment", practitionerID, transactionID)
-			log.Info(msg)
-			errs = append(errs, msg)
-		}
+	}
+	if !practitionerMatched {
+		return errs, fmt.Errorf(constants.MsgPractitionerNotFound)
 	}
 
 	// Retrieve company incorporation date

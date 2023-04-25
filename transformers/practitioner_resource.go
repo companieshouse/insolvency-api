@@ -16,6 +16,7 @@ func PractitionerResourceRequestToDB(req *models.PractitionerRequest, practition
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
 
 	practitionerResourceDao := models.PractitionerResourceDao{}
+	practitionerResourceDao.TransactionID = transactionID
 	practitionerResourceDao.Data.IPCode = req.IPCode
 	practitionerResourceDao.Data.FirstName = req.FirstName
 	practitionerResourceDao.Data.LastName = req.LastName
@@ -64,13 +65,9 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 		},
 		Role: practitionerResourceDao.Role,
 	}
-	if len(practitionerResourceDao.Links.Appointment) > 0 {
-		practitionerResource.Links.Appointment = &practitionerResourceDao.Links.Appointment
-	}
+	practitionerResource.Links.Appointment = practitionerResourceDao.Links.Appointment
 
-	if len(practitionerResourceDao.Links.Self) > 0 {
-		practitionerResource.Links.Self = &practitionerResourceDao.Links.Self
-	}
+	practitionerResource.Links.Self = practitionerResourceDao.Links.Self
 
 	return practitionerResource
 
@@ -93,6 +90,7 @@ func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, tra
 	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
 
 	appointmentResourceDao := models.AppointmentResourceDao{}
+	appointmentResourceDao.TransactionID = transactionID
 	appointmentResourceDao.Data.AppointedOn = req.AppointedOn
 	appointmentResourceDao.Data.MadeBy = req.MadeBy
 	appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{

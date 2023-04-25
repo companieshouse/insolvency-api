@@ -34,7 +34,8 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	Data struct {
+	TransactionID string `bson:"transaction_id"`
+	Data          struct {
 		PractitionerId  string                       `bson:"practitioner_id"`
 		IPCode          string                       `bson:"ip_code"`
 		FirstName       string                       `bson:"first_name"`
@@ -52,6 +53,7 @@ type PractitionerResourceDao struct {
 
 // AppointmentResourceDao contains the data for the appointment resource in Mongo
 type AppointmentResourceDao struct {
+	TransactionID  string `bson:"transaction_id"`
 	PractitionerId string `bson:"practitioner_id"`
 	Data           struct {
 		AppointedOn string                      `bson:"appointed_on,omitempty"`

@@ -6,12 +6,15 @@ import (
 	"strings"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidateProgressReportDetails checks that the incoming statement details are valid
+// ValidateProgressReportDetails checks that the incoming statement details are valid.
+// Returns an error based on constants.MsgCaseNotFound if insolvency case is not
+// found for transactionID
 func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *models.ProgressReportResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
@@ -27,11 +30,14 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 	}
 
 	// Check if statement date supplied is in the future or before company was incorporated
-	insolvencyResource, _, err := svc.GetInsolvencyPractitionersResource(transactionID)
+	insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
 	if err != nil {
 		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
 		log.ErrorR(req, err)
 		return "", err
+	}
+	if insolvencyResource == nil {
+		return "", fmt.Errorf(constants.MsgCaseNotFound)
 	}
 
 	// Retrieve company incorporation date

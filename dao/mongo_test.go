@@ -45,13 +45,25 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyPractitionersResource(t *testing.T) {
+func TestUnitGetInsolvencyAndExpandedPractitionerResources(t *testing.T) {
 
 	Convey("Get Insolvency Resource", t, func() {
 
 		mongoService := setUp(t)
 
-		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
+		_, _, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
+	})
+}
+
+func TestUnitGetInsolvencyResource(t *testing.T) {
+
+	Convey("Get Insolvency Resource", t, func() {
+
+		mongoService := setUp(t)
+
+		_, err := mongoService.GetInsolvencyResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
@@ -71,39 +83,27 @@ func TestUnitCreatePractitionerResource(t *testing.T) {
 	})
 }
 
-func TestUnitGetInsolvencyPractitionerByTransactionID(t *testing.T) {
-
-	Convey("Get practitioner resources", t, func() {
-
-		mongoService := setUp(t)
-
-		_, _, err := mongoService.GetInsolvencyPractitionersResource("transactionID")
-
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
-	})
-}
-
 func TestUnitGetPractitionerAppointmentResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerAppointment("practitionerID", "transactionID")
+		_, err := mongoService.GetPractitionerAppointment("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
-func TestUnitGetPractitionersResource(t *testing.T) {
+func TestUnitGetSinglePractitionerResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionersResource([]string{"practitionerID"})
+		_, err := mongoService.GetSinglePractitionerResource("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "no practitioner found for practitioner id(s) [practitionerID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -113,7 +113,7 @@ func TestUnitDeletePractitioner(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		_, err := mongoService.DeletePractitioner("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
 	})
@@ -125,9 +125,9 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
+		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID", "newEtag")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 

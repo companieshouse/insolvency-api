@@ -16,8 +16,7 @@ import (
 func TestUnitValidProgressReport(t *testing.T) {
 	transactionID := "123"
 
-	insolvencyResourceDao, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
-	practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+	insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
 
 	Convey("request supplied is invalid - no attachment has been supplied", t, func() {
 		mockService, _, _ := mocks.CreateTestObjects(t)
@@ -25,7 +24,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.Attachments = []string{}
@@ -42,7 +41,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.Attachments = []string{
@@ -62,7 +61,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(&models.InsolvencyResourceDao{}, fmt.Errorf("error"))
 
 		progressReport := generateProgressReport()
 
@@ -72,13 +71,26 @@ func TestUnitValidProgressReport(t *testing.T) {
 		So(err.Error(), ShouldContainSubstring, "error getting insolvency resource from DB")
 	})
 
+	Convey("insolvency resource not found", t, func() {
+		mockService, _, _ := mocks.CreateTestObjects(t)
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		progressReport := generateProgressReport()
+
+		validationErr, err := ValidateProgressReportDetails(mockService, &progressReport, transactionID, req)
+
+		So(validationErr, ShouldBeEmpty)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
+	})
+
 	Convey("error retrieving company details", t, func() {
 		mockService, _, _ := mocks.CreateTestObjects(t)
 		httpmock.Activate()
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 
@@ -94,7 +106,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.FromDate = "2001/1/2"
@@ -110,7 +122,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.ToDate = "2001/1/2"
@@ -126,7 +138,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.FromDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -142,7 +154,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.ToDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -158,7 +170,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.FromDate = "1999-01-01"
@@ -176,7 +188,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		//mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 		progressReport.ToDate = "1999-01-01"
@@ -193,7 +205,7 @@ func TestUnitValidProgressReport(t *testing.T) {
 
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
-		mockService.EXPECT().GetInsolvencyPractitionersResource(transactionID).Return(insolvencyResourceDao, practitionerResourceDaos, nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		progressReport := generateProgressReport()
 

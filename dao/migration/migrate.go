@@ -286,7 +286,9 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 		var practitionerMigrationDaos []interface{}
 		if len(practitioners) > 0 {
 			for _, practitioner := range practitioners {
-				practitionerModel := models.PractitionerResourceDao{}
+				practitionerModel := models.PractitionerResourceDao{
+					TransactionID: insolvency.TransactionID,
+				}
 				practitionerModel.Data.IPCode = practitioner.IPCode
 				practitionerModel.Data.PractitionerId = practitioner.Id
 				practitionerModel.Data.FirstName = practitioner.FirstName
@@ -313,6 +315,7 @@ func (m *MongoMigrationService) Migrate() (*[]InsolvencyMigrationDao, error) {
 					practitionerModel.Data.Links.Appointment = practitioner.Appointment.Links.Self
 					appointment := models.AppointmentResourceDao{
 						PractitionerId: practitioner.Id,
+						TransactionID:  insolvency.TransactionID,
 					}
 					appointment.Data.AppointedOn = practitioner.Appointment.AppointedOn
 					appointment.Data.MadeBy = practitioner.Appointment.MadeBy
