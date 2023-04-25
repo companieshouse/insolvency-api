@@ -69,20 +69,80 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 	})
 }
 
-func TestUnitAppointmentResourceDaoToAppointedResponse(t *testing.T) {
-	Convey("field mappings are correct", t, func() {
+func TestUnitPractitionerResourceDaosToPractitionerFilingsResponse(t *testing.T) {
+	Convey("field mappings are correct - no appointment", t, func() {
 
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.IPCode = "1111"
+		practitionerResourceDao.Data.FirstName = "First"
+		practitionerResourceDao.Data.LastName = "Last"
+		practitionerResourceDao.Data.Etag = "etag123"
+		practitionerResourceDao.Data.Kind = "insolvency-resource#insolvency-resource"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self: "/self/link",
+		}
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{
+			AddressLine1: "addressline1",
+			Locality:     "locality",
+		}
+		practitionerResourceDao.Data.Role = constants.FinalLiquidator.String()
+		daoList := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		responses := PractitionerResourceDaosToPractitionerFilingsResponse(daoList)
+
+		So(responses[0].IPCode, ShouldEqual, daoList[0].Data.IPCode)
+		So(responses[0].FirstName, ShouldEqual, daoList[0].Data.FirstName)
+		So(responses[0].LastName, ShouldEqual, daoList[0].Data.LastName)
+		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
+		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
+		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
+		So(responses[0].Etag, ShouldEqual, daoList[0].Data.Etag)
+		So(responses[0].Kind, ShouldEqual, daoList[0].Data.Kind)
+		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
+		So(responses[0].Links.Appointment, ShouldEqual, "")
+	})
+
+	Convey("field mappings are correct - with appointment", t, func() {
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.IPCode = "1111"
+		practitionerResourceDao.Data.FirstName = "First"
+		practitionerResourceDao.Data.LastName = "Last"
+		practitionerResourceDao.Data.Etag = "etag123"
+		practitionerResourceDao.Data.Kind = "insolvency-resource#insolvency-resource"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self:        "/self/link",
+			Appointment: "/appointment/link",
+		}
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{
+			AddressLine1: "addressline1",
+			Locality:     "locality",
+		}
+		practitionerResourceDao.Data.Role = constants.FinalLiquidator.String()
 		appointmentResourceDao := &models.AppointmentResourceDao{}
 		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
 		appointmentResourceDao.Data.MadeBy = "company"
 		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{
-			Self: "/self/link",
+			Self: "/appt/self/link",
 		}
+		practitionerResourceDao.Data.Appointment = appointmentResourceDao
+		daoList := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		response := AppointmentResourceDaoToAppointedResponse(appointmentResourceDao)
+		responses := PractitionerResourceDaosToPractitionerFilingsResponse(daoList)
 
-		So(response.AppointedOn, ShouldEqual, appointmentResourceDao.Data.AppointedOn)
-		So(response.MadeBy, ShouldEqual, appointmentResourceDao.Data.MadeBy)
-		So(response.Links.Self, ShouldEqual, appointmentResourceDao.Data.Links.Self)
+		So(responses[0].IPCode, ShouldEqual, daoList[0].Data.IPCode)
+		So(responses[0].FirstName, ShouldEqual, daoList[0].Data.FirstName)
+		So(responses[0].LastName, ShouldEqual, daoList[0].Data.LastName)
+		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
+		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
+		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
+		So(responses[0].Etag, ShouldEqual, daoList[0].Data.Etag)
+		So(responses[0].Kind, ShouldEqual, daoList[0].Data.Kind)
+		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
+		So(responses[0].Links.Appointment, ShouldEqual, daoList[0].Data.Links.Appointment)
+		So(responses[0].Appointment.AppointedOn, ShouldEqual, appointmentResourceDao.Data.AppointedOn)
+		So(responses[0].Appointment.MadeBy, ShouldEqual, appointmentResourceDao.Data.MadeBy)
+		So(responses[0].Appointment.Links.Self, ShouldEqual, appointmentResourceDao.Data.Links.Self)
+
 	})
 }

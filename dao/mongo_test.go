@@ -125,7 +125,7 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
+		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID", "newEtag")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})

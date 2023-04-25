@@ -193,6 +193,29 @@ func TestUnitHandleCreateResolution(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID")
 	})
 
+	Convey("Failed to validate resolution - insolvency case not found", t, func() {
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+		httpmock.Activate()
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		resolution := generateResolution()
+
+		body, _ := json.Marshal(resolution)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		res := serveHandleCreateResolution(body, mockService, mockHelperService, true, rec)
+
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "insolvency case not found")
+	})
+
 	Convey("Validation errors are present - date is in the past", t, func() {
 		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
 		httpmock.Activate()

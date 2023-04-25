@@ -163,6 +163,7 @@ func (m *MongoService) GetInsolvencyAndExpandedPractitionerResources(transaction
 	return insolvencyResourceDao, nil, nil
 }
 
+// GetPractitionerAppointment will retrieve a practitioner appointment
 func (m *MongoService) GetPractitionerAppointment(transactionID string, practitionerID string) (*models.AppointmentResourceDao, error) {
 
 	var appointmentResourceDao models.AppointmentResourceDao
@@ -335,7 +336,7 @@ func (m *MongoService) GetAllPractitionerResourcesForTransactionID(transactionID
 }
 
 // DeletePractitioner deletes a practitioner for an insolvency case with the specified transactionID and practitionerID
-// Any appointment data for the practitioner is also deleted.
+// Any appointment data for the practitioner is also deleted. If successful it returns http.StatusNoContent.
 // If no insolvency case is found for the transactionID, or the insolvency case does not link to
 // the practitionerID, then the function returns http.StatusNotFound with an error.
 func (m *MongoService) DeletePractitioner(transactionID string, practitionerID string) (int, error) {
@@ -424,7 +425,7 @@ func (m *MongoService) DeletePractitioner(transactionID string, practitionerID s
 }
 
 // UpdatePractitionerAppointment adds appointment details into practitioner case with the specified transactionID and practitionerID
-func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error) {
+func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID, practitionerID string) (int, error) {
 
 	// practitioner collection
 	practitionerCollection := m.db.Collection(PractitionerCollectionName)
@@ -434,7 +435,12 @@ func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *mod
 		"transaction_id":       transactionID,
 		"data.practitioner_id": practitionerID,
 	}
-	practitionerDocumentToUpdate := bson.M{"$set": bson.M{"data.links.appointment": appointmentResourceDao.Data.Links.Self}}
+	practitionerDocumentToUpdate := bson.M{
+		"$set": bson.M{
+			"data.etag":              appointmentResourceDao.Data.Etag,
+			"data.links.appointment": appointmentResourceDao.Data.Links.Self,
+		},
+	}
 
 	//update practitioner collection with appointment link
 	status, err := updateCollection(practitionerToUpdate, practitionerDocumentToUpdate, practitionerCollection)
@@ -446,11 +452,11 @@ func (m *MongoService) UpdatePractitionerAppointment(appointmentResourceDao *mod
 	return status, err
 }
 
-// DeletePractitionerAppointment deletes an appointment for the specified transactionID and practitionerID
+// DeletePractitionerAppointment deletes an appointment for the specified transactionID and practitionerID and removes
+// the appointment reference from the practitioner collection. If successful it returns http.StatusNoContent.
 // If no insolvency case is found for the transactionID, the insolvency case does not link to
 // the practitionerID, or the practitionerID has no appointment, then the function returns http.StatusNotFound with an error.
-
-func (m *MongoService) DeletePractitionerAppointment(transactionID string, practitionerID string) (int, error) {
+func (m *MongoService) DeletePractitionerAppointment(transactionID, practitionerID, etag string) (int, error) {
 
 	var practitionerDocumentToUpdate primitive.M
 	var practitionerResourceDao models.PractitionerResourceDao
@@ -512,7 +518,10 @@ func (m *MongoService) DeletePractitionerAppointment(transactionID string, pract
 		"transaction_id":       transactionID,
 		"data.practitioner_id": practitionerID,
 	}
-	practitionerDocumentToUpdate = bson.M{"$unset": bson.M{"data.links.appointment": ""}}
+	practitionerDocumentToUpdate = bson.M{
+		"$unset": bson.M{"data.links.appointment": ""},
+		"$set":   bson.M{"data.etag": etag},
+	}
 
 	statusCode, err := updateCollection(practitionerToUpdate, practitionerDocumentToUpdate, practitionerCollection)
 	if err != nil {

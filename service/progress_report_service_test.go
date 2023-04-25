@@ -71,6 +71,19 @@ func TestUnitValidProgressReport(t *testing.T) {
 		So(err.Error(), ShouldContainSubstring, "error getting insolvency resource from DB")
 	})
 
+	Convey("insolvency resource not found", t, func() {
+		mockService, _, _ := mocks.CreateTestObjects(t)
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		progressReport := generateProgressReport()
+
+		validationErr, err := ValidateProgressReportDetails(mockService, &progressReport, transactionID, req)
+
+		So(validationErr, ShouldBeEmpty)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
+	})
+
 	Convey("error retrieving company details", t, func() {
 		mockService, _, _ := mocks.CreateTestObjects(t)
 		httpmock.Activate()

@@ -386,6 +386,34 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		progressReport := generateProgressReport()
 		progressReport.Attachments = nil
 
+		body, _ := json.Marshal(progressReport)
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
+		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
+
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, fmt.Errorf("error"))
+
+		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID")
+	})
+
+	Convey("Failed to validate progress report - insolvency case not found", t, func() {
+		mockService, mockHelperService, rec := mocks.CreateTestObjects(t)
+		httpmock.Activate()
+
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
+
+		// Expect the transaction api to be called and return an open transaction
+		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
+
+		progressReport := generateProgressReport()
+		progressReport.Attachments = nil
+
 		insolvencyDao := generateInsolvencyResource()
 		insolvencyDao.Data.Attachments = []models.AttachmentResourceDao{{
 			Type: "resolution",
@@ -398,16 +426,13 @@ func TestUnitHandleCreateProgressReport(t *testing.T) {
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleEtagGenerationValidation(gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleAttachmentValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
-		mockHelperService.EXPECT().HandleAttachmentTypeValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(http.StatusInternalServerError).AnyTimes()
 
-		mockService.EXPECT().GetAttachmentFromInsolvencyResource(gomock.Any(), gomock.Any()).Return(models.AttachmentResourceDao{}, nil)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyDao, fmt.Errorf("error"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
 
 		res := serveHandleCreateProgressReport(body, mockService, mockHelperService, true, rec)
 
-		So(res.Code, ShouldEqual, http.StatusInternalServerError)
-		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID")
+		So(res.Code, ShouldEqual, http.StatusNotFound)
+		So(res.Body.String(), ShouldContainSubstring, "insolvency case not found")
 	})
 
 	Convey("Validation errors are present - multiple attachments", t, func() {

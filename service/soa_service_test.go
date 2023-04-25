@@ -106,6 +106,21 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		So(validationErr, ShouldBeEmpty)
 	})
 
+	Convey("insolvency resource not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		statement := generateStatement()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
+		So(validationErr, ShouldBeEmpty)
+	})
+
 	Convey("error retrieving company details", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()

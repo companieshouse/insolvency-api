@@ -1731,7 +1731,7 @@ func TestUnitHandleGetPractitionerAppointment(t *testing.T) {
 	})
 }
 
-func serveHandleDeletePractitionerAppointment(service dao.Service, tranIdSet bool, practitionerIDSet bool) *httptest.ResponseRecorder {
+func serveHandleDeletePractitionerAppointment(service dao.Service, helperService utils.HelperService, tranIdSet bool, practitionerIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/practitioners/abcd/appointment"
 	req := httptest.NewRequest(http.MethodGet, path, nil)
 	vars := make(map[string]string)
@@ -1745,18 +1745,21 @@ func serveHandleDeletePractitionerAppointment(service dao.Service, tranIdSet boo
 	req = mux.SetURLVars(req, vars)
 	res := httptest.NewRecorder()
 
-	handler := HandleDeletePractitionerAppointment(service)
+	handler := HandleDeletePractitionerAppointment(service, helperService)
 	handler.ServeHTTP(res, req)
 
 	return res
 }
 
 func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
+
+	helperService := utils.NewHelperService()
+
 	Convey("Must have a transaction ID in the url", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), false, false)
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), helperService, false, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -1765,9 +1768,19 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()
 
-		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, false)
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), helperService, true, false)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
+	})
+
+	Convey("error if etag not generated", t, func() {
+		mockService, mockHelperService, _ := mock_dao.CreateTestObjects(t)
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", fmt.Errorf("error generating etag: [%s]", "err")).AnyTimes()
+		res := serveHandleDeletePractitionerAppointment(mockService, mockHelperService, true, true)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "there was a problem handling your request for transaction ID [12345678]")
 	})
 
 	Convey("Error checking if transaction is closed against transaction api", t, func() {
@@ -1779,7 +1792,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, true)
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), helperService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})
@@ -1793,7 +1806,7 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		// Expect the transaction api to be called and return an already closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), true, true)
+		res := serveHandleDeletePractitionerAppointment(mock_dao.NewMockService(mockCtrl), helperService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusForbidden)
 	})
@@ -1808,9 +1821,9 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(http.StatusBadRequest, fmt.Errorf("err"))
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID, gomock.Any()).Return(http.StatusBadRequest, fmt.Errorf("err"))
 
-		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
+		res := serveHandleDeletePractitionerAppointment(mockService, helperService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
 	})
@@ -1825,9 +1838,9 @@ func TestUnitHandleDeletePractitionerAppointment(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponse))
 
 		mockService := mock_dao.NewMockService(mockCtrl)
-		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID).Return(http.StatusNoContent, nil)
+		mockService.EXPECT().DeletePractitionerAppointment(transactionID, practitionerID, gomock.Any()).Return(http.StatusNoContent, nil)
 
-		res := serveHandleDeletePractitionerAppointment(mockService, true, true)
+		res := serveHandleDeletePractitionerAppointment(mockService, helperService, true, true)
 
 		So(res.Code, ShouldEqual, http.StatusNoContent)
 	})

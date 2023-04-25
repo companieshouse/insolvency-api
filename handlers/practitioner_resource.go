@@ -404,7 +404,7 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 // HandleDeletePractitionerAppointment deletes an appointment
 // for the specified transactionID and practitionerID
-func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
+func HandleDeletePractitionerAppointment(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
@@ -414,6 +414,14 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		// generate etag for practitioner update
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("error generating etag: [%s]", err),
+				fmt.Errorf("there was a problem handling your request for transaction ID [%s]", transactionID)})
+			return
+		}
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
@@ -426,7 +434,7 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 			return
 		}
 
-		statusCode, err := svc.DeletePractitionerAppointment(transactionID, practitionerID)
+		statusCode, err := svc.DeletePractitionerAppointment(transactionID, practitionerID, etag)
 		if err != nil {
 			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return

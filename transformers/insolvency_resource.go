@@ -50,7 +50,9 @@ func InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDao *models.Insolv
 	}
 }
 
-// AppointmentResourceDaoToAppointedResponse transforms an appointment resource dao into a response entity
+// PractitionerResourceDaosToPractitionerFilingsResponse transforms a slice of
+// PractitionerResourceDaos (including appointment details) into a slice of
+// CreatedPractitionerResources (also including appointment details)
 func PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResourceDaos []models.PractitionerResourceDao) []models.CreatedPractitionerResource {
 
 	var practitionerResponses []models.CreatedPractitionerResource
@@ -85,42 +87,19 @@ func PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResourceD
 		practitionerResponse.Kind = practitioner.Data.Kind
 
 		if practitioner.Data.Appointment != nil {
-			appointedPractitionerResource = models.AppointedPractitionerResource{
-				AppointedOn: practitioner.Data.Appointment.Data.AppointedOn,
-				MadeBy:      practitioner.Data.Appointment.Data.MadeBy,
-				Links: models.AppointedPractitionerLinksResource{
-					Self: practitioner.Data.Appointment.Data.Links.Self,
-				},
-				Etag: practitioner.Data.Appointment.Data.Etag,
-				Kind: practitioner.Data.Appointment.Data.Kind,
-			}
+			appointedPractitionerResource = PractitionerAppointmentDaoToResponse(practitioner.Data.Appointment)
 
 			practitionerResponse.Appointment = &appointedPractitionerResource
 		}
 
-		if len(practitioner.Data.Links.Appointment) > 0 {
-			practitionerResponse.Links.Appointment = &practitionerResourceLinksDao.Appointment
-		}
+		practitionerResponse.Links.Appointment = practitionerResourceLinksDao.Appointment
 
-		if len(practitioner.Data.Links.Self) > 0 {
-			practitionerResponse.Links.Self = &practitionerResourceLinksDao.Self
-		}
+		practitionerResponse.Links.Self = practitionerResourceLinksDao.Self
 
 		practitionerResponses = append(practitionerResponses, practitionerResponse)
 	}
 
 	return practitionerResponses
-}
-
-// AppointmentResourceDaoToAppointedResponse transforms an appointment resource dao into a response entity
-func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResourceDao) *models.AppointedPractitionerResource {
-
-	return &models.AppointedPractitionerResource{
-		AppointedOn: model.Data.AppointedOn,
-		MadeBy:      model.Data.MadeBy,
-		Links: models.AppointedPractitionerLinksResource{
-			Self: model.Data.Links.Self,
-		}}
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity

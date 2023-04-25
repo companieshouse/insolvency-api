@@ -42,6 +42,18 @@ func TestUnitValidateAttachmentDetails(t *testing.T) {
 		So(err.Error(), ShouldContainSubstring, "error getting attachments for transaction ID")
 	})
 
+	Convey("Error when validating attachment details - insolvency case not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetAttachmentResources(transactionID).Return(nil, nil)
+
+		validationErrs, err := ValidateAttachmentDetails(mockService, transactionID, "resolution", createHeader())
+		So(validationErrs, ShouldBeEmpty)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
+	})
+
 	Convey("Invalid attachment details - attempt to file attachment with type that has already been filed", t, func() {
 		mockCtrl := gomock.NewController(t)
 		defer mockCtrl.Finish()

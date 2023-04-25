@@ -180,16 +180,16 @@ func (mr *MockServiceMockRecorder) UpdatePractitionerAppointment(appointmentReso
 
  
 // DeletePractitionerAppointment mocks base method
-func (m *MockService) DeletePractitionerAppointment(transactionID, practitionerID string) (int, error) {
-	ret := m.ctrl.Call(m, "DeletePractitionerAppointment", transactionID, practitionerID)
+func (m *MockService) DeletePractitionerAppointment(transactionID, practitionerID, etag string) (int, error) {
+	ret := m.ctrl.Call(m, "DeletePractitionerAppointment", transactionID, practitionerID, etag)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeletePractitionerAppointment indicates an expected call of DeletePractitionerAppointment
-func (mr *MockServiceMockRecorder) DeletePractitionerAppointment(transactionID, practitionerID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitionerAppointment", reflect.TypeOf((*MockService)(nil).DeletePractitionerAppointment), transactionID, practitionerID)
+func (mr *MockServiceMockRecorder) DeletePractitionerAppointment(transactionID, practitionerID, etag interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitionerAppointment", reflect.TypeOf((*MockService)(nil).DeletePractitionerAppointment), transactionID, practitionerID, etag)
 }
 
 // AddAttachmentToInsolvencyResource mocks base method

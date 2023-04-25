@@ -65,13 +65,9 @@ func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResource
 		},
 		Role: practitionerResourceDao.Role,
 	}
-	if len(practitionerResourceDao.Links.Appointment) > 0 {
-		practitionerResource.Links.Appointment = &practitionerResourceDao.Links.Appointment
-	}
+	practitionerResource.Links.Appointment = practitionerResourceDao.Links.Appointment
 
-	if len(practitionerResourceDao.Links.Self) > 0 {
-		practitionerResource.Links.Self = &practitionerResourceDao.Links.Self
-	}
+	practitionerResource.Links.Self = practitionerResourceDao.Links.Self
 
 	return practitionerResource
 
