@@ -922,93 +922,6 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 	})
 }
 
-func TestUnitGetProgressReportResourceDriver(t *testing.T) {
-	t.Parallel()
-
-	mongoService, commandError, _, opts, _ := setDriverUp()
-
-	mt := mtest.New(t, opts)
-	defer mt.Close()
-
-	mt.Run("GetProgressReportResource runs successfully", func(mt *mtest.T) {
-		bsonprogressReport := bson.D{
-			{"from_date", "from_date"},
-			{"to_date", "to_date"},
-		}
-		bsonInsolvencyResourceDaoData := bson.D{
-			{"company_number", "company_number"},
-			{"case_type", "case_type"},
-			{"company_name", "company_name"},
-			{"progress-report", bsonprogressReport},
-		}
-
-		bsonLink := bson.D{
-			{"self", "self"},
-		}
-
-		bsonProgress := bson.D{
-			{"transaction_id", "transaction_id"},
-			{"attachments", "attachments"},
-			{"etag", "etag"},
-			{"kind", "kind"},
-			{"data", bsonInsolvencyResourceDaoData},
-			{"links", bsonLink},
-		}
-
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.ProgressReportResourceDao", mtest.FirstBatch, bsonProgress))
-
-		mongoService.db = mt.DB
-		progressReportResource, err := mongoService.GetProgressReportResource("transactionID")
-
-		assert.Nil(t, err)
-		assert.NotNil(t, progressReportResource)
-	})
-
-	mt.Run("GetProgressReportResource fails on wrong attachment", func(mt *mtest.T) {
-		bsonprogressReport := bson.D{
-			{"from_date", "from_date"},
-			{"to_date", "to_date"},
-			{"attachments", "attachments"},
-		}
-		bsonInsolvencyResourceDaoData := bson.D{
-			{"company_number", "company_number"},
-			{"case_type", "case_type"},
-			{"company_name", "company_name"},
-			{"progress-report", bsonprogressReport},
-		}
-
-		bsonLink := bson.D{
-			{"self", "self"},
-		}
-
-		bsonProgress := bson.D{
-			{"transaction_id", "transaction_id"},
-			{"attachments", "attachments"},
-			{"etag", "etag"},
-			{"kind", "kind"},
-			{"data", bsonInsolvencyResourceDaoData},
-			{"links", bsonLink},
-		}
-
-		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.ProgressReportResourceDao", mtest.FirstBatch, bsonProgress))
-
-		mongoService.db = mt.DB
-		progressReportResource, err := mongoService.GetProgressReportResource("transactionID")
-
-		assert.NotNil(t, err)
-		assert.NotNil(t, progressReportResource)
-	})
-
-	mt.Run("GetProgressReportResource runs with error", func(mt *mtest.T) {
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
-
-		mongoService.db = mt.DB
-		_, err := mongoService.GetProgressReportResource("transactionID")
-
-		assert.Equal(t, err.Error(), "(Name) Message")
-	})
-}
-
 func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 	t.Parallel()
 
@@ -1530,6 +1443,53 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 		assert.Equal(t, statementOfAffairsResourceDao.StatementDate, string("statement_date"))
 		assert.Equal(t, statementOfAffairsResourceDao.Attachments[0], string("attachments"))
 	})
+
+	mt.Run("GetStatementOfAffairsResource - no insolvency case found", func(mt *mtest.T) {
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.FirstBatch))
+		mongoService.db = mt.DB
+		statementOfAffairsDao, err := mongoService.GetStatementOfAffairsResource("transactionID")
+
+		assert.Equal(t, models.StatementOfAffairsResourceDao{}, statementOfAffairsDao)
+		assert.Nil(t, err)
+	})
+
+	mt.Run("GetStatementOfAffairsResource - returned result can't be decoded", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{Key: "transaction_id", Value: bsonArrays},
+		}))
+
+		mongoService.db = mt.DB
+		statementOfAffairsDao, err := mongoService.GetStatementOfAffairsResource("transactionID")
+
+		assert.Equal(t, "error decoding key transaction_id: cannot decode array into a string type", err.Error())
+		assert.Equal(t, models.StatementOfAffairsResourceDao{}, statementOfAffairsDao)
+	})
+
+	mt.Run("GetStatementOfAffairsResource - insolvency case contains no statement of affairs", func(mt *mtest.T) {
+
+		bsonInsolvencyNoSOA := bson.D{
+			{Key: "company_number", Value: "CompanyNumber"},
+			{Key: "case_type", Value: "CaseType"},
+			{Key: "company_name", Value: "CompanyName"},
+			{Key: "practitioners", Value: bsonArrays},
+			{Key: "attachments", Value: bsonAttachmentArrays},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{Key: "_id", Value: expectedInsolvency.ID},
+			{Key: "transaction_id", Value: expectedInsolvency.TransactionID},
+			{Key: "etag", Value: expectedInsolvency.Etag},
+			{Key: "kind", Value: expectedInsolvency.Kind},
+			{Key: "data", Value: bsonInsolvencyNoSOA},
+		}))
+
+		mongoService.db = mt.DB
+		statementOfAffairsDao, err := mongoService.GetStatementOfAffairsResource("transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, models.StatementOfAffairsResourceDao{}, statementOfAffairsDao)
+	})
 }
 
 func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
@@ -1683,6 +1643,240 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 	})
 }
 
+func TestUnitGetProgressReportResourceDriver(t *testing.T) {
+	t.Parallel()
+
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
+
+	mt := mtest.New(t, opts)
+	defer mt.Close()
+
+	mt.Run("GetProgressReportResource runs successfully", func(mt *mtest.T) {
+		bsonprogressReport := bson.D{
+			{"from_date", "from_date"},
+			{"to_date", "to_date"},
+			{"attachments", []string{"attachments"}},
+		}
+		bsonInsolvencyResourceDaoData := bson.D{
+			{"company_number", "company_number"},
+			{"case_type", "case_type"},
+			{"company_name", "company_name"},
+			{"progress-report", bsonprogressReport},
+		}
+
+		bsonLink := bson.D{
+			{"self", "self"},
+		}
+
+		bsonProgress := bson.D{
+			{"transaction_id", "transaction_id"},
+			{"attachments", "attachments"},
+			{"etag", "etag"},
+			{"kind", "kind"},
+			{"data", bsonInsolvencyResourceDaoData},
+			{"links", bsonLink},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.ProgressReportResourceDao", mtest.FirstBatch, bsonProgress))
+
+		mongoService.db = mt.DB
+		progressReportResource, err := mongoService.GetProgressReportResource("transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, progressReportResource.FromDate, string("from_date"))
+		assert.Equal(t, progressReportResource.ToDate, string("to_date"))
+		assert.Equal(t, progressReportResource.Attachments[0], string("attachments"))
+	})
+
+	mt.Run("GetProgressReportResource fails on wrong attachment", func(mt *mtest.T) {
+		bsonprogressReport := bson.D{
+			{"from_date", "from_date"},
+			{"to_date", "to_date"},
+			{"attachments", "attachments"},
+		}
+		bsonInsolvencyResourceDaoData := bson.D{
+			{"company_number", "company_number"},
+			{"case_type", "case_type"},
+			{"company_name", "company_name"},
+			{"progress-report", bsonprogressReport},
+		}
+
+		bsonLink := bson.D{
+			{"self", "self"},
+		}
+
+		bsonProgress := bson.D{
+			{"transaction_id", "transaction_id"},
+			{"attachments", "attachments"},
+			{"etag", "etag"},
+			{"kind", "kind"},
+			{"data", bsonInsolvencyResourceDaoData},
+			{"links", bsonLink},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.ProgressReportResourceDao", mtest.FirstBatch, bsonProgress))
+
+		mongoService.db = mt.DB
+		progressReportResource, err := mongoService.GetProgressReportResource("transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, &models.ProgressReportResourceDao{}, progressReportResource)
+	})
+
+	mt.Run("GetProgressReportResource runs with error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mongoService.db = mt.DB
+		progressReportResource, err := mongoService.GetProgressReportResource("transactionID")
+
+		assert.Equal(t, err.Error(), "(Name) Message")
+		assert.Equal(t, &models.ProgressReportResourceDao{}, progressReportResource)
+	})
+
+	mt.Run("GetProgressReportResource - no insolvency case found", func(mt *mtest.T) {
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.FirstBatch))
+		mongoService.db = mt.DB
+		progressReportDao, err := mongoService.GetProgressReportResource("transactionID")
+
+		assert.Equal(t, &models.ProgressReportResourceDao{}, progressReportDao)
+		assert.Nil(t, err)
+	})
+
+	mt.Run("GetProgressReportResource - insolvency case contains no progress report", func(mt *mtest.T) {
+
+		bsonInsolvencyResourceDaoData := bson.D{
+			{Key: "company_number", Value: "company_number"},
+			{Key: "case_type", Value: "case_type"},
+			{Key: "company_name", Value: "company_name"},
+		}
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{Key: "_id", Value: expectedInsolvency.ID},
+			{Key: "transaction_id", Value: expectedInsolvency.TransactionID},
+			{Key: "etag", Value: expectedInsolvency.Etag},
+			{Key: "kind", Value: expectedInsolvency.Kind},
+			{Key: "links", Value: expectedInsolvency.Links},
+			{Key: "data", Value: bsonInsolvencyResourceDaoData},
+		}))
+
+		mongoService.db = mt.DB
+		progressReportDao, err := mongoService.GetProgressReportResource("transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, &models.ProgressReportResourceDao{}, progressReportDao)
+	})
+
+}
+
+func TestUnitDeleteProgressReportResourceDriver(t *testing.T) {
+	t.Parallel()
+
+	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
+
+	bsonData := bson.M{
+		"id":               "ID",
+		"ip_code":          "IPCode",
+		"first_name":       "FirstName",
+		"last_name":        "LastName",
+		"telephone_number": "TelephoneNumber",
+		"email":            "Email",
+	}
+
+	bsonArrays := bson.A{}
+	bsonArrays = append(bsonArrays, bsonData)
+	bsonInsolvency := bson.D{
+		{"company_number", "CompanyNumber"},
+		{"case_type", "CaseType"},
+		{"company_name", "CompanyName"},
+		{"practitioners", bsonArrays},
+	}
+
+	mt := mtest.New(t, opts)
+	defer mt.Close()
+
+	mt.Run("DeleteProgressReportResource runs with error", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mongoService.db = mt.DB
+
+		_, err := mongoService.DeleteProgressReportResource("transactionID")
+
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id transactionID")
+	})
+
+	mt.Run("DeleteProgressReportResource runs with error on UpdateOne", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Etag},
+			{"kind", expectedInsolvency.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeleteProgressReportResource("transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID] - could not delete progress report")
+		assert.Equal(t, code, 500)
+
+	})
+
+	mt.Run("DeleteProgressReportResource runs with zero ModifiedCount", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Etag},
+			{"kind", expectedInsolvency.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse(
+			bson.E{Key: "n", Value: 1},
+			bson.E{Key: "nModified", Value: 0},
+			bson.E{Key: "upserted", Value: rsSlice},
+		))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeleteProgressReportResource("transactionID")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, err.Error(), "there was a problem handling your request for transaction id [transactionID] - progress report not found")
+		assert.Equal(t, code, 404)
+
+	})
+
+	mt.Run("DeleteProgressReportResource runs successfully", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", expectedInsolvency.ID},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Etag},
+			{"kind", expectedInsolvency.Kind},
+			{"data", bsonInsolvency},
+		}))
+
+		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
+
+		mt.AddMockResponses(mtest.CreateSuccessResponse(
+			bson.E{Key: "n", Value: 1},
+			bson.E{Key: "nModified", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
+		))
+
+		mongoService.db = mt.DB
+		code, err := mongoService.DeleteProgressReportResource("transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, code, 204)
+
+	})
+}
+
 func TestUnitGetResolutionResourceDriver(t *testing.T) {
 	t.Parallel()
 
@@ -1734,6 +1928,15 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 		{"statement-of-affairs", bsonStatementOfAffairsResourceDao},
 	}
 
+	bsonInsolvencyNoResolution := bson.D{
+		{Key: "company_number", Value: "CompanyNumber"},
+		{Key: "case_type", Value: "CaseType"},
+		{Key: "company_name", Value: "CompanyName"},
+		{Key: "practitioners", Value: bsonArrays},
+		{Key: "attachments", Value: bsonAttachmentArrays},
+		{Key: "statement-of-affairs", Value: bsonStatementOfAffairsResourceDao},
+	}
+
 	mt.Run("GetResolutionResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
 
@@ -1742,6 +1945,44 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 
 		assert.NotNil(t, code)
 		assert.Equal(t, err.Error(), "(Name) Message")
+	})
+
+	mt.Run("GetResolutionResource - no insolvency case found", func(mt *mtest.T) {
+
+		mt.AddMockResponses(mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.FirstBatch))
+		mongoService.db = mt.DB
+		resolutionDao, err := mongoService.GetResolutionResource("transactionID")
+
+		assert.Equal(t, models.ResolutionResourceDao{}, resolutionDao)
+		assert.Nil(t, err)
+	})
+
+	mt.Run("GetResolutionResource - returned result can't be decoded", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{Key: "transaction_id", Value: bsonArrays},
+		}))
+
+		mongoService.db = mt.DB
+		resolutionDao, err := mongoService.GetResolutionResource("transactionID")
+
+		assert.Equal(t, "error decoding key transaction_id: cannot decode array into a string type", err.Error())
+		assert.Equal(t, models.ResolutionResourceDao{}, resolutionDao)
+	})
+
+	mt.Run("GetResolutionResource - insolvency case contains no resolution", func(mt *mtest.T) {
+		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{Key: "_id", Value: expectedInsolvency.ID},
+			{Key: "transaction_id", Value: expectedInsolvency.TransactionID},
+			{Key: "etag", Value: expectedInsolvency.Etag},
+			{Key: "kind", Value: expectedInsolvency.Kind},
+			{Key: "data", Value: bsonInsolvencyNoResolution},
+		}))
+
+		mongoService.db = mt.DB
+		resolutionDao, err := mongoService.GetResolutionResource("transactionID")
+
+		assert.Nil(t, err)
+		assert.Equal(t, models.ResolutionResourceDao{}, resolutionDao)
 	})
 
 	mt.Run("GetResolutionResource runs successfully with findone", func(mt *mtest.T) {
@@ -1753,19 +1994,11 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 			{"data", bsonInsolvency},
 		}))
 
-		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
-
-		mt.AddMockResponses(mtest.CreateSuccessResponse(
-			bson.E{Key: "n", Value: 1},
-			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: rsSlice},
-		))
-
 		mongoService.db = mt.DB
 		resolutionDao, err := mongoService.GetResolutionResource("transactionID")
 
 		assert.Nil(t, err)
-		assert.NotNil(t, resolutionDao)
+		assert.NotNil(t, resolutionDao.DateOfResolution)
 	})
 }
 

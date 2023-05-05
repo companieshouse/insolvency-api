@@ -117,7 +117,7 @@ func HandleGetResolution(svc dao.Service) http.Handler {
 			return
 		}
 		if resolution.DateOfResolution == "" {
-			m := models.NewMessageResponse("resolution not found on transaction")
+			m := models.NewMessageResponse(fmt.Sprintf("resolution not found on transaction with ID: [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
 			return
 		}

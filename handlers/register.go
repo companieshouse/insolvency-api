@@ -7,11 +7,22 @@ import (
 	"github.com/companieshouse/chs.go/authentication"
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/config"
-	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/interceptors"
 	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/gorilla/mux"
+)
+
+const (
+	digitsAndDashRegex     = "[0-9-]+"
+	insolvencyPath         = "/{transaction_id:" + digitsAndDashRegex + "}/insolvency"
+	uuidCharsRegex         = "[a-f0-9-]+"
+	attachmentsPath        = insolvencyPath + "/attachments"
+	specificAttachmentPath = attachmentsPath + "/{attachment_id:" + uuidCharsRegex + "}"
+	appointmentPath        = insolvencyPath + "/practitioners/{practitioner_id}/appointment"
+	resolutionPath         = insolvencyPath + "/resolution"
+	statementOfAffairsPath = insolvencyPath + "/statement-of-affairs"
+	progressReportPath     = insolvencyPath + "/progress-report"
 )
 
 // Register defines the endpoints for the API
@@ -34,31 +45,35 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	publicAppRouter.Use(userAuthInterceptor.UserAuthenticationIntercept, interceptors.EmailAuthIntercept, interceptors.InsolvencyPermissionsIntercept)
 
 	// Declare endpoint URIs
-	publicAppRouter.Handle("/{transaction_id}/insolvency", HandleCreateInsolvencyResource(svc, helperService)).Methods(http.MethodPost).Name("createInsolvencyResource")
+	publicAppRouter.Handle(insolvencyPath, HandleCreateInsolvencyResource(svc, helperService)).Methods(http.MethodPost).Name("createInsolvencyResource")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/validation-status", HandleGetValidationStatus(svc)).Methods(http.MethodGet).Name("getValidationStatus")
+	publicAppRouter.Handle(insolvencyPath+"/validation-status", HandleGetValidationStatus(svc)).Methods(http.MethodGet).Name("getValidationStatus")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleCreatePractitionersResource(svc, helperService)).Methods(http.MethodPost).Name("createPractitionersResource")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleDeletePractitioner(svc)).Methods(http.MethodDelete).Name("deletePractitioner")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}", HandleGetPractitionerResource(svc)).Methods(http.MethodGet).Name("getPractitionerResource")
+	publicAppRouter.Handle(insolvencyPath+"/practitioners", HandleCreatePractitionersResource(svc, helperService)).Methods(http.MethodPost).Name("createPractitionersResource")
+	publicAppRouter.Handle(insolvencyPath+"/practitioners", HandleGetPractitionerResources(svc)).Methods(http.MethodGet).Name("getPractitionerResources")
+	publicAppRouter.Handle(insolvencyPath+"/practitioners/{practitioner_id}", HandleDeletePractitioner(svc)).Methods(http.MethodDelete).Name("deletePractitioner")
+	publicAppRouter.Handle(insolvencyPath+"/practitioners/{practitioner_id}", HandleGetPractitionerResource(svc)).Methods(http.MethodGet).Name("getPractitionerResource")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleAppointPractitioner(svc, helperService)).Methods(http.MethodPost).Name("appointPractitioner")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleGetPractitionerAppointment(svc)).Methods(http.MethodGet).Name("getPractitionerAppointment")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/practitioners/{practitioner_id}/appointment", HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
+	publicAppRouter.Handle(appointmentPath, HandleAppointPractitioner(svc, helperService)).Methods(http.MethodPost).Name("appointPractitioner")
+	publicAppRouter.Handle(appointmentPath, HandleGetPractitionerAppointment(svc)).Methods(http.MethodGet).Name("getPractitionerAppointment")
+	publicAppRouter.Handle(appointmentPath, HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments", HandleSubmitAttachment(svc, helperService)).Methods(http.MethodPost).Name("submitAttachment")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleGetAttachmentDetails(svc, helperService)).Methods(http.MethodGet).Name("getAttachmentDetails")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/attachments/{attachment_id}", HandleDeleteAttachment(svc)).Methods(http.MethodDelete).Name("deleteAttachment")
+	publicAppRouter.Handle(attachmentsPath, HandleSubmitAttachment(svc, helperService)).Methods(http.MethodPost).Name("submitAttachment")
+	publicAppRouter.Handle(specificAttachmentPath, HandleGetAttachmentDetails(svc, helperService)).Methods(http.MethodGet).Name("getAttachmentDetails")
+	publicAppRouter.Handle(specificAttachmentPath+"/download", HandleDownloadAttachment(svc)).Methods(http.MethodGet).Name("downloadAttachment")
+	publicAppRouter.Handle(specificAttachmentPath, HandleDeleteAttachment(svc)).Methods(http.MethodDelete).Name("deleteAttachment")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleCreateResolution(svc, helperService)).Methods(http.MethodPost).Name("createResolution")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/resolution", HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
+	publicAppRouter.Handle(resolutionPath, HandleCreateResolution(svc, helperService)).Methods(http.MethodPost).Name("createResolution")
+	publicAppRouter.Handle(resolutionPath, HandleGetResolution(svc)).Methods(http.MethodGet).Name("getResolution")
+	publicAppRouter.Handle(resolutionPath, HandleDeleteResolution(svc)).Methods(http.MethodDelete).Name("deleteResolution")
 
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleCreateStatementOfAffairs(svc, helperService)).Methods(http.MethodPost).Name("createStatementOfAffairs")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
-	publicAppRouter.Handle("/{transaction_id}/insolvency/statement-of-affairs", HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
+	publicAppRouter.Handle(statementOfAffairsPath, HandleCreateStatementOfAffairs(svc, helperService)).Methods(http.MethodPost).Name("createStatementOfAffairs")
+	publicAppRouter.Handle(statementOfAffairsPath, HandleGetStatementOfAffairs(svc)).Methods(http.MethodGet).Name("getStatementOfAffairs")
+	publicAppRouter.Handle(statementOfAffairsPath, HandleDeleteStatementOfAffairs(svc)).Methods(http.MethodDelete).Name("deleteStatementOfAffairs")
+
+	publicAppRouter.Handle(progressReportPath, HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
+	publicAppRouter.Handle(progressReportPath, HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
+	publicAppRouter.Handle(progressReportPath, HandleDeleteProgressReport(svc, helperService)).Methods(http.MethodDelete).Name("deleteProgressReport")
 
 	// Get environment config - only required whilst feature flag in use to disable
 	// non-live form handling routes unless set to true
@@ -68,8 +83,8 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	if err != nil {
 		log.Info("Failed to get config for EnableNonLiveRouteHandlers")
 	} else if cfg.EnableNonLiveRouteHandlers {
-		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleCreateProgressReport(svc, helperService)).Methods(http.MethodPost).Name("createProgressReport")
-		publicAppRouter.Handle("/{transaction_id}/insolvency/progress-report", HandleGetProgressReport(svc)).Methods(http.MethodGet).Name("getProgressReport")
+		log.Info("Non-live endpoints enabled")
+		// Register any in-development endpoints here
 	} else {
 		log.Info("Non-live endpoints blocked")
 	}
@@ -78,9 +93,10 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 	privateAppRouter := mainRouter.PathPrefix("/private").Subrouter()
 	privateAppRouter.Use(privateUserAuthInterceptor.UserAuthenticationIntercept)
 
-	privateAppRouter.Handle(constants.TransactionsPath+"{transaction_id}/insolvency/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
+	privateAppRouter.Handle("/transactions"+insolvencyPath+"/filings", HandleGetFilings(svc)).Methods(http.MethodGet).Name("getFilings")
 
 	mainRouter.Use(log.Handler)
+	mainRouter.Use(RecoveryHandler)
 }
 
 func healthCheck(w http.ResponseWriter, _ *http.Request) {

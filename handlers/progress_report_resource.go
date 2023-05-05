@@ -120,3 +120,29 @@ func HandleGetProgressReport(svc dao.Service) http.Handler {
 		utils.WriteJSONWithStatus(w, req, transformers.ProgressReportDaoToResponse(progressReport), http.StatusOK)
 	})
 }
+
+// HandleDeleteProgressReport deletes a progress report resource from an insolvency case
+func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperService) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "progress report", service.CheckIfTransactionClosed)
+		if !isValidTransaction {
+			return
+		}
+
+		// Delete progress report from DB
+		statusCode, err := svc.DeleteProgressReportResource(transactionID)
+		if err != nil {
+			log.ErrorR(req, err)
+			m := models.NewMessageResponse(err.Error())
+			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			return
+		}
+
+		log.InfoR(req, fmt.Sprintf("successfully deleted progress report from insolvency case with transaction ID: %s", transactionID))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(statusCode)
+	})
+}
+

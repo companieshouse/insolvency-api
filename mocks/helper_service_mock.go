@@ -1,10 +1,11 @@
 package mocks
 
 import (
-	"github.com/jarcoal/httpmock"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/jarcoal/httpmock"
 
 	reflect "reflect"
 
@@ -144,6 +145,19 @@ func (m *MockHelperService) HandleCreateResourceValidation(w http.ResponseWriter
 	ret := m.ctrl.Call(m, "HandleCreateResourceValidation", w, req, err, httpStatus)
 	ret0, _ := ret[0].(bool)
 	return ret0
+}
+
+// HandleCreateResourceValidation indicates an expected call of HandleCreateResourceValidation
+func (mr *MockHelperServiceMockRecorder) HandleDeleteResourceValidation(w, req, resourceType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HandleDeleteResourceValidation", reflect.TypeOf((*MockHelperService)(nil).HandleDeleteResourceValidation), w, req, resourceType)
+}
+
+// HandleCreateResourceValidation mocks base method
+func (m *MockHelperService) HandleDeleteResourceValidation(w http.ResponseWriter, req *http.Request, resourceType string) (bool, string) {
+	ret := m.ctrl.Call(m, "HandleCreateResourceValidation", w, req, resourceType)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(string)
+	return ret0, ret1
 }
 
 func CreateTestObjects(t *testing.T) (*MockService, *MockHelperService, *httptest.ResponseRecorder) {
