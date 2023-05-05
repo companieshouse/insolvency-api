@@ -16,6 +16,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/integration/mtest"
 )
 
+var (
+	rsSlice = make([]mongo.UpdateResult, 1)
+)
+
 func setDriverUp() (MongoService, mtest.CommandError, models.InsolvencyResourceDao, *mtest.Options, []models.PractitionerResourceDao) {
 	client = &mongo.Client{}
 	cfg, _ := config.Get()
@@ -150,7 +154,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -183,7 +187,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -228,7 +232,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -1346,9 +1350,9 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 		setupMockResponseForCheckIDsMatch(mt, "transactionID", "practitionerID")
 
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
-			bson.E{Key: "n", Value: 1},
+			bson.E{Key: "n", Value: 2},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
@@ -1381,9 +1385,9 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 
 	mt.Run("AddAttachmentToInsolvencyResource runs successfully with findone", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
-			bson.E{Key: "n", Value: 1},
+			bson.E{Key: "n", Value: 2},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
@@ -1411,7 +1415,7 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 0},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
@@ -1620,7 +1624,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -1684,7 +1688,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -1809,7 +1813,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2059,7 +2063,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2085,7 +2089,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2129,7 +2133,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2336,7 +2340,7 @@ func TestUnitDeleteProgressReportResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2362,7 +2366,7 @@ func TestUnitDeleteProgressReportResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2574,7 +2578,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 0},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
@@ -2600,7 +2604,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
 			bson.E{Key: "n", Value: 1},
 			bson.E{Key: "nModified", Value: 1},
-			bson.E{Key: "upserted", Value: 1},
+			bson.E{Key: "upserted", Value: rsSlice},
 		))
 
 		mongoService.db = mt.DB
