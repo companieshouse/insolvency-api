@@ -73,6 +73,7 @@ func getPractitionersWithAppointments(practitionerIDs []string, collection *mong
 		err := practitionerCursor.Decode(&practitionerResourceDao)
 		if err != nil {
 			errMsg := fmt.Errorf("error decoding models")
+			practitionerCursor.Close(context.Background())
 			return nil, errMsg
 		}
 

@@ -439,6 +439,38 @@ func TestUnitGetInsolvencyAndExpandedPractitionerResourcesDriver(t *testing.T) {
 		assert.Nil(mt, practitionerResources)
 	})
 
+	mt.Run("GetInsolvencyAndExpandedPractitionerResources runs with error decoding practitioner details", func(mt *mtest.T) {
+		id1 := primitive.NewObjectID()
+		id2 := primitive.NewObjectID()
+
+		first := mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", id1},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", expectedInsolvency.Data},
+		})
+
+		second := mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
+			{"_id", id2},
+			{"transaction_id", expectedInsolvency.TransactionID},
+			{"etag", expectedInsolvency.Data.Etag},
+			{"kind", expectedInsolvency.Data.Kind},
+			{"data", "stringNotStructured"},
+		})
+
+		killCursors := mtest.CreateCursorResponse(0, "models.InsolvencyResourceDao", mtest.NextBatch)
+		mt.AddMockResponses(first, second, killCursors)
+
+		mongoService.db = mt.DB
+		insolvencyResource, practitionerResources, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
+
+		assert.NotNil(mt, err)
+		assert.Equal(mt, "there was a problem getting insolvency and practitioners' details for transaction [error decoding models]", err.Error())
+		assert.Nil(mt, insolvencyResource)
+		assert.Nil(mt, practitionerResources)
+	})
+
 	mt.Run("GetInsolvencyAndExpandedPractitionerResources runs successfully", func(mt *mtest.T) {
 		id1 := primitive.NewObjectID()
 		id2 := primitive.NewObjectID()
