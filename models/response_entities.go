@@ -17,7 +17,8 @@ type CreatedInsolvencyResourceLinks struct {
 	ValidationStatus string `json:"validation_status"`
 }
 
-// CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource
+// CreatedPractitionerResource is the entity returned in a successful creation of an practitioner resource.
+// Etag & Kind are marked omitempty so that they are not included in generated filings
 type CreatedPractitionerResource struct {
 	PractitionerId  string                 `json:"practitioner_id"`
 	IPCode          string                 `json:"ip_code"`
@@ -27,8 +28,8 @@ type CreatedPractitionerResource struct {
 	TelephoneNumber string                 `json:"telephone_number"`
 	Address         CreatedAddressResource `json:"address"`
 	Role            string                 `json:"role"`
-	Etag            string                 `json:"etag"`
-	Kind            string                 `json:"kind"`
+	Etag            string                 `json:"etag,omitempty"`
+	Kind            string                 `json:"kind,omitempty"`
 	Links           struct {
 		Self        string `json:"self,omitempty"`
 		Appointment string `json:"appointment,omitempty"`
@@ -48,13 +49,14 @@ type CreatedAddressResource struct {
 	POBox        string `json:"po_box"`
 }
 
-// AppointedPractitionerResource contains the details of an appointed practitioner
+// AppointedPractitionerResource contains the details of an appointed practitioner.
+// Etag & Kind are marked omitempty so that they are not included in generated filings
 type AppointedPractitionerResource struct {
 	AppointedOn string                             `json:"appointed_on"`
 	MadeBy      string                             `json:"made_by"`
 	Links       AppointedPractitionerLinksResource `json:"links"`
-	Etag        string                             `json:"etag"`
-	Kind        string                             `json:"kind"`
+	Etag        string                             `json:"etag,omitempty"`
+	Kind        string                             `json:"kind,omitempty"`
 }
 
 // AppointedPractitionerLinksResource contains the links details for a practitioner appointment
@@ -84,6 +86,14 @@ type AttachmentFile struct {
 type AttachmentLinksResource struct {
 	Self     string `json:"self"`
 	Download string `json:"download"`
+}
+
+// AttachmentFilingsResource contains the details of an attachment for use in filings
+type AttachmentFilingsResource struct {
+	ID     string                  `json:"id"`
+	Type   string                  `json:"type"`
+	Status string                  `json:"status"`
+	Links  AttachmentLinksResource `json:"links"`
 }
 
 // ResolutionResource contains the details of the resolution resource

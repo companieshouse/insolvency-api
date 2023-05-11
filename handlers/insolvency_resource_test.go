@@ -743,7 +743,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
 		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
 		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LRESEX"`)
-		So(res.Body.String(), ShouldContainSubstring, `"Type":"resolution"`)
+		So(res.Body.String(), ShouldContainSubstring, `"type":"resolution"`)
 		So(res.Body.String(), ShouldNotContainSubstring, "practitioners")
 	})
 
@@ -779,6 +779,6 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
 		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
 		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LIQ02"`)
-		So(res.Body.String(), ShouldContainSubstring, `"Type":"statement-of-affairs-director"`)
+		So(res.Body.String(), ShouldContainSubstring, `"type":"statement-of-affairs-director"`)
 	})
 }
