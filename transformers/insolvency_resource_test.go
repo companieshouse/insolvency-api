@@ -6,6 +6,7 @@ import (
 
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -96,10 +97,11 @@ func TestUnitPractitionerResourceDaosToPractitionerFilingsResponse(t *testing.T)
 		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
 		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
 		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
-		So(responses[0].Etag, ShouldEqual, daoList[0].Data.Etag)
-		So(responses[0].Kind, ShouldEqual, daoList[0].Data.Kind)
+		So(responses[0].Etag, ShouldEqual, "")
+		So(responses[0].Kind, ShouldEqual, "")
 		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
 		So(responses[0].Links.Appointment, ShouldEqual, "")
+		So(responses[0].Appointment, ShouldBeNil)
 	})
 
 	Convey("field mappings are correct - with appointment", t, func() {
@@ -136,13 +138,61 @@ func TestUnitPractitionerResourceDaosToPractitionerFilingsResponse(t *testing.T)
 		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
 		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
 		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
-		So(responses[0].Etag, ShouldEqual, daoList[0].Data.Etag)
-		So(responses[0].Kind, ShouldEqual, daoList[0].Data.Kind)
+		So(responses[0].Etag, ShouldEqual, "")
+		So(responses[0].Kind, ShouldEqual, "")
 		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
-		So(responses[0].Links.Appointment, ShouldEqual, daoList[0].Data.Links.Appointment)
+		So(responses[0].Links.Appointment, ShouldEqual, "")
 		So(responses[0].Appointment.AppointedOn, ShouldEqual, appointmentResourceDao.Data.AppointedOn)
 		So(responses[0].Appointment.MadeBy, ShouldEqual, appointmentResourceDao.Data.MadeBy)
 		So(responses[0].Appointment.Links.Self, ShouldEqual, appointmentResourceDao.Data.Links.Self)
 
+	})
+}
+
+func TestUnitAttachmentResourceDaoToResponse(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+
+		dao := &models.AttachmentResourceDao{}
+		dao.ID = "attachmentID"
+		dao.Type = "attachmentType"
+		dao.Status = "attachmentStatus"
+		dao.Links = models.AttachmentResourceLinksDao{
+			Self:     "attachment/self/Link",
+			Download: "attachment/download/link",
+		}
+
+		response, err := AttachmentResourceDaoToResponse(dao, "fileName", 1234, "pdf", utils.NewHelperService())
+
+		So(err, ShouldBeNil)
+		So(response.Etag, ShouldNotEqual, "")
+		So(response.File.ContentType, ShouldEqual, "pdf")
+		So(response.File.Name, ShouldEqual, "fileName")
+		So(response.File.Size, ShouldEqual, 1234)
+		So(response.File.AVStatus, ShouldEqual, "")
+		So(response.Status, ShouldEqual, dao.Status)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+		So(response.Links.Download, ShouldEqual, dao.Links.Download)
+	})
+}
+
+func TestUnitAttachmentResourceDaoToFilingsResponse(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+
+		dao := &models.AttachmentResourceDao{}
+		dao.ID = "attachmentID"
+		dao.Type = "attachmentType"
+		dao.Status = "attachmentStatus"
+		dao.Links = models.AttachmentResourceLinksDao{
+			Self:     "attachment/self/Link",
+			Download: "attachment/download/link",
+		}
+
+		response := AttachmentResourceDaoToFilingsResponse(dao)
+
+		So(response.ID, ShouldEqual, dao.ID)
+		So(response.Type, ShouldEqual, dao.Type)
+		So(response.Status, ShouldEqual, dao.Status)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+		So(response.Links.Download, ShouldEqual, dao.Links.Download)
 	})
 }

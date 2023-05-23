@@ -315,17 +315,18 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 	}
 
 	// Map attachments to filing types
-	var attachmentsLRESEX, attachmentsLIQ02, attachmentsLIQ03 []*models.AttachmentResourceDao
+	var attachmentsLRESEX, attachmentsLIQ02, attachmentsLIQ03 []*models.AttachmentFilingsResource
 
 	// using range index to allow passing reference not value
 	for i := range insolvencyResource.Data.Attachments {
+		attachmentFilingData := transformers.AttachmentResourceDaoToFilingsResponse(&insolvencyResource.Data.Attachments[i])
 		switch insolvencyResource.Data.Attachments[i].Type {
 		case "resolution":
-			attachmentsLRESEX = append(attachmentsLRESEX, &insolvencyResource.Data.Attachments[i])
+			attachmentsLRESEX = append(attachmentsLRESEX, attachmentFilingData)
 		case "statement-of-affairs-director", "statement-of-affairs-liquidator", "statement-of-concurrence":
-			attachmentsLIQ02 = append(attachmentsLIQ02, &insolvencyResource.Data.Attachments[i])
+			attachmentsLIQ02 = append(attachmentsLIQ02, attachmentFilingData)
 		case "progress-report":
-			attachmentsLIQ03 = append(attachmentsLIQ03, &insolvencyResource.Data.Attachments[i])
+			attachmentsLIQ03 = append(attachmentsLIQ03, attachmentFilingData)
 		}
 	}
 	if len(attachmentsLRESEX) > 0 {
@@ -344,7 +345,7 @@ func GenerateFilings(svc dao.Service, transactionID string) ([]models.Filing, er
 }
 
 // generateNewFiling generates a new filing for a specified filing type using data extracted from the InsolvencyResourceDao & a supplied slice of attachments
-func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, practitionerResources *[]models.CreatedPractitionerResource, attachments []*models.AttachmentResourceDao, filingType string) *models.Filing {
+func generateNewFiling(insolvencyResource *models.InsolvencyResourceDao, practitionerResources *[]models.CreatedPractitionerResource, attachments []*models.AttachmentFilingsResource, filingType string) *models.Filing {
 
 	dataBlock := map[string]interface{}{
 		"company_number": &insolvencyResource.Data.CompanyNumber,

@@ -83,16 +83,14 @@ func PractitionerResourceDaosToPractitionerFilingsResponse(practitionerResourceD
 			POBox:        practitioner.Data.Address.POBox,
 		}
 		practitionerResponse.Role = practitioner.Data.Role
-		practitionerResponse.Etag = practitioner.Data.Etag
-		practitionerResponse.Kind = practitioner.Data.Kind
 
 		if practitioner.Data.Appointment != nil {
 			appointedPractitionerResource = PractitionerAppointmentDaoToResponse(practitioner.Data.Appointment)
+			appointedPractitionerResource.Etag = ""
+			appointedPractitionerResource.Kind = ""
 
 			practitionerResponse.Appointment = &appointedPractitionerResource
 		}
-
-		practitionerResponse.Links.Appointment = practitionerResourceLinksDao.Appointment
 
 		practitionerResponse.Links.Self = practitionerResourceLinksDao.Self
 
@@ -128,4 +126,20 @@ func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name str
 	}
 
 	return attachmentResource, nil
+}
+
+// AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity
+func AttachmentResourceDaoToFilingsResponse(dao *models.AttachmentResourceDao) *models.AttachmentFilingsResource {
+
+	attachmentResource := &models.AttachmentFilingsResource{
+		ID:     dao.ID,
+		Type:   dao.Type,
+		Status: dao.Status,
+		Links: models.AttachmentLinksResource{
+			Self:     dao.Links.Self,
+			Download: dao.Links.Download,
+		},
+	}
+
+	return attachmentResource
 }
