@@ -2,7 +2,7 @@ CHS_ENV_HOME ?= $(HOME)/.chs_env
 TESTS        ?= ./...
 
 bin          := insolvency-api
-chs_envs     := $(CHS_ENV_HOME)/global_env $(CHS_ENV_HOME)/insolvency-api/env
+chs_envs     := $(CHS_ENV_HOME)/global_env $(CHS_ENV_HOME)/$(bin)/env
 source_env   := for chs_env in $(chs_envs); do test -f $$chs_env && . $$chs_env; done
 xunit_output := test.xml
 lint_output  := lint.txt
@@ -41,7 +41,10 @@ clean:
 
 .PHONY: package
 package:
-	$(info Packaging version: 0.0.1)
+ifndef version
+	$(error No version given. Aborting)
+endif
+	$(info Packaging version: $(version))
 	$(eval tmpdir := $(shell mktemp -d build-XXXXXXXXXX))
 	cp ./$(bin) $(tmpdir)
 	cp ./routes.yaml $(tmpdir)
