@@ -6,12 +6,15 @@ import (
 	"strings"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidateStatementDetails checks that the incoming statement details are valid
+// ValidateStatementDetails checks that the incoming statement details are valid.
+// Returns an error based on constants.MsgCaseNotFound if insolvency case is not
+// found for transactionID
 func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfAffairsResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
@@ -36,6 +39,10 @@ func ValidateStatementDetails(svc dao.Service, statementDao *models.StatementOfA
 		log.ErrorR(req, err)
 		return "", err
 	}
+	if insolvencyResource == nil {
+		return "", fmt.Errorf(constants.MsgCaseNotFound)
+	}
+
 	// Retrieve company incorporation date
 	incorporatedOn, err := GetCompanyIncorporatedOn(insolvencyResource.Data.CompanyNumber, req)
 	if err != nil {

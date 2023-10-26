@@ -56,7 +56,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 
 	publicAppRouter.Handle(appointmentPath, HandleAppointPractitioner(svc, helperService)).Methods(http.MethodPost).Name("appointPractitioner")
 	publicAppRouter.Handle(appointmentPath, HandleGetPractitionerAppointment(svc)).Methods(http.MethodGet).Name("getPractitionerAppointment")
-	publicAppRouter.Handle(appointmentPath, HandleDeletePractitionerAppointment(svc)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
+	publicAppRouter.Handle(appointmentPath, HandleDeletePractitionerAppointment(svc, helperService)).Methods(http.MethodDelete).Name("deletePractitionerAppointment")
 
 	publicAppRouter.Handle(attachmentsPath, HandleSubmitAttachment(svc, helperService)).Methods(http.MethodPost).Name("submitAttachment")
 	publicAppRouter.Handle(specificAttachmentPath, HandleGetAttachmentDetails(svc, helperService)).Methods(http.MethodGet).Name("getAttachmentDetails")
