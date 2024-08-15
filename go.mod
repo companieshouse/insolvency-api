@@ -3,7 +3,7 @@ module github.com/companieshouse/insolvency-api
 go 1.19
 
 require (
-	github.com/companieshouse/api-sdk-go v0.1.53
+	github.com/companieshouse/api-sdk-go v0.1.61
 	github.com/companieshouse/chs.go v1.2.10
 	github.com/companieshouse/go-sdk-manager v0.1.16
 	github.com/companieshouse/go-session-handler v0.1.5
@@ -46,7 +46,7 @@ require (
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
