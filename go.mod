@@ -3,7 +3,7 @@ module github.com/companieshouse/insolvency-api
 go 1.19
 
 require (
-	github.com/companieshouse/api-sdk-go v0.1.53
+	github.com/companieshouse/api-sdk-go v0.1.59
 	github.com/companieshouse/chs.go v1.2.10
 	github.com/companieshouse/go-sdk-manager v0.1.16
 	github.com/companieshouse/go-session-handler v0.1.5
@@ -42,12 +42,12 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	golang.org/x/crypto v0.6.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/crypto v0.24.0 // indirect
+	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/oauth2 v0.5.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/sync v0.7.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/redis.v5 v5.2.9 // indirect
