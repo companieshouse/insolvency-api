@@ -39,9 +39,21 @@ func TestUnitCreateInsolvencyResource(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.CreateInsolvencyResource(&expectedInsolvency)
+		_, err := mongoService.CreateInsolvencyResource(&expectedInsolvency)
 
 		So(err.Error(), ShouldEqual, "there was a problem creating an insolvency case for this transaction id: the Find operation must have a Deployment set before Execute can be called")
+	})
+}
+
+func TestUnitGetInsolvencyAndExpandedPractitionerResources(t *testing.T) {
+
+	Convey("Get Insolvency Resource", t, func() {
+
+		mongoService := setUp(t)
+
+		_, _, err := mongoService.GetInsolvencyAndExpandedPractitionerResources("transactionID")
+
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 
@@ -53,45 +65,45 @@ func TestUnitGetInsolvencyResource(t *testing.T) {
 
 		_, err := mongoService.GetInsolvencyResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction [transactionID]")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID")
 	})
 }
 
-func TestUnitCreatePractitionersResource(t *testing.T) {
+func TestUnitCreatePractitionerResource(t *testing.T) {
 
-	Convey("Create practitioners resource", t, func() {
+	Convey("Create a practitioner resource", t, func() {
 
 		mongoService := setUp(t)
 
 		practitionerResource := models.PractitionerResourceDao{}
 
-		err, _ := mongoService.CreatePractitionersResource(&practitionerResource, "transactionID")
+		_, err := mongoService.CreatePractitionerResource(&practitionerResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction transactionID (insert practitioner to collection)")
 	})
 }
 
-func TestUnitGetPractitionerResources(t *testing.T) {
+func TestUnitGetPractitionerAppointmentResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerResources("transactionID")
+		_, err := mongoService.GetPractitionerAppointment("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
-func TestUnitGetPractitionerResource(t *testing.T) {
+func TestUnitGetSinglePractitionerResource(t *testing.T) {
 
 	Convey("Get practitioner resources", t, func() {
 
 		mongoService := setUp(t)
 
-		_, err := mongoService.GetPractitionerResource("practitionerID", "transactionID")
+		_, err := mongoService.GetSinglePractitionerResource("transactionID", "practitionerID")
 
-		So(err.Error(), ShouldEqual, "the Find operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -101,23 +113,9 @@ func TestUnitDeletePractitioner(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.DeletePractitioner("practitionerID", "transactionID")
+		_, err := mongoService.DeletePractitioner("transactionID", "practitionerID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
-	})
-}
-
-func TestUnitAppointPractitioner(t *testing.T) {
-
-	Convey("Appoint practitioner", t, func() {
-
-		mongoService := setUp(t)
-
-		appointmentResource := models.AppointmentResourceDao{}
-
-		err, _ := mongoService.AppointPractitioner(&appointmentResource, "transactionID", "practitionerID")
-
-		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
 	})
 }
 
@@ -127,9 +125,9 @@ func TestUnitDeletePractitionerAppointment(t *testing.T) {
 
 		mongoService := setUp(t)
 
-		err, _ := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID")
+		_, err := mongoService.DeletePractitionerAppointment("transactionID", "practitionerID", "newEtag")
 
-		So(err.Error(), ShouldEqual, "could not update practitioner appointment for practitionerID practitionerID: the Update operation must have a Deployment set before Execute can be called")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -177,7 +175,7 @@ func TestUnitDeleteAttachmentResource(t *testing.T) {
 
 		_, err := mongoService.DeleteAttachmentResource("transactionID", "attachmentID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -189,7 +187,7 @@ func TestUnitUpdateAttachmentStatus(t *testing.T) {
 
 		_, err := mongoService.UpdateAttachmentStatus("transactionID", "attachmentID", "avStatus")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -203,7 +201,7 @@ func TestUnitCreateResolutionResource(t *testing.T) {
 
 		_, err := mongoService.CreateResolutionResource(&resolutionResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -217,7 +215,7 @@ func TestUnitCreateStatementOfAffairsResource(t *testing.T) {
 
 		_, err := mongoService.CreateStatementOfAffairsResource(&statementResource, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -241,7 +239,7 @@ func TestUnitDeleteStatementOfAffairsResource(t *testing.T) {
 
 		_, err := mongoService.DeleteStatementOfAffairsResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -255,7 +253,7 @@ func TestUnitCreateProgressReportResource(t *testing.T) {
 
 		_, err := mongoService.CreateProgressReportResource(&progressReport, "transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -279,8 +277,8 @@ func TestUnitDeleteProgressReportResource(t *testing.T) {
 
 		_, err := MongoService.DeleteProgressReportResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
-		
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
+
 	})
 }
 
@@ -303,7 +301,7 @@ func TestUnitDeleteResolutionResource(t *testing.T) {
 
 		_, err := mongoService.DeleteResolutionResource("transactionID")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }
 
@@ -314,6 +312,6 @@ func TestUnitDeleteResource(t *testing.T) {
 
 		_, err := MongoService.DeleteResource("transactionID", "progress-report")
 
-		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
+		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id [transactionID]")
 	})
 }

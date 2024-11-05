@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/insolvency-api/constants"
@@ -15,10 +16,25 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// HandleCreatePractitionersResource updates the insolvency resource with the
-// incoming list of practitioners
+// HandleCreatePractitionersResource creates a new practitioner resource and
+// updates the insolvency resource with a link to it
 func HandleCreatePractitionersResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
+		var practitionerResourceDao models.PractitionerResourceDao
+
+		practitionerLinksMap := models.InsolvencyResourcePractitionersDao{}
+
+		practitionerID := utils.GenerateID()
+
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("error generating etag: [%s]", err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
 
 		// Check transaction is valid
 		transactionID, isValidTransaction := utils.ValidateTransaction(helperService, req, w, "practitioners", service.CheckIfTransactionClosed)
@@ -28,7 +44,7 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.PractitionerRequest
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
 			return
@@ -41,43 +57,93 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 			return
 		}
 
-		// Validates that the provided practitioner details are in the correct format
-		validationErrs, err := service.ValidatePractitionerDetails(svc, transactionID, request)
+		// Retrieve insolvency resource containing links to previously stored practitioners
+		insolvencyResourceDao, err := svc.GetInsolvencyResource(transactionID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse("failed to validate the practitioner request supplied")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
+		if insolvencyResourceDao == nil {
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "debug", []error{fmt.Errorf(constants.MsgCaseForTransactionNotFound, transactionID)})
+			return
+		}
+
+		// Validates that the provided practitioner details are in the correct format
+		validationErrs, err := service.ValidatePractitionerDetails(insolvencyResourceDao, transactionID, request)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err, fmt.Errorf("failed to validate the practitioner request supplied")})
+			return
+		}
+
 		if validationErrs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
-			m := models.NewMessageResponse("invalid request body: " + validationErrs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs),
+				fmt.Errorf("invalid request body: " + validationErrs)})
 			return
 		}
 
 		// Check if practitioner role supplied is valid
 		if ok := constants.IsInRoleList(request.Role); !ok {
-			log.ErrorR(req, fmt.Errorf("invalid practitioner role"))
-			m := models.NewMessageResponse(fmt.Sprintf("the practitioner role supplied is not valid %s", request.Role))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("invalid practitioner role"), fmt.Errorf("the practitioner role supplied is not valid %s", request.Role)})
 			return
 		}
 
-		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, transactionID)
+		// Create new practitioner data to be stored
+		practitionerLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + string(practitionerID))
 
-		// Store practitioners resource in Mongo
-		err, statusCode := svc.CreatePractitionersResource(practitionerDao, transactionID)
+		practitionerDao := transformers.PractitionerResourceRequestToDB(&request, practitionerID, transactionID)
+		practitionerDao.Data.Etag = etag
+		practitionerDao.Data.Kind = "insolvency#practitioner"
+		practitionerResourceDao = *practitionerDao
+		practitionerResourceDao.Data.PractitionerId = practitionerID
+
+		maxPractitioners := 5
+		//check to ensure it is not nil from the collection
+		if insolvencyResourceDao != nil && insolvencyResourceDao.Data.Practitioners != nil {
+			practitionerLinksMap = *insolvencyResourceDao.Data.Practitioners
+		}
+
+		// Check if there are already 5 practitioners in database
+		if len(practitionerLinksMap) >= maxPractitioners {
+			err = fmt.Errorf("there was a problem handling your request for transaction %s already has 5 practitioners", transactionID)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
+			return
+		}
+		// Check if practitioner is already assigned to this case
+		practitionerResourceDaos, err := svc.GetAllPractitionerResourcesForTransactionID(transactionID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error",
+				[]error{fmt.Errorf("error retrieving practitioner resources for transaction id [%s]: [%s]", transactionID, err),
+					fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)})
+			return
+		}
+		for _, practitionerResourceDao := range practitionerResourceDaos {
+			if err == nil && practitionerDao.Data.IPCode == practitionerResourceDao.Data.IPCode {
+				logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there was a problem handling your request for transaction %s - practitioner with IP Code %s already is already assigned to this case", transactionID, practitionerResourceDao.Data.IPCode)})
+				return
+			}
+		}
+
+		// Create new practitioner for the insolvency
+		statusCode, err := svc.CreatePractitionerResource(&practitionerResourceDao, transactionID)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, statusCode, "error",
+				[]error{fmt.Errorf("error creating practitioner resource for transaction id [%s]: [%s]", transactionID, err),
+					fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)})
+			return
+		}
+
+		// //Update the insolvency practitioner
+		statusCode, err = svc.AddPractitionerToInsolvencyResource(transactionID, practitionerID, practitionerLink)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, statusCode, "error",
+				[]error{fmt.Errorf("error adding practitioner to insolvency resource for transaction id [%s]: [%s]", transactionID, err),
+					fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully added practitioners resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerDao), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitionerResourceDao), http.StatusCreated)
 	})
 }
 
@@ -85,39 +151,30 @@ func HandleCreatePractitionersResource(svc dao.Service, helperService utils.Help
 // the specified transactionID
 func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
 		transactionID := utils.GetTransactionIDFromVars(vars)
 		if transactionID == "" {
-			log.ErrorR(req, fmt.Errorf("there is no transaction id in the url path"))
-			m := models.NewMessageResponse("transaction id is not in the url path")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("there is no transaction id in the url path"), fmt.Errorf("transaction id is not in the url path")})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioners resource with transaction id: %s", transactionID))
 
-		practitionerResources, err := svc.GetPractitionerResources(transactionID)
+		practitionerResourceDaos, err := svc.GetAllPractitionerResourcesForTransactionID(transactionID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
-		if practitionerResources == nil {
-			log.ErrorR(req, fmt.Errorf("insolvency case for transaction %s not found", transactionID))
-			m := models.NewMessageResponse("there was a problem handling your request for insolvency case with transaction ID: " + transactionID + " not found")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+		if len(practitionerResourceDaos) == 0 {
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "error", []error{fmt.Errorf("practitioners for insolvency case with transaction %s not found", transactionID),
+				fmt.Errorf("there was a problem handling your request for insolvency case with transaction: " + transactionID + " there are no practitioners assigned to this case")})
 			return
 		}
-		if len(practitionerResources) == 0 {
-			log.ErrorR(req, fmt.Errorf("practitioners for insolvency case with transaction %s not found", transactionID))
-			m := models.NewMessageResponse("there was a problem handling your request for insolvency case with transaction: " + transactionID + " there are no practitioners assigned to this case")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
-			return
-		}
+		pra := transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResourceDaos)
 
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoListToCreatedResponseList(practitionerResources), http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, pra, http.StatusOK)
 	})
 }
 
@@ -125,38 +182,33 @@ func HandleGetPractitionerResources(svc dao.Service) http.Handler {
 // on the insolvency case with the specified transactionID
 func HandleGetPractitionerResource(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+
 		// Check for a transaction id in request
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for practitioner resource with transaction id: %s and practitioner id: %s", transactionID, practitionerID))
 
 		// Get practitioner from DB
-		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		practitionerResourceDao, err := svc.GetSinglePractitionerResource(transactionID, practitionerID)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err))
-			m := models.NewMessageResponse("there was a problem handling your request")
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("failed to get practitioner with id [%s]: [%s]", practitionerID, err),
+				fmt.Errorf("there was a problem handling your request")})
 			return
 		}
 
 		// Check if practitioner returned is empty
-		if practitioner == (models.PractitionerResourceDao{}) {
-			message := fmt.Sprintf("practitioner with ID [%s] not found", practitionerID)
-			log.Debug(message)
-			m := models.NewMessageResponse(message)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+		if practitionerResourceDao == nil {
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "debug", []error{fmt.Errorf("practitioner with ID [%s] not found", practitionerID)})
 			return
 		}
 
 		// Successfully retrieved practitioner
-		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(&practitioner), http.StatusOK)
+		utils.WriteJSONWithStatus(w, req, transformers.PractitionerResourceDaoToCreatedResponse(practitionerResourceDao), http.StatusOK)
 	})
 }
 
@@ -168,9 +220,7 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
@@ -179,24 +229,18 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err)})
 			return
 		}
 		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgNoUpdateTransactionClosed, transactionID))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID)})
 			return
 		}
 
 		// Delete practitioner from Mongo
-		err, statusCode := svc.DeletePractitioner(practitionerID, transactionID)
+		statusCode, err := svc.DeletePractitioner(transactionID, practitionerID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return
 		}
 
@@ -210,17 +254,24 @@ func HandleDeletePractitioner(svc dao.Service) http.Handler {
 // HandleAppointPractitioner adds appointment details to a practitioner resource on a transaction
 func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		var appointmentResponse models.AppointedPractitionerResource
 
 		// Check transaction id & practitioner id exist in path
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(mux.Vars(req))
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start POST request for practitioner appointment with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
+
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("error generating etag: [%s]", err),
+				fmt.Errorf("there was a problem handling your request for transaction ID [%s]", transactionID)})
+			return
+		}
 
 		// Check if transaction is closed
 		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
@@ -246,58 +297,58 @@ func HandleAppointPractitioner(svc dao.Service, helperService utils.HelperServic
 
 		// Check if made_by supplied is valid
 		if ok := constants.IsAppointmentMadeByInList(request.MadeBy); !ok {
-			log.ErrorR(req, fmt.Errorf("invalid appointment made_by"))
-			m := models.NewMessageResponse(fmt.Sprintf("the appointment made_by supplied is not valid: [%s]", request.MadeBy))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("invalid appointment made_by"),
+				fmt.Errorf("the appointment made_by supplied is not valid: [%s]", request.MadeBy)})
 			return
 		}
 
 		// Validate all appointment details are of the correct format and criteria
 		validationErrs, err := service.ValidateAppointmentDetails(svc, request, transactionID, practitionerID, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("failed to validate appointment details: [%s]", err))
-			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-			return
-		}
-		if validationErrs != "" {
-			log.ErrorR(req, fmt.Errorf("invalid request - failed validation on the following: %s", validationErrs))
-			m := models.NewMessageResponse("invalid request body: " + validationErrs)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			if err.Error() == constants.MsgCaseNotFound || err.Error() == constants.MsgPractitionerNotFound {
+				logErrorAndHttpResponse(w, req, http.StatusNotFound, "info", []error{fmt.Errorf("practitioner ID [%s] not found for transaction ID [%s]", practitionerID, transactionID)})
+				return
+			}
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("failed to validate appointment details: [%s]", err),
+				fmt.Errorf("there was a problem handling your request for transaction ID [%s]", transactionID)})
 			return
 		}
 
-		practitionerAppointmentDao := transformers.PractitionerAppointmentRequestToDB(&request, transactionID, practitionerID)
+		if len(validationErrs) > 0 {
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{fmt.Errorf("invalid request - failed validation on the following: %s",
+				validationErrs), fmt.Errorf("invalid request body: " + strings.Join(validationErrs, ", "))})
+			return
+		}
 
-		// Store appointment in DB
-		err, statusCode := svc.AppointPractitioner(practitionerAppointmentDao, transactionID, practitionerID)
+		appointmentResourceDto := transformers.PractitionerAppointmentRequestToDB(&request, transactionID, practitionerID)
+		appointmentResourceDto.Data.Etag = etag
+		appointmentResourceDto.Data.Kind = "insolvency#appointment"
+
+		// CreateAppointmentResource stores appointment in DB
+		statusCode, err := svc.CreateAppointmentResource(&appointmentResourceDto)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
+			return
+		}
+
+		// Update practitioner with appointment in DB
+		statusCode, err = svc.UpdatePractitionerAppointment(&appointmentResourceDto, transactionID, practitionerID)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully added practitioner appointment with transaction ID [%s] and practitioner ID [%s] to mongo", transactionID, practitionerID))
 
-		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		appointmentResourceDao, err := svc.GetPractitionerAppointment(transactionID, practitionerID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
 
-		// Check if practitioner is empty (not found). This should not happen, as appointment has just been added.
-		if practitioner == (models.PractitionerResourceDao{}) {
-			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
-			log.InfoR(req, msg)
-			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
-			return
+		if appointmentResourceDao != nil {
+			appointmentResponse = transformers.PractitionerAppointmentDaoToResponse(appointmentResourceDao)
 		}
-
-		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(*practitioner.Appointment)
 
 		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusCreated)
 	})
@@ -309,43 +360,43 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
 		vars := mux.Vars(req)
+
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		practitioner, err := svc.GetPractitionerResource(practitionerID, transactionID)
+		practitionerDao, err := svc.GetSinglePractitionerResource(transactionID, practitionerID)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{err})
 			return
 		}
 
 		// Check if practitioner is empty (not found).
-		if practitioner == (models.PractitionerResourceDao{}) {
-			msg := fmt.Sprintf("practitionerID [%s] not found for transactionID [%s]", practitionerID, transactionID)
-			log.InfoR(req, msg)
-			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+		if practitionerDao == nil {
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "info", []error{fmt.Errorf("practitioner ID [%s] not found for transaction ID [%s]", practitionerID, transactionID)})
 			return
 		}
 
-		// Check if practitioner has an appointment
-		if practitioner.Appointment == nil {
-			msg := fmt.Sprintf("No appointment found for practitionerID [%s] and transactionID [%s]", practitionerID, transactionID)
-			log.InfoR(req, msg)
-			m := models.NewMessageResponse(msg)
-			utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+		// check and returns error when practitioner has no appointment
+		if practitionerDao.Data.Links.Appointment == "" {
+			logErrorAndHttpResponse(w, req, http.StatusNotFound, "info", []error{fmt.Errorf("no appointment found for practitionerID [%s] andd transactionID [%s]", practitionerID, transactionID)})
 			return
 		}
 
-		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(*practitioner.Appointment)
+		appointmentDao, err := svc.GetPractitionerAppointment(transactionID, practitionerID)
+		if err != nil {
+			// not handling not found separately as prev checks indicate it should be there
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error",
+				[]error{fmt.Errorf("error getting appointment for transaction id [%s] and practitioner id [%s]: [%s]", transactionID, practitionerID, err),
+					fmt.Errorf(constants.MsgHandleReqTransactionId, transactionID)})
+			return
+		}
+
+		appointmentResponse := transformers.PractitionerAppointmentDaoToResponse(appointmentDao)
 
 		utils.WriteJSONWithStatus(w, req, appointmentResponse, http.StatusOK)
 	})
@@ -353,39 +404,39 @@ func HandleGetPractitionerAppointment(svc dao.Service) http.Handler {
 
 // HandleDeletePractitionerAppointment deletes an appointment
 // for the specified transactionID and practitionerID
-func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
+func HandleDeletePractitionerAppointment(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		transactionID, practitionerID, err := getTransactionIDAndPractitionerIDFromVars(vars)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, http.StatusBadRequest)
+			logErrorAndHttpResponse(w, req, http.StatusBadRequest, "error", []error{err})
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("start GET request for appointments resource with transaction ID: [%s] and practitioner ID: [%s]", transactionID, practitionerID))
 
-		// Check if transaction is closed
-		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
+		// generate etag for practitioner update
+		etag, err := helperService.GenerateEtag()
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
-			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgErrorCheckTransactionStatus, transactionID, err))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
-			return
-		}
-		if isTransactionClosed {
-			log.ErrorR(req, fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID))
-			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgNoUpdateTransactionClosed, transactionID))
-			utils.WriteJSONWithStatus(w, req, m, httpStatus)
+			logErrorAndHttpResponse(w, req, http.StatusInternalServerError, "error", []error{fmt.Errorf("error generating etag: [%s]", err),
+				fmt.Errorf("there was a problem handling your request for transaction ID [%s]", transactionID)})
 			return
 		}
 
-		err, statusCode := svc.DeletePractitionerAppointment(transactionID, practitionerID)
+		// Check if transaction is closed
+		isTransactionClosed, err, httpStatus := service.CheckIfTransactionClosed(transactionID, req)
 		if err != nil {
-			log.ErrorR(req, err)
-			m := models.NewMessageResponse(err.Error())
-			utils.WriteJSONWithStatus(w, req, m, statusCode)
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgErrorCheckTransactionStatus, transactionID, err)})
+			return
+		}
+		if isTransactionClosed {
+			logErrorAndHttpResponse(w, req, httpStatus, "error", []error{fmt.Errorf(constants.MsgNoUpdateTransactionClosed, transactionID)})
+			return
+		}
+
+		statusCode, err := svc.DeletePractitionerAppointment(transactionID, practitionerID, etag)
+		if err != nil {
+			logErrorAndHttpResponse(w, req, statusCode, "error", []error{err})
 			return
 		}
 
@@ -393,18 +444,38 @@ func HandleDeletePractitionerAppointment(svc dao.Service) http.Handler {
 	})
 }
 
+// logErrorAndHttpResponse logs error and writes status and message to http.
+// If more than one error message is provided, the first is logged and the second is written to http
+func logErrorAndHttpResponse(w http.ResponseWriter, req *http.Request, status int, kind string, errs []error) {
+	switch kind {
+	case "error":
+		log.ErrorR(req, errs[0])
+	case "info":
+		log.ErrorR(req, errs[0])
+	case "debug":
+		log.Debug(errs[0].Error())
+	}
+
+	m := models.NewMessageResponse(errs[0].Error())
+	if len(errs) > 1 {
+		m = models.NewMessageResponse(errs[1].Error())
+	}
+
+	utils.WriteJSONWithStatus(w, req, m, status)
+}
+
 func getTransactionIDAndPractitionerIDFromVars(vars map[string]string) (transactionID string, practitionerID string, err error) {
 	transactionID = utils.GetTransactionIDFromVars(vars)
 	if transactionID == "" {
 		err = fmt.Errorf("there is no Transaction ID in the URL path")
-		return
+		return "", "", err
 	}
 
 	// Check for a practitioner ID in request
 	practitionerID = utils.GetPractitionerIDFromVars(vars)
 	if practitionerID == "" {
 		err = fmt.Errorf("there is no Practitioner ID in the URL path")
-		return
+		return "", "", err
 	}
 	return transactionID, practitionerID, nil
 }

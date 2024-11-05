@@ -37,6 +37,12 @@ func HandleSubmitAttachment(svc dao.Service, helperService utils.HelperService) 
 		// Validate that the provided attachment details are correct
 		validationErrs, err := service.ValidateAttachmentDetails(svc, transactionID, attachmentType, header)
 		if err != nil {
+			if err.Error() == constants.MsgCaseNotFound {
+				log.ErrorR(req, fmt.Errorf("error validating attachment details: [%s]", err))
+				m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCaseForTransactionNotFound, transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+				return
+			}
 			log.ErrorR(req, fmt.Errorf("error validating attachment details: [%s]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
@@ -303,6 +309,6 @@ func HandleDeleteAttachment(svc dao.Service) http.Handler {
 			return
 		}
 
-		utils.WriteJSONWithStatus(w, req, "", http.StatusNoContent)
+		w.WriteHeader(http.StatusNoContent)
 	})
 }
