@@ -280,7 +280,7 @@ func TestUnitHandleCreateStatementOfAffairs(t *testing.T) {
 		res := serveHandleCreateStatementOfAffairs(body, mockService, helperService, true, rec)
 
 		So(res.Code, ShouldEqual, http.StatusBadRequest)
-		So(res.Body.String(), ShouldContainSubstring, "attachment is not a " + constants.StatementOfAffairsDirector.String() + ", " + constants.StatementOfAffairsLiquidator.String() + " or a " + constants.StatementOfConcurrence.String())
+		So(res.Body.String(), ShouldContainSubstring, "attachment is not a "+constants.StatementOfAffairsDirector.String()+", "+constants.StatementOfAffairsLiquidator.String()+" or a "+constants.StatementOfConcurrence.String())
 	})
 
 	Convey("Generic error when adding statement of affairs resource to mongo", t, func() {

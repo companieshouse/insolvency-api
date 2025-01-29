@@ -529,7 +529,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
-    
+
 	Convey("error - practitioner appointment is before date of resolution", t, func() {
 		// Add resolution to insolvency case
 		insolvencyCase := createInsolvencyResource()
@@ -620,7 +620,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be after the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be after the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
 		})
 
 		Convey("Statement date more than 14 days prior to the resolution date", func() {
@@ -630,7 +630,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
 			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be more than 14 days prior to the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be more than 14 days prior to the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
 		})
 
 		Convey("Statement date is 14 days prior to the resolution date", func() {

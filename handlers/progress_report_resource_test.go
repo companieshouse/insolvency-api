@@ -619,8 +619,8 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 		mockService := mock_dao.NewMockService(mockCtrl)
 
 		progressReport := models.ProgressReportResourceDao{
-			Etag:          "6f143c1f8109d834263eb764c5f020a0ae3ff78ee1789477179cb80f",
-			Kind:          "insolvency-resource#progress-report",
+			Etag:     "6f143c1f8109d834263eb764c5f020a0ae3ff78ee1789477179cb80f",
+			Kind:     "insolvency-resource#progress-report",
 			FromDate: "2021-06-06",
 			ToDate:   "2022-06-05",
 			Attachments: []string{
@@ -646,7 +646,7 @@ func TestUnitHandleGetProgressReport(t *testing.T) {
 	})
 }
 
-func serveHandleDeleteProgressReport(service dao.Service, helperService utils.HelperService,tranIDSet bool) *httptest.ResponseRecorder {
+func serveHandleDeleteProgressReport(service dao.Service, helperService utils.HelperService, tranIDSet bool) *httptest.ResponseRecorder {
 	path := "/transactions/123456789/insolvency/progress-report"
 	req := httptest.NewRequest(http.MethodDelete, path, nil)
 	if tranIDSet {
@@ -686,7 +686,7 @@ func TestUnitHandleDeleteProgressReport(t *testing.T) {
 		// Expect the transaction api to be called and return an error
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusInternalServerError, ""))
 
-		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), helperService,true)
+		res := serveHandleDeleteProgressReport(mock_dao.NewMockService(mockCtrl), helperService, true)
 
 		So(res.Code, ShouldEqual, http.StatusInternalServerError)
 	})

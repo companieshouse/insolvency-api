@@ -27,7 +27,7 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 			CaseType:      constants.CVL.String(),
 			CompanyName:   "companyName",
 		}
-		
+
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 
 		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID, mockHelperService)

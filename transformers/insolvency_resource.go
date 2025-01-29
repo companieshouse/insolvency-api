@@ -14,7 +14,7 @@ import (
 func InsolvencyResourceRequestToDB(req *models.InsolvencyRequest, transactionID string, helperService utils.HelperService) *models.InsolvencyResourceDao {
 
 	etag, err := helperService.GenerateEtag()
-	
+
 	if err != nil {
 		log.Error(fmt.Errorf("error generating etag: [%s]", err))
 		return nil
@@ -72,10 +72,10 @@ func AppointmentResourceDaoToAppointedResponse(model *models.AppointmentResource
 }
 
 // AttachmentResourceDaoToResponse transforms an attachment resource dao and file attachment details into a response entity
-func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string,helperService utils.HelperService) (*models.AttachmentResource, error) {
-	
+func AttachmentResourceDaoToResponse(dao *models.AttachmentResourceDao, name string, size int64, contentType string, helperService utils.HelperService) (*models.AttachmentResource, error) {
+
 	etag, err := helperService.GenerateEtag()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error generating etag")
 	}

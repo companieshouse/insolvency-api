@@ -145,4 +145,3 @@ func HandleDeleteProgressReport(svc dao.Service, helperService utils.HelperServi
 		w.WriteHeader(statusCode)
 	})
 }
-

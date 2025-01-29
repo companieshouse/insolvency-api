@@ -31,7 +31,7 @@ func TestUnitResolutionResourceRequestToDB(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
 
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
-		
+
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		response := ResolutionResourceRequestToDB(req, transactionID, mockHelperService)
