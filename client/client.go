@@ -56,27 +56,11 @@ func GetSDK(req *http.Request) (*publicSDK.Service, error) {
 // GetPrivateSDK will return an instance of the Private Go SDK using an oauth2 authenticated
 // HTTP client if possible, else an API-key authenticated HTTP client will be used
 func GetPrivateSDK(req *http.Request) (*privateSDK.Service, error) {
-	cfg, err := config.Get()
-	if err != nil {
-		return nil, err
-	}
 
-	// override the main api and payments api if the cfg values have been set
-	if len(cfg.ApiUrl) > 0 {
-		privateSDK.BasePath = cfg.ApiUrl
-	}
-
-	if len(cfg.ApiUrl) > 0 {
-		privateSDK.PaymentsBasePath = cfg.ApiUrl
-	}
-
-	if len(cfg.ApiUrl) > 0 {
-		privateSDK.InternalAPIBasePath = cfg.ApiUrl
-	}
-
-	if len(cfg.ApiUrl) > 0 {
-		privateSDK.AlphaKeyBasePath = cfg.ApiUrl
-	}
+	privateSDK.BasePath = "http://api.chs.local:4001"
+	privateSDK.PaymentsBasePath = "http://api.chs.local:4001"
+	privateSDK.InternalAPIBasePath = "http://api.chs.local:4001"
+	privateSDK.AlphaKeyBasePath = "http://api.chs.local:4001"
 
 	hc, err := getHTTPClient(req)
 	if err != nil {
