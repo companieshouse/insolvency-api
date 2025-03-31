@@ -91,6 +91,18 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 
 	helperService := utils.NewHelperService()
 
+	Convey("error if etag not generated", t, func() {
+		mockService, mockHelperService, rec := mock_dao.CreateTestObjects(t)
+
+		body, _ := json.Marshal(&models.InsolvencyRequest{})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", fmt.Errorf("error generating etag: [%s]", "err")).AnyTimes()
+		res := serveHandleCreateInsolvencyResource(body, mockService, false, mockHelperService, rec)
+
+		So(res.Code, ShouldEqual, http.StatusInternalServerError)
+		So(res.Body.String(), ShouldContainSubstring, "error generating etag")
+	})
+
 	Convey("Must need a transaction ID in the url", t, func() {
 		mockService, _, rec := mock_dao.CreateTestObjects(t)
 
@@ -179,6 +191,9 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyNumber: companyNumber,
 			CompanyName:   companyName,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
+		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -205,6 +220,8 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -227,6 +244,8 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -252,6 +271,8 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -277,6 +298,8 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
@@ -305,12 +328,14 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("insolvency case already exists"), http.StatusConflict).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusConflict, errors.New("insolvency case already exists")).Times(1)
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
@@ -336,13 +361,15 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(errors.New("error when creating mongo resource"), http.StatusInternalServerError).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusInternalServerError, errors.New("error when creating mongo resource")).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -370,13 +397,15 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -404,13 +433,15 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -438,13 +469,15 @@ func TestUnitHandleCreateInsolvencyResource(t *testing.T) {
 			CompanyName:   companyName,
 			CompanyNumber: companyNumber,
 		})
+
+		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionIdExistsValidation(gomock.Any(), gomock.Any(), transactionID).Return(true, transactionID).AnyTimes()
 		mockHelperService.EXPECT().HandleTransactionNotClosedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleBodyDecodedValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().HandleMandatoryFieldValidation(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(true).AnyTimes()
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 		// Expect CreateInsolvencyResource to be called once and not return an error
-		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(nil, http.StatusCreated).Times(1)
+		mockService.EXPECT().CreateInsolvencyResource(gomock.Any()).Return(http.StatusCreated, nil).Times(1)
 
 		res := serveHandleCreateInsolvencyResource(body, mockService, true, mockHelperService, rec)
 
@@ -480,30 +513,36 @@ func serveHandleGetFilings(service dao.Service, tranIDSet bool) *httptest.Respon
 	return res
 }
 
-func createInsolvencyResource() models.InsolvencyResourceDao {
-	return models.InsolvencyResourceDao{
-		ID:            primitive.ObjectID{},
-		TransactionID: transactionID,
-		Etag:          "etag1234",
-		Kind:          "insolvency",
-		Data: models.InsolvencyResourceDaoData{
-			CompanyNumber: companyNumber,
-			CompanyName:   companyName,
-			CaseType:      "insolvency",
-			Practitioners: []models.PractitionerResourceDao{
-				{
-					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2020-01-01",
-						MadeBy:      "creditors",
-					},
-				},
-			},
-		},
-		Links: models.InsolvencyResourceLinksDao{
-			Self:             "/transactions/123456789/insolvency",
-			ValidationStatus: "/transactions/123456789/insolvency/validation-status",
-		},
+func createInsolvencyResource() *models.InsolvencyResourceDao {
+
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
 	}
+
+	practitionerResourceDao := models.PractitionerResourceDao{}
+	appointmentResourceDao := models.AppointmentResourceDao{}
+
+	appointmentResourceDao.Data.AppointedOn = "2020-01-01"
+	appointmentResourceDao.Data.MadeBy = "creditors"
+	practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+	insolvencyResourceDao := models.InsolvencyResourceDao{}
+	insolvencyResourceDao.ID = primitive.ObjectID{}
+	insolvencyResourceDao.TransactionID = transactionID
+	insolvencyResourceDao.Data.Etag = "etag1234"
+	insolvencyResourceDao.Data.Kind = "insolvency"
+	insolvencyResourceDao.Data.CompanyNumber = companyNumber
+	insolvencyResourceDao.Data.CompanyName = companyName
+	insolvencyResourceDao.Data.CaseType = "insolvency"
+
+	insolvencyResourceDao.Data.Practitioners = &insolvencyResourcePractitionersDao
+	insolvencyResourceDao.Data.Links = models.InsolvencyResourceLinksDao{
+		Self:             "/transactions/123456789/insolvency",
+		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+	}
+
+	return &insolvencyResourceDao
 }
 
 func TestUnitHandleGetValidationStatus(t *testing.T) {
@@ -532,8 +571,8 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID)).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return nil for the insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(nil, nil, nil).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -545,8 +584,8 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, errors.New("error getting insolvency case from DB")).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return an error for the insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&models.InsolvencyResourceDao{}, []models.PractitionerResourceDao{}, errors.New("error getting insolvency case from DB")).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -558,8 +597,16 @@ func TestUnitHandleGetValidationStatus(t *testing.T) {
 		httpmock.Activate()
 		defer httpmock.DeactivateAndReset()
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+
+		appointmentResourceDao.Data.AppointedOn = "2020-01-01"
+		appointmentResourceDao.Data.MadeBy = "creditors"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(createInsolvencyResource(), practitionerResourceDaos, nil).Times(1)
 
 		res := serveHandleGetValidationStatus(mockService, true)
 
@@ -626,8 +673,8 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("error")).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(&models.InsolvencyResourceDao{}, nil, fmt.Errorf("error")).Times(1)
 
 		res := serveHandleGetFilings(mockService, true)
 
@@ -644,8 +691,16 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+
+		appointmentResourceDao.Data.AppointedOn = "2020-01-01"
+		appointmentResourceDao.Data.MadeBy = "creditors"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(createInsolvencyResource(), practitionerResourceDaos, nil).Times(1)
 
 		res := serveHandleGetFilings(mockService, true)
 
@@ -667,7 +722,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.Practitioners = []models.PractitionerResourceDao{}
+		insolvencyCase.Data.Practitioners = nil
 		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
 			DateOfResolution: "2021-06-06",
 			Attachments: []string{
@@ -678,8 +733,8 @@ func TestUnitHandleGetFilings(t *testing.T) {
 			Type: "resolution",
 		}}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyCase, nil, nil).Times(1)
 
 		res := serveHandleGetFilings(mockService, true)
 
@@ -688,7 +743,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
 		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
 		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LRESEX"`)
-		So(res.Body.String(), ShouldContainSubstring, `"Type":"resolution"`)
+		So(res.Body.String(), ShouldContainSubstring, `"type":"resolution"`)
 		So(res.Body.String(), ShouldNotContainSubstring, "practitioners")
 	})
 
@@ -703,7 +758,7 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyCase := createInsolvencyResource()
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
+
 		insolvencyCase.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
 			StatementDate: "2012-01-23",
 			Attachments: []string{
@@ -714,8 +769,8 @@ func TestUnitHandleGetFilings(t *testing.T) {
 			Type: "statement-of-affairs-director",
 		}}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyCase, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyCase, nil, nil).Times(1)
 
 		res := serveHandleGetFilings(mockService, true)
 
@@ -724,6 +779,6 @@ func TestUnitHandleGetFilings(t *testing.T) {
 		So(res.Body.String(), ShouldContainSubstring, `"company_name":"companyName"`)
 		So(res.Body.String(), ShouldContainSubstring, `"company_number":"01234567"`)
 		So(res.Body.String(), ShouldContainSubstring, `"kind":"insolvency#LIQ02"`)
-		So(res.Body.String(), ShouldContainSubstring, `"Type":"statement-of-affairs-director"`)
+		So(res.Body.String(), ShouldContainSubstring, `"type":"statement-of-affairs-director"`)
 	})
 }

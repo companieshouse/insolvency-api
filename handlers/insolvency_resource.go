@@ -20,6 +20,15 @@ import (
 func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperService) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 
+		// generate etag for request
+		etag, err := helperService.GenerateEtag()
+		if err != nil {
+			log.Error(fmt.Errorf("error generating etag: [%s]", err))
+			m := models.NewMessageResponse(fmt.Sprintf("error generating etag: [%s]", err))
+			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
+			return
+		}
+
 		// Check transaction id exists in path
 		incomingTransactionId := utils.GetTransactionIDFromVars(mux.Vars(req))
 		isValidTransactionId, transactionID := helperService.HandleTransactionIdExistsValidation(w, req, incomingTransactionId)
@@ -31,7 +40,7 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 
 		// Decode the incoming request to create a list of practitioners
 		var request models.InsolvencyRequest
-		err := json.NewDecoder(req.Body).Decode(&request)
+		err = json.NewDecoder(req.Body).Decode(&request)
 		isValidDecoded := helperService.HandleBodyDecodedValidation(w, req, transactionID, err)
 		if !isValidDecoded {
 			return
@@ -91,14 +100,15 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		}
 
 		// Add new insolvency resource to mongo
-		model := transformers.InsolvencyResourceRequestToDB(&request, transactionID, helperService)
-		if model == nil {
-			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction id [%s]", transactionID))
+		insolvencyResourceDto := transformers.InsolvencyResourceRequestToDB(&request, transactionID)
+		if insolvencyResourceDto == nil {
+			m := models.NewMessageResponse(fmt.Sprintf(constants.MsgHandleReqTransactionId, transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
 
-		err, httpStatus = svc.CreateInsolvencyResource(model)
+		insolvencyResourceDto.Data.Etag = etag
+		httpStatus, err = svc.CreateInsolvencyResource(insolvencyResourceDto)
 		if err != nil {
 			log.ErrorR(req, fmt.Errorf("failed to create insolvency resource in database for transaction [%s]: %v", transactionID, err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction [%s]: %v", transactionID, err))
@@ -107,17 +117,17 @@ func HandleCreateInsolvencyResource(svc dao.Service, helperService utils.HelperS
 		}
 
 		// Patch transaction API with new insolvency resource
-		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, model, req)
+		err, httpStatus = service.PatchTransactionWithInsolvencyResource(transactionID, insolvencyResourceDto, req)
 		if err != nil {
-			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
-			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", model.Links.Self, err))
+			log.ErrorR(req, fmt.Errorf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
+			m := models.NewMessageResponse(fmt.Sprintf("error patching transaction api with insolvency resource [%s]: [%v]", insolvencyResourceDto.Data.Links.Self, err))
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
 
 		log.InfoR(req, fmt.Sprintf("successfully added insolvency resource with transaction ID: %s, to mongo", transactionID))
 
-		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(model), http.StatusCreated)
+		utils.WriteJSONWithStatus(w, req, transformers.InsolvencyResourceDaoToCreatedResponse(insolvencyResourceDto), http.StatusCreated)
 	})
 }
 
@@ -137,25 +147,24 @@ func HandleGetValidationStatus(svc dao.Service) http.Handler {
 
 		log.InfoR(req, fmt.Sprintf("start GET request for validating insolvency resource with transaction id: %s", transactionID))
 
-		insolvencyResource, err := svc.GetInsolvencyResource(transactionID)
+		insolvencyResource, practitionerResourceDao, err := svc.GetInsolvencyAndExpandedPractitionerResources(transactionID)
 		if err != nil {
-			// Check if insolvency case was not found
-			if err.Error() == fmt.Sprintf("there was a problem handling your request for transaction [%s] - insolvency case not found", transactionID) {
-				message := fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID)
-				log.Info(message)
-				m := models.NewMessageResponse(message)
-				// Returning OK instead of NOT FOUND because endpoint is specifically for validation not for insolvency case
-				utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
-				return
-			}
 			log.ErrorR(req, fmt.Errorf("error getting insolvency resource from DB: [%s]", err))
 			m := models.NewMessageResponse("there was a problem handling your request")
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
 			return
 		}
-
-		validationErrors := service.ValidateInsolvencyDetails(insolvencyResource)
-		antivirusValidationErrors := service.ValidateAntivirus(svc, insolvencyResource, req)
+		// Check if insolvency case was not found
+		if insolvencyResource == nil {
+			message := fmt.Sprintf("insolvency case with transactionID [%s] not found", transactionID)
+			log.Info(message)
+			m := models.NewMessageResponse(message)
+			// Returning OK instead of NOT FOUND because endpoint is specifically for validation not for insolvency case
+			utils.WriteJSONWithStatus(w, req, m, http.StatusOK)
+			return
+		}
+		validationErrors := service.ValidateInsolvencyDetails(*insolvencyResource, practitionerResourceDao)
+		antivirusValidationErrors := service.ValidateAntivirus(svc, *insolvencyResource, req)
 
 		// If antivirus check has failed, set case false and append antivirus validation error to existing validation errors
 		if len(*antivirusValidationErrors) > 0 {
@@ -199,6 +208,7 @@ func HandleGetFilings(svc dao.Service) http.Handler {
 			utils.WriteJSONWithStatus(w, req, m, httpStatus)
 			return
 		}
+
 		if !isTransactionClosed {
 			log.ErrorR(req, fmt.Errorf("transaction [%v] is not closed so the filings cannot be generated", transactionID))
 			m := models.NewMessageResponse(fmt.Sprintf("transaction [%v] is not closed so the filings cannot be generated", transactionID))

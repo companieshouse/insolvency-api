@@ -40,6 +40,8 @@ func UploadAttachment(file multipart.File, header *multipart.FileHeader, req *ht
 }
 
 // ValidateAttachmentDetails checks that the incoming attachment details are valid
+// Returns an error based on constants.MsgCaseNotFound if insolvency case is not
+// found for transactionID
 func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachmentType string, header *multipart.FileHeader) (string, error) {
 	var errs []string
 
@@ -52,6 +54,9 @@ func ValidateAttachmentDetails(svc dao.Service, transactionID string, attachment
 	attachments, err := svc.GetAttachmentResources(transactionID)
 	if err != nil {
 		return "", err
+	}
+	if attachments == nil {
+		return "", fmt.Errorf(constants.MsgCaseNotFound)
 	}
 	if len(attachments) > 0 {
 		if attachmentType == constants.StatementOfAffairsLiquidator.String() {

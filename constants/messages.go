@@ -2,9 +2,10 @@ package constants
 
 const MsgResourceNotFound = "no insolvency resource found for transaction id"
 const MsgCaseNotFound = "no insolvency case found for transaction id"
+const MsgPractitionerNotFound = "no practitioner found for transaction id"
 const MsgCaseForTransactionNotFound = "there was a problem handling your request for transaction id [%s] - insolvency case not found"
-const MsgReqTransactionNotFound = "there was a problem handling your request for transaction %s not found"
-const MsgHandleReqTransactionId = "there was a problem handling your request for transaction id %s"
+const MsgReqTransactionNotFound = "there was a problem handling your request for transaction id [%s] not found"
+const MsgHandleReqTransactionId = "there was a problem handling your request for transaction id [%s]"
 const MsgHandleReqProblem = "there was a problem handling your request"
 const MsgMissingTransactionIdInPath = "transaction ID is not in the URL path"
 const MsgMissingAttachmentIdInPath = "attachment ID is not in the URL path"
