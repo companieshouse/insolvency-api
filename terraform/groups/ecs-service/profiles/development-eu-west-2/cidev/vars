@@ -5,6 +5,6 @@ aws_profile = "development-eu-west-2"
 use_set_environment_files = true
  
 # scaling configs
-service_autoscale_enabled  = true
+service_autoscale_enabled  = false
 service_scaledown_schedule = "55 19 * * ? *"
 service_scaleup_schedule   = "5 6 * * ? *"

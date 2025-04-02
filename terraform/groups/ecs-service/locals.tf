@@ -4,13 +4,13 @@ locals {
   name_prefix                = "${local.stack_name}-${var.environment}"
   global_prefix              = "global-${var.environment}"
   service_name               = "insolvency-api"
-  container_port             = "8080"
+  container_port             = "20188"
   eric_port                  = "10000"
   docker_repo                = "insolvency-api"
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
   lb_listener_rule_priority  = 49
-  lb_listener_paths          = ["/transactions/*/insolvency", "/transactions/*/insolvency*", "/private/transactions/*/insolvency/filings", "/insolvency/*"]
-  healthcheck_path           = "/insolvency-request/healthcheck" #healthcheck path for insolvency api
+  lb_listener_paths          = ["/transactions/*/insolvency", "/transactions/*/insolvency*", "/private/transactions/*/insolvency/filings", "/insolvency*"]
+  healthcheck_path           = "/insolvency/healthcheck" #healthcheck path for insolvency api
   healthcheck_matcher        = "200"
   vpc_name                   = local.stack_secrets["vpc_name"]
   app_environment_filename   = "insolvency-api.env"
