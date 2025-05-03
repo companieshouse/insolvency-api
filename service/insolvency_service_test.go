@@ -21,102 +21,99 @@ var companyNumber = "01234567"
 var companyName = "companyName"
 var req = httptest.NewRequest(http.MethodPut, "/test", nil)
 
-func createInsolvencyResource() models.InsolvencyResourceDao {
-	return models.InsolvencyResourceDao{
+func createInsolvencyResource() *models.InsolvencyResourceDao {
+	_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+	insolvencyResourcePractitionersDao := models.InsolvencyResourcePractitionersDao{
+		"VM04221441": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221441",
+		"VM04221442": "/transactions/168570-809316-704268/insolvency/practitioners/VM04221442",
+	}
+
+	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
+	appointmentResourceDao.Data.MadeBy = "creditors"
+
+	practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+	practitionerResourceDao1 := models.PractitionerResourceDao{}
+	practitionerResourceDao1.Data.IPCode = "5678"
+	practitionerResourceDao1.Data.FirstName = "FirstName"
+	practitionerResourceDao1.Data.LastName = "LastName"
+	practitionerResourceDao1.Data.TelephoneNumber = "5678"
+	practitionerResourceDao1.Data.Email = "firstname@email.com"
+	practitionerResourceDao1.Data.Address = models.AddressResourceDao{}
+	practitionerResourceDao1.Data.Role = "final-liquidator"
+	practitionerResourceDao1.Data.Links = models.PractitionerResourceLinksDao{}
+
+	appointmentResourceDao.Data.AppointedOn = "2021-07-07"
+	appointmentResourceDao.Data.MadeBy = "creditors"
+
+	practitionerResourceDao1.Data.Appointment = &appointmentResourceDao
+
+	insolvencyResourceDao := models.InsolvencyResourceDao{
 		ID:            primitive.ObjectID{},
 		TransactionID: transactionID,
-		Etag:          "etag1234",
-		Kind:          "insolvency",
-		Data: models.InsolvencyResourceDaoData{
-			CompanyNumber: companyNumber,
-			CompanyName:   companyName,
-			CaseType:      "insolvency",
-			Practitioners: []models.PractitionerResourceDao{
-				{
-					ID:              "1234",
-					IPCode:          "1234",
-					FirstName:       "Name",
-					LastName:        "LastName",
-					TelephoneNumber: "1234",
-					Email:           "name@email.com",
-					Address:         models.AddressResourceDao{},
-					Role:            "final-liquidator",
-					Links:           models.PractitionerResourceLinksDao{},
-					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2021-07-07",
-						MadeBy:      "creditors",
-					},
-				},
-				{
-					ID:              "5678",
-					IPCode:          "5678",
-					FirstName:       "FirstName",
-					LastName:        "LastName",
-					TelephoneNumber: "5678",
-					Email:           "firstname@email.com",
-					Address:         models.AddressResourceDao{},
-					Role:            "final-liquidator",
-					Links:           models.PractitionerResourceLinksDao{},
-					Appointment: &models.AppointmentResourceDao{
-						AppointedOn: "2021-07-07",
-						MadeBy:      "creditors",
-					},
-				},
-			},
-			Attachments: []models.AttachmentResourceDao{
-				{
-					ID:     "id",
-					Type:   "resolution",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-				{
-					ID:     "id",
-					Type:   "statement-of-affairs-director",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-				{
-					ID:     "id",
-					Type:   "progress-report",
-					Status: "status",
-					Links: models.AttachmentResourceLinksDao{
-						Self:     "self",
-						Download: "download",
-					},
-				},
-			},
-			Resolution: &models.ResolutionResourceDao{
-				DateOfResolution: "2021-06-06",
-				Attachments: []string{
-					"id",
-				},
-			},
-			StatementOfAffairs: &models.StatementOfAffairsResourceDao{
-				StatementDate: "2021-06-06",
-				Attachments: []string{
-					"id",
-				},
-			},
-			ProgressReport: &models.ProgressReportResourceDao{
-				FromDate: "2021-04-14",
-				ToDate:   "2022-04-13",
-				Attachments: []string{
-					"id",
-				},
+	}
+	insolvencyResourceDao.Data.Etag = "etag1234"
+	insolvencyResourceDao.Data.Kind = "insolvency"
+	insolvencyResourceDao.Data.CompanyNumber = companyNumber
+	insolvencyResourceDao.Data.CompanyName = companyName
+	insolvencyResourceDao.Data.CaseType = "insolvency"
+	insolvencyResourceDao.Data.Practitioners = &insolvencyResourcePractitionersDao
+	insolvencyResourceDao.Data.Attachments = []models.AttachmentResourceDao{
+		{
+			ID:     "id",
+			Type:   "resolution",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
 			},
 		},
-		Links: models.InsolvencyResourceLinksDao{
-			Self:             "/transactions/123456789/insolvency",
-			ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+		{
+			ID:     "id",
+			Type:   "statement-of-affairs-director",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
+			},
+		},
+		{
+			ID:     "id",
+			Type:   "progress-report",
+			Status: "status",
+			Links: models.AttachmentResourceLinksDao{
+				Self:     "self",
+				Download: "download",
+			},
 		},
 	}
+	insolvencyResourceDao.Data.Resolution = &models.ResolutionResourceDao{
+		DateOfResolution: "2021-06-06",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.StatementOfAffairs = &models.StatementOfAffairsResourceDao{
+		StatementDate: "2021-06-06",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.ProgressReport = &models.ProgressReportResourceDao{
+		FromDate: "2021-04-14",
+		ToDate:   "2022-04-13",
+		Attachments: []string{
+			"id",
+		},
+	}
+	insolvencyResourceDao.Data.Links = models.InsolvencyResourceLinksDao{
+		Self:             "/transactions/123456789/insolvency",
+		ValidationStatus: "/transactions/123456789/insolvency/validation-status",
+	}
+
+	return &insolvencyResourceDao
+
 }
 
 func TestUnitValidateInsolvencyDetails(t *testing.T) {
@@ -127,9 +124,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 
 		// Remove appointment for one practitioner
-		insolvencyCase.Data.Practitioners[1].Appointment = &models.AppointmentResourceDao{}
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = &models.AppointmentResourceDao{}
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 3)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
@@ -139,10 +138,19 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	Convey("error - one practitioner is appointed but not all practitioners have been appointed - missing date", t, func() {
 		insolvencyCase := createInsolvencyResource()
 
-		// Remove appointment for one practitioner
-		insolvencyCase.Data.Practitioners[1].Appointment.AppointedOn = ""
+		appointmentResourceDao := models.AppointmentResourceDao{}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		appointmentResourceDao.Data.AppointedOn = "2021-07-07"
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+		practitionerResourceDao1 := models.PractitionerResourceDao{}
+		appointmentResourceDao1 := models.AppointmentResourceDao{}
+		practitionerResourceDao1.Data.Appointment = &appointmentResourceDao1
+
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao1)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 3)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - all practitioners for insolvency case with transaction id [%s] must be appointed", insolvencyCase.TransactionID))
@@ -150,34 +158,43 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("successful validation of practitioner appointments - all practitioners appointed", t, func() {
-		validationErrors := ValidateInsolvencyDetails(createInsolvencyResource())
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-01-23"
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		appointmentResourceDao.PractitionerId = "PractitionerID"
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*createInsolvencyResource(), practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of practitioner appointments - no practitioners are appointed", t, func() {
+
 		insolvencyCase := createInsolvencyResource()
 
 		// Remove appointment details for all practitioners
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
-		insolvencyCase.Data.Practitioners[1].Appointment = nil
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("error - attachment type is not resolution and practitioners key is absent", t, func() {
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "type",
-					},
-				},
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		insolvencyCase := models.InsolvencyResourceDao{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "type",
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 2)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -185,18 +202,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - attachment type is not resolution and practitioners object is empty", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{},
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "type",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDao{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "type",
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 2)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -205,7 +218,20 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 	Convey("successful validation of attachment type - attachment type is not resolution and practitioner present", t, func() {
 		insolvencyCase := createInsolvencyResource()
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2022-10-10"
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		appointmentResourceDao.PractitionerId = "PractitionerID"
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -224,51 +250,59 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2022-01-23"
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		appointmentResourceDao.PractitionerId = "PractitionerID"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of resolution attachment - attachment type is resolution and practitioners key is absent", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "resolution",
-						ID:   "1234",
-					},
-				},
-				Resolution: &models.ResolutionResourceDao{
-					DateOfResolution: "2021-06-06",
-					Attachments: []string{
-						"1234",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDao{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "resolution",
+				ID:   "1234",
+			},
+		}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("successful validation of resolution attachment - attachment type is resolution and practitioners object empty", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Attachments: []models.AttachmentResourceDao{
-					{
-						Type: "resolution",
-						ID:   "1234",
-					},
-				},
-				Resolution: &models.ResolutionResourceDao{
-					DateOfResolution: "2021-06-06",
-					Attachments: []string{
-						"1234",
-					},
-				},
+		insolvencyCase := models.InsolvencyResourceDao{}
+		insolvencyCase.Data.Attachments = []models.AttachmentResourceDao{
+			{
+				Type: "resolution",
+				ID:   "1234",
+			},
+		}
+		insolvencyCase.Data.Resolution = &models.ResolutionResourceDao{
+			DateOfResolution: "2021-06-06",
+			Attachments: []string{
+				"1234",
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -280,7 +314,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Attachments[0].Type = "statement-of-concurrence"
 		insolvencyCase.Data.Attachments[1].Type = "statement-of-affairs-director"
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -290,7 +326,18 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		// Set attachment type to "statement-of-concurrence"
 		insolvencyCase.Data.Attachments[0].Type = "statement-of-affairs-liquidator"
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDao := models.PractitionerResourceDao{}
+
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2021-06-23"
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		appointmentResourceDao.PractitionerId = "PractitionerID"
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 2)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - no appointed practitioners can be assigned to the case when attachment type statement-of-affairs-liquidator is included with transaction id [%s]", insolvencyCase.TransactionID))
@@ -307,25 +354,23 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Resolution = nil
 
 		// Remove appointment details for all practitioners
-		insolvencyCase.Data.Practitioners[0].Appointment = nil
-		insolvencyCase.Data.Practitioners[1].Appointment = nil
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
 	Convey("error - no attachments present and no appointed practitioners on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{
-					{
-						FirstName: "Bob",
-					},
-				},
-			},
-		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.FirstName = "Bob"
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		insolvencyCase := models.InsolvencyResourceDao{}
+
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - at least one practitioner must be appointed as there are no attachments for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -333,11 +378,19 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - no resolution and no submitted practitioners on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{},
-		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		insolvencyCase := models.InsolvencyResourceDao{}
+		insolvencyCase.Data.Resolution = nil
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = ""
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
@@ -345,20 +398,16 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("successful validation - no attachments present but at least one appointed practitioner is present on insolvency case", t, func() {
-		insolvencyCase := models.InsolvencyResourceDao{
-			Data: models.InsolvencyResourceDaoData{
-				Practitioners: []models.PractitionerResourceDao{
-					{
-						Appointment: &models.AppointmentResourceDao{
-							AppointedOn: "2020-01-01",
-							MadeBy:      "creditors",
-						},
-					},
-				},
-			},
-		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		insolvencyCase := models.InsolvencyResourceDao{}
+
+		validationErrors := ValidateInsolvencyDetails(insolvencyCase, practitionerResourceDaos)
+
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -369,21 +418,30 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			DateOfResolution: "",
 			Attachments:      []string{"123"},
 		}
+		practitionerResourceDao := models.PractitionerResourceDao{}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = ""
+		appointmentResourceDao.Data.MadeBy = "MadeBy"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{}
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 
-		So(validationErrors, ShouldHaveLength, 6)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
-		So((*validationErrors)[0].Location, ShouldContainSubstring, "no date of resolution")
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
+		So(validationErrors, ShouldHaveLength, 5)
+		So((*validationErrors)[1].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
+		So((*validationErrors)[1].Location, ShouldContainSubstring, "no date of resolution")
 	})
 
 	Convey("error - resolution attachment present and no resolution details filed for insolvency case", t, func() {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "resolution"
-		insolvencyCase.Data.Practitioners = nil
+
 		insolvencyCase.Data.Resolution = nil
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of resolution must be present as there is an attachment with type resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -391,6 +449,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - date_of_resolution present and no resolution filed for insolvency case", t, func() {
+
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[0].Type = "test"
 
@@ -398,7 +457,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			DateOfResolution: "2021-06-06",
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a resolution attachment must be present as there is a date_of_resolution filed for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -419,7 +479,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - id for uploaded resolution attachment must match the attachment id supplied when filing a resolution for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
@@ -439,7 +500,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				"1234",
 			},
 		}
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -467,13 +531,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 				// Change attachment type
 				insolvencyCase.Data.Attachments[1].Type = attachment
+				practitionerResourceDaos := append([]models.PractitionerResourceDao{})
 
 				// Remove practitioner for SOA-L to prevent triggering another error
 				if attachment == constants.StatementOfAffairsLiquidator.String() {
-					insolvencyCase.Data.Practitioners = make([]models.PractitionerResourceDao, 0)
+					insolvencyCase.Data.Practitioners = nil
 				}
 
-				validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+				validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 				So(validationErrors, ShouldHaveLength, 1)
 				So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - a date of statement of affairs must be present as there is an attachment with a type of [%s], [%s], or a [%s] for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
 				So((*validationErrors)[0].Location, ShouldContainSubstring, "statement-of-affairs")
@@ -487,7 +552,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase := createInsolvencyResource()
 		insolvencyCase.Data.Attachments[1].Type = "random"
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - an attachment of type [%s], [%s], or a [%s] must be present as there is a date of statement of affairs present for insolvency case with transaction id [%s]", constants.StatementOfAffairsDirector.String(), constants.StatementOfConcurrence.String(), constants.StatementOfAffairsLiquidator.String(), insolvencyCase.TransactionID))
@@ -495,9 +562,9 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 	})
 
 	Convey("error - attachment type is statement-of-concurrence and practitioner object empty", t, func() {
+
+		// Create insolvency case
 		insolvencyCase := createInsolvencyResource()
-		// Remove the Practitioners
-		insolvencyCase.Data.Practitioners = nil
 
 		// Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
 		insolvencyCase.Data.Attachments[0].Type = "type"
@@ -508,7 +575,7 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Resolution = nil
 		insolvencyCase.Data.ProgressReport = nil
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 		So(validationErrors, ShouldHaveLength, 2)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - attachment type requires that at least one practitioner must be present for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 		So((*validationErrors)[1].Error, ShouldContainSubstring, "error - if no practitioners are present then an attachment of the type resolution must be present")
@@ -516,6 +583,8 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 
 	Convey("successful validation of statement-of-concurrence - attachment type is statement-of-concurrence and at least one practitioner present", t, func() {
 		insolvencyCase := createInsolvencyResource()
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
 
 		// Replace statement-of-affairs-director attachment type to statement-of-concurrence for the 2nd attachment
 		insolvencyCase.Data.Attachments[0].Type = "type"
@@ -526,10 +595,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		insolvencyCase.Data.Resolution = nil
 		insolvencyCase.Data.ProgressReport = nil
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDaos := []models.PractitionerResourceDao{practitionerResourceDao}
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
-    
+
 	Convey("error - practitioner appointment is before date of resolution", t, func() {
 		// Add resolution to insolvency case
 		insolvencyCase := createInsolvencyResource()
@@ -545,10 +615,17 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.PractitionerId = "practitionerID"
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2021-05-05"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]", insolvencyCase.Data.Practitioners[0].ID, insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
+		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - practitioner [%s] appointed on [%s] is before the resolution date [%s]",
+			practitionerResourceDao.Data.PractitionerId, appointmentResourceDao.Data.AppointedOn, insolvencyCase.Data.Resolution.DateOfResolution))
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
 
@@ -567,9 +644,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 		}
 
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "date"
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "date"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 		So((*validationErrors)[0].Error, ShouldContainSubstring, "cannot parse")
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
@@ -588,9 +670,14 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			},
 		}
 		// Appoint practitioner before resolution
-		insolvencyCase.Data.Practitioners[0].Appointment.AppointedOn = "2021-05-05"
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "date"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 		So((*validationErrors)[0].Error, ShouldContainSubstring, "cannot parse")
 		So((*validationErrors)[0].Location, ShouldContainSubstring, "practitioner")
 	})
@@ -600,16 +687,18 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "invalid"
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			practitionerResourceDao := models.PractitionerResourceDao{}
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid statementOfAffairs date")
 		})
 
 		Convey("Invalid resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.Resolution.DateOfResolution = "invalid"
-			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 			So((*validationErrors)[0].Error, ShouldContainSubstring, "invalid resolution date")
 		})
 
@@ -617,29 +706,26 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-26"
 			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
-			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be after the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be after the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
 		})
 
 		Convey("Statement date more than 14 days prior to the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-10"
 			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
-			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
-			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date [" + insolvencyCase.Data.StatementOfAffairs.StatementDate + "] must not be more than 14 days prior to the resolution date" + " [" + insolvencyCase.Data.Resolution.DateOfResolution + "]")
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
+			So((*validationErrors)[0].Error, ShouldContainSubstring, "error - statement of affairs date ["+insolvencyCase.Data.StatementOfAffairs.StatementDate+"] must not be more than 14 days prior to the resolution date"+" ["+insolvencyCase.Data.Resolution.DateOfResolution+"]")
 		})
 
 		Convey("Statement date is 14 days prior to the resolution date", func() {
 			insolvencyCase := createInsolvencyResource()
 			insolvencyCase.Data.StatementOfAffairs.StatementDate = "2021-07-11"
 			insolvencyCase.Data.Resolution.DateOfResolution = "2021-07-25"
-			insolvencyCase.Data.Practitioners = nil // prevent alternative validation execution
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, nil)
 			So(validationErrors, ShouldHaveLength, 0)
 		})
 
@@ -659,7 +745,13 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 			},
 		}
 
-		validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		appointmentResourceDao := models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2022-06-06"
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 
@@ -677,7 +769,10 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 				},
 			}
 
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 			So(validationErrors, ShouldHaveLength, 0)
 		})
 
@@ -690,7 +785,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 					"id",
 				},
 			}
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{})
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
 		})
@@ -704,7 +803,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 					"id",
 				},
 			}
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
 		})
@@ -718,7 +821,11 @@ func TestUnitValidateInsolvencyDetails(t *testing.T) {
 					"id",
 				},
 			}
-			validationErrors := ValidateInsolvencyDetails(insolvencyCase)
+
+			practitionerResourceDaos := append([]models.PractitionerResourceDao{}, models.PractitionerResourceDao{})
+
+			validationErrors := ValidateInsolvencyDetails(*insolvencyCase, practitionerResourceDaos)
+
 			So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - progress report dates must be present as there is an attachment with type progress-report for insolvency case with transaction id [%s]", insolvencyCase.TransactionID))
 			So((*validationErrors)[0].Location, ShouldContainSubstring, "no dates for progress report")
 		})
@@ -750,7 +857,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], attachments have not been scanned", insolvencyCase.TransactionID))
@@ -776,7 +883,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "integrity_failed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 
 		So(validationErrors, ShouldHaveLength, 1)
 		So((*validationErrors)[0].Error, ShouldContainSubstring, fmt.Sprintf("error - antivirus check has failed on insolvency case with transaction id [%s], virus detected", insolvencyCase.TransactionID))
@@ -802,7 +909,7 @@ func TestUnitValidateAntivirus(t *testing.T) {
 
 		mockService.EXPECT().UpdateAttachmentStatus(transactionID, insolvencyCase.Data.Attachments[0].ID, "processed").Return(http.StatusNoContent, nil).Times(3)
 
-		validationErrors := ValidateAntivirus(mockService, insolvencyCase, req)
+		validationErrors := ValidateAntivirus(mockService, *insolvencyCase, req)
 		So(validationErrors, ShouldHaveLength, 0)
 	})
 }
@@ -822,8 +929,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		defer mockCtrl.Finish()
 		mockService := mocks.NewMockService(mockCtrl)
 
-		// Expect GetInsolvencyResource to be called once and return an error for the insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(createInsolvencyResource(), errors.New("insolvency case does not exist")).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return an error for the insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(createInsolvencyResource(), nil, errors.New("insolvency case does not exist")).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -842,8 +949,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 		insolvencyResource := createInsolvencyResource()
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
+
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -866,7 +978,6 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{}
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -879,8 +990,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, nil, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -889,8 +1000,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[0].Kind, ShouldEqual, "insolvency#LRESEX")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LRESEX")
 		So(filings[0].Data, ShouldNotContainKey, "practitioners")
-		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "resolution")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "resolution")
 
 		So(err, ShouldBeNil)
 	})
@@ -904,8 +1015,6 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -918,8 +1027,12 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
+
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -928,8 +1041,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(filings[0].Data, ShouldContainKey, "practitioners")
-		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "statement-of-affairs-director")
 
 		So(err, ShouldBeNil)
 	})
@@ -943,8 +1056,6 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -957,8 +1068,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		var practitionerResourceDao, practitionerResourceDao1 models.PractitionerResourceDao
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDao1.Data.Appointment = nil
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
+
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -967,8 +1083,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(filings[0].Data, ShouldContainKey, "practitioners")
-		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-liquidator")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "statement-of-affairs-liquidator")
 
 		So(err, ShouldBeNil)
 	})
@@ -982,8 +1098,9 @@ func TestUnitGenerateFilings(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners[0].Appointment = nil
-		insolvencyResource.Data.Practitioners[1].Appointment = nil
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -1005,8 +1122,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1015,9 +1132,9 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(filings[0].Data, ShouldContainKey, "practitioners")
-		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 2)
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[1].Type, ShouldEqual, "statement-of-concurrence")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 2)
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[1].Type, ShouldEqual, "statement-of-concurrence")
 
 		So(err, ShouldBeNil)
 	})
@@ -1042,9 +1159,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 				},
 			},
 		}
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
+
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1058,8 +1179,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(filings[1].Data, ShouldContainKey, "practitioners")
-		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "statement-of-affairs-director")
 
 		So(err, ShouldBeNil)
 	})
@@ -1103,8 +1224,13 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
+
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1118,15 +1244,15 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[1].Kind, ShouldEqual, "insolvency#LRESEX")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LRESEX")
 		So(filings[1].Data, ShouldNotContainKey, "practitioners")
-		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "resolution")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "resolution")
 
 		So(filings[2].Kind, ShouldEqual, "insolvency#LIQ02")
 		So(filings[2].DescriptionIdentifier, ShouldEqual, "LIQ02")
 		So(filings[2].Data, ShouldContainKey, "practitioners")
-		So(len(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 2)
-		So(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "statement-of-affairs-director")
-		So(filings[2].Data["attachments"].([]*models.AttachmentResourceDao)[1].Type, ShouldEqual, "statement-of-concurrence")
+		So(len(filings[2].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 2)
+		So(filings[2].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "statement-of-affairs-director")
+		So(filings[2].Data["attachments"].([]*models.AttachmentFilingsResource)[1].Type, ShouldEqual, "statement-of-concurrence")
 
 		So(err, ShouldBeNil)
 	})
@@ -1139,20 +1265,14 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
+		_, practitionerResourceDao, _ := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
-			{
-				ID:              "1234",
-				IPCode:          "1234",
-				FirstName:       "Name",
-				LastName:        "LastName",
-				TelephoneNumber: "1234",
-				Email:           "name@email.com",
-				Address:         models.AddressResourceDao{},
-				Role:            "final-liquidator",
-				Links:           models.PractitionerResourceLinksDao{},
-			},
-		}
+
+		practitionerResourceDao.Data.Appointment = nil
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{}
+		practitionerResourceDao.Data.Role = "final-liquidator"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{}
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao, practitionerResourceDao)
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -1165,8 +1285,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1175,8 +1295,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[0].Kind, ShouldEqual, "insolvency#LIQ03")
 		So(filings[0].DescriptionIdentifier, ShouldEqual, "LIQ03")
 		So(filings[0].Data, ShouldContainKey, "practitioners")
-		So(len(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[0].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "progress-report")
+		So(len(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[0].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "progress-report")
 
 		So(err, ShouldBeNil)
 	})
@@ -1189,24 +1309,11 @@ func TestUnitGenerateFilings(t *testing.T) {
 		// Expect the transaction api to be called and return a closed transaction
 		httpmock.RegisterResponder(http.MethodGet, "https://api.companieshouse.gov.uk/transactions/12345678", httpmock.NewStringResponder(http.StatusOK, transactionProfileResponseClosed))
 
+		_, practitionerResourceDao, appointmentResourceDao := generateInsolvencyPractitionerAppointmentResources()
 		insolvencyResource := createInsolvencyResource()
-		insolvencyResource.Data.Practitioners = []models.PractitionerResourceDao{
-			{
-				ID:              "1234",
-				IPCode:          "1234",
-				FirstName:       "Name",
-				LastName:        "LastName",
-				TelephoneNumber: "1234",
-				Email:           "name@email.com",
-				Address:         models.AddressResourceDao{},
-				Role:            "final-liquidator",
-				Links:           models.PractitionerResourceLinksDao{},
-				Appointment: &models.AppointmentResourceDao{
-					AppointedOn: "2021-07-07",
-					MadeBy:      "creditors",
-				},
-			},
-		}
+
+		practitionerResourceDao.Data.Appointment = &appointmentResourceDao
+		practitionerResourceDaos := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
 		insolvencyResource.Data.Attachments = []models.AttachmentResourceDao{
 			{
 				ID:     "id",
@@ -1219,8 +1326,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 			},
 		}
 
-		// Expect GetInsolvencyResource to be called once and return a valid insolvency case
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResource, nil).Times(1)
+		// Expect GetInsolvencyAndExpandedPractitionerResources to be called once and return a valid insolvency case
+		mockService.EXPECT().GetInsolvencyAndExpandedPractitionerResources(transactionID).Return(insolvencyResource, practitionerResourceDaos, nil).Times(1)
 
 		filings, err := GenerateFilings(mockService, transactionID)
 
@@ -1234,8 +1341,8 @@ func TestUnitGenerateFilings(t *testing.T) {
 		So(filings[1].Kind, ShouldEqual, "insolvency#LIQ03")
 		So(filings[1].DescriptionIdentifier, ShouldEqual, "LIQ03")
 		So(filings[1].Data, ShouldContainKey, "practitioners")
-		So(len(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)), ShouldEqual, 1)
-		So(filings[1].Data["attachments"].([]*models.AttachmentResourceDao)[0].Type, ShouldEqual, "progress-report")
+		So(len(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)), ShouldEqual, 1)
+		So(filings[1].Data["attachments"].([]*models.AttachmentFilingsResource)[0].Type, ShouldEqual, "progress-report")
 
 		So(err, ShouldBeNil)
 	})

@@ -29,7 +29,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		statement.Attachments = []string{}
@@ -48,7 +50,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		statement.Attachments = []string{
@@ -74,7 +78,8 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		i := 1
 		for i <= 2 {
 			mockService := mocks.NewMockService(mockCtrl)
-			mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+			insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+			mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 			validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 			So(validationErr, ShouldBeEmpty)
@@ -91,13 +96,28 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		defer mockCtrl.Finish()
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(models.InsolvencyResourceDao{}, fmt.Errorf("err"))
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(&models.InsolvencyResourceDao{}, fmt.Errorf("err"))
 
 		statement := generateStatement()
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
 		So(err.Error(), ShouldContainSubstring, "err")
+		So(validationErr, ShouldBeEmpty)
+	})
+
+	Convey("insolvency resource not found", t, func() {
+		mockCtrl := gomock.NewController(t)
+		defer mockCtrl.Finish()
+
+		mockService := mocks.NewMockService(mockCtrl)
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(nil, nil)
+
+		statement := generateStatement()
+
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
+		So(err.Error(), ShouldEqual, "no insolvency case found for transaction id")
 		So(validationErr, ShouldBeEmpty)
 	})
 
@@ -109,7 +129,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusTeapot, ""))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -126,7 +148,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = "2001/1/2"
@@ -146,7 +170,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 
 		statement := generateStatement()
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		req := httptest.NewRequest(http.MethodGet, "/", nil)
 		validationErr, err := ValidateStatementDetails(mockService, &statement, transactionID, req)
@@ -162,7 +188,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = time.Now().AddDate(0, 0, 1).Format("2006-01-02")
@@ -181,7 +209,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 		statement.StatementDate = "1999-01-01"
@@ -200,7 +230,9 @@ func TestUnitIsValidStatementDate(t *testing.T) {
 		httpmock.RegisterResponder(http.MethodGet, apiURL+"/company/1234", httpmock.NewStringResponder(http.StatusOK, companyProfileDateResponse("2000-06-26 00:00:00.000Z")))
 
 		mockService := mocks.NewMockService(mockCtrl)
-		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(generateInsolvencyResource(), nil)
+
+		insolvencyResourceDao, _, _ := generateInsolvencyPractitionerAppointmentResources()
+		mockService.EXPECT().GetInsolvencyResource(transactionID).Return(insolvencyResourceDao, nil)
 
 		statement := generateStatement()
 

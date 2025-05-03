@@ -2,27 +2,28 @@ package models
 
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
-// InsolvencyResourceDao contains the meta-data for the insolvency resource in Mongo
+// InsolvencyResourceDao contains insolvency resource in Mongo
 type InsolvencyResourceDao struct {
-	ID            primitive.ObjectID         `bson:"_id"`
-	TransactionID string                     `bson:"transaction_id"`
-	Etag          string                     `bson:"etag"`
-	Kind          string                     `bson:"kind"`
-	Data          InsolvencyResourceDaoData  `bson:"data"`
-	Links         InsolvencyResourceLinksDao `bson:"links"`
+	ID            primitive.ObjectID `bson:"_id"`
+	TransactionID string             `bson:"transaction_id"`
+	Data          struct {
+		CompanyNumber      string                              `bson:"company_number"`
+		CaseType           string                              `bson:"case_type"`
+		CompanyName        string                              `bson:"company_name"`
+		Etag               string                              `bson:"etag"`
+		Kind               string                              `bson:"kind"`
+		Practitioners      *InsolvencyResourcePractitionersDao `bson:"practitioners,omitempty"`
+		Links              InsolvencyResourceLinksDao          `bson:"links,omitempty"`
+		Attachments        []AttachmentResourceDao             `bson:"attachments,omitempty"`
+		Resolution         *ResolutionResourceDao              `bson:"resolution,omitempty"`
+		StatementOfAffairs *StatementOfAffairsResourceDao      `bson:"statement-of-affairs,omitempty"`
+		ProgressReport     *ProgressReportResourceDao          `bson:"progress-report,omitempty"`
+	}
 }
 
-// InsolvencyResourceDaoData contains the data for the insolvency resource in Mongo
-type InsolvencyResourceDaoData struct {
-	CompanyNumber      string                         `bson:"company_number"`
-	CaseType           string                         `bson:"case_type"`
-	CompanyName        string                         `bson:"company_name"`
-	Practitioners      []PractitionerResourceDao      `bson:"practitioners,omitempty"`
-	Attachments        []AttachmentResourceDao        `bson:"attachments,omitempty"`
-	Resolution         *ResolutionResourceDao         `bson:"resolution,omitempty"`
-	StatementOfAffairs *StatementOfAffairsResourceDao `bson:"statement-of-affairs,omitempty"`
-	ProgressReport     *ProgressReportResourceDao     `bson:"progress-report,omitempty"`
-}
+// InsolvencyResourcePractitionersDao contains a map of links to the practitioner
+// resources associated with an insolvency resource, keyed by PractitionerID
+type InsolvencyResourcePractitionersDao map[string]string
 
 // InsolvencyResourceLinksDao contains the links for the insolvency resource
 type InsolvencyResourceLinksDao struct {
@@ -33,23 +34,34 @@ type InsolvencyResourceLinksDao struct {
 
 // PractitionerResourceDao contains the data for the practitioner resource in Mongo
 type PractitionerResourceDao struct {
-	ID              string                       `bson:"id"`
-	IPCode          string                       `bson:"ip_code"`
-	FirstName       string                       `bson:"first_name"`
-	LastName        string                       `bson:"last_name"`
-	TelephoneNumber string                       `bson:"telephone_number,omitempty"`
-	Email           string                       `bson:"email,omitempty"`
-	Address         AddressResourceDao           `bson:"address"`
-	Role            string                       `bson:"role"`
-	Links           PractitionerResourceLinksDao `bson:"links"`
-	Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
+	TransactionID string `bson:"transaction_id"`
+	Data          struct {
+		PractitionerId  string                       `bson:"practitioner_id"`
+		IPCode          string                       `bson:"ip_code"`
+		FirstName       string                       `bson:"first_name"`
+		LastName        string                       `bson:"last_name"`
+		TelephoneNumber string                       `bson:"telephone_number,omitempty"`
+		Email           string                       `bson:"email,omitempty"`
+		Address         AddressResourceDao           `bson:"address"`
+		Role            string                       `bson:"role"`
+		Etag            string                       `bson:"etag"`
+		Kind            string                       `bson:"kind"`
+		Links           PractitionerResourceLinksDao `bson:"links"`
+		Appointment     *AppointmentResourceDao      `bson:"appointment,omitempty"`
+	}
 }
 
-// AppointmentResourceDao contains the appointment data for a practitioner
+// AppointmentResourceDao contains the data for the appointment resource in Mongo
 type AppointmentResourceDao struct {
-	AppointedOn string                      `bson:"appointed_on,omitempty"`
-	MadeBy      string                      `bson:"made_by,omitempty"`
-	Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
+	TransactionID  string `bson:"transaction_id"`
+	PractitionerId string `bson:"practitioner_id"`
+	Data           struct {
+		AppointedOn string                      `bson:"appointed_on,omitempty"`
+		MadeBy      string                      `bson:"made_by,omitempty"`
+		Links       AppointmentResourceLinksDao `bson:"links,omitempty"`
+		Etag        string                      `bson:"etag"`
+		Kind        string                      `bson:"kind"`
+	}
 }
 
 // AppointmentResourceLinksDao contains the Links data for an appointment
@@ -71,7 +83,8 @@ type AddressResourceDao struct {
 
 // PractitionerResourceLinksDao contains the Links data for a practitioner
 type PractitionerResourceLinksDao struct {
-	Self string `bson:"self"`
+	Self        string `bson:"self"`
+	Appointment string `bson:"appointment,omitempty"`
 }
 
 // AttachmentResourceDao contains the data for the attachment DB resource

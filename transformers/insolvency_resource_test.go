@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/companieshouse/insolvency-api/constants"
-	mock_dao "github.com/companieshouse/insolvency-api/mocks"
 	"github.com/companieshouse/insolvency-api/models"
+	"github.com/companieshouse/insolvency-api/utils"
 	"github.com/golang/mock/gomock"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -16,8 +16,6 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
-
 	Convey("field mappings are correct", t, func() {
 
 		transactionID := "987654321"
@@ -27,40 +25,18 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 			CaseType:      constants.CVL.String(),
 			CompanyName:   "companyName",
 		}
-		
-		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 
-		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID, mockHelperService)
+		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID)
 
 		So(response.TransactionID, ShouldEqual, transactionID)
 		So(response.Data.CompanyNumber, ShouldEqual, incomingRequest.CompanyNumber)
 		So(response.Data.CaseType, ShouldEqual, constants.CVL.String())
 		So(response.Data.CompanyName, ShouldEqual, "companyName")
-		So(response.Etag, ShouldNotBeNil)
-		So(response.Kind, ShouldEqual, "insolvency-resource#insolvency-resource")
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+constants.InsolvencyPath))
-		So(response.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
-		So(response.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
-	})
-
-	Convey("Etag failed to generate", t, func() {
-
-		transactionID := "987654321"
-
-		incomingRequest := &models.InsolvencyRequest{
-			CompanyNumber: "12345678",
-			CaseType:      constants.CVL.String(),
-			CompanyName:   "companyName",
-		}
-
-		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
-
-		mockHelperService.EXPECT().GenerateEtag().Return("", fmt.Errorf("err"))
-
-		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID, mockHelperService)
-
-		So(response, ShouldBeNil)
-
+		So(response.Data.Etag, ShouldNotBeNil)
+		So(response.Data.Kind, ShouldEqual, "insolvency-resource#insolvency-resource")
+		So(response.Data.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+constants.InsolvencyPath))
+		So(response.Data.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
+		So(response.Data.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
 	})
 }
 
@@ -69,19 +45,16 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 
 		transactionID := "987654321"
 
-		dao := &models.InsolvencyResourceDao{
-			Etag: "etag123",
-			Kind: "insolvency-resource#insolvency-resource",
-			Data: models.InsolvencyResourceDaoData{
-				CompanyName:   "companyName",
-				CaseType:      constants.CVL.String(),
-				CompanyNumber: "123456789",
-			},
-			Links: models.InsolvencyResourceLinksDao{
-				Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
-				Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
-				ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
-			},
+		dao := &models.InsolvencyResourceDao{}
+		dao.Data.Etag = "etag123"
+		dao.Data.Kind = "insolvency-resource#insolvency-resource"
+		dao.Data.CompanyName = "companyName"
+		dao.Data.CaseType = constants.CVL.String()
+		dao.Data.CompanyNumber = "123456789"
+		dao.Data.Links = models.InsolvencyResourceLinksDao{
+			Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
+			Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
+			ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
 		}
 
 		response := InsolvencyResourceDaoToCreatedResponse(dao)
@@ -89,27 +62,137 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 		So(response.CompanyNumber, ShouldEqual, dao.Data.CompanyNumber)
 		So(response.CaseType, ShouldEqual, dao.Data.CaseType)
 		So(response.CompanyName, ShouldEqual, dao.Data.CompanyName)
-		So(response.Etag, ShouldEqual, dao.Etag)
-		So(response.Kind, ShouldEqual, dao.Kind)
-		So(response.Links.Self, ShouldEqual, dao.Links.Self)
-		So(response.Links.Transaction, ShouldEqual, dao.Links.Transaction)
-		So(response.Links.ValidationStatus, ShouldEqual, dao.Links.ValidationStatus)
+		So(response.Etag, ShouldEqual, dao.Data.Etag)
+		So(response.Kind, ShouldEqual, dao.Data.Kind)
+		So(response.Links.Self, ShouldEqual, dao.Data.Links.Self)
+		So(response.Links.Transaction, ShouldEqual, dao.Data.Links.Transaction)
+		So(response.Links.ValidationStatus, ShouldEqual, dao.Data.Links.ValidationStatus)
 	})
 }
 
-func TestUnitAppointmentResourceDaoToAppointedResponse(t *testing.T) {
+func TestUnitPractitionerResourceDaosToPractitionerFilingsResponse(t *testing.T) {
+	Convey("field mappings are correct - no appointment", t, func() {
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.IPCode = "1111"
+		practitionerResourceDao.Data.FirstName = "First"
+		practitionerResourceDao.Data.LastName = "Last"
+		practitionerResourceDao.Data.Etag = "etag123"
+		practitionerResourceDao.Data.Kind = "insolvency-resource#insolvency-resource"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self: "/self/link",
+		}
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{
+			AddressLine1: "addressline1",
+			Locality:     "locality",
+		}
+		practitionerResourceDao.Data.Role = constants.FinalLiquidator.String()
+		daoList := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		responses := PractitionerResourceDaosToPractitionerFilingsResponse(daoList)
+
+		So(responses[0].IPCode, ShouldEqual, daoList[0].Data.IPCode)
+		So(responses[0].FirstName, ShouldEqual, daoList[0].Data.FirstName)
+		So(responses[0].LastName, ShouldEqual, daoList[0].Data.LastName)
+		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
+		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
+		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
+		So(responses[0].Etag, ShouldEqual, "")
+		So(responses[0].Kind, ShouldEqual, "")
+		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
+		So(responses[0].Links.Appointment, ShouldEqual, "")
+		So(responses[0].Appointment, ShouldBeNil)
+	})
+
+	Convey("field mappings are correct - with appointment", t, func() {
+
+		practitionerResourceDao := models.PractitionerResourceDao{}
+		practitionerResourceDao.Data.IPCode = "1111"
+		practitionerResourceDao.Data.FirstName = "First"
+		practitionerResourceDao.Data.LastName = "Last"
+		practitionerResourceDao.Data.Etag = "etag123"
+		practitionerResourceDao.Data.Kind = "insolvency-resource#insolvency-resource"
+		practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+			Self:        "/self/link",
+			Appointment: "/appointment/link",
+		}
+		practitionerResourceDao.Data.Address = models.AddressResourceDao{
+			AddressLine1: "addressline1",
+			Locality:     "locality",
+		}
+		practitionerResourceDao.Data.Role = constants.FinalLiquidator.String()
+		appointmentResourceDao := &models.AppointmentResourceDao{}
+		appointmentResourceDao.Data.AppointedOn = "2012-02-23"
+		appointmentResourceDao.Data.MadeBy = "company"
+		appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{
+			Self: "/appt/self/link",
+		}
+		practitionerResourceDao.Data.Appointment = appointmentResourceDao
+		daoList := append([]models.PractitionerResourceDao{}, practitionerResourceDao)
+
+		responses := PractitionerResourceDaosToPractitionerFilingsResponse(daoList)
+
+		So(responses[0].IPCode, ShouldEqual, daoList[0].Data.IPCode)
+		So(responses[0].FirstName, ShouldEqual, daoList[0].Data.FirstName)
+		So(responses[0].LastName, ShouldEqual, daoList[0].Data.LastName)
+		So(responses[0].Address.AddressLine1, ShouldEqual, daoList[0].Data.Address.AddressLine1)
+		So(responses[0].Address.Locality, ShouldEqual, daoList[0].Data.Address.Locality)
+		So(responses[0].Role, ShouldEqual, daoList[0].Data.Role)
+		So(responses[0].Etag, ShouldEqual, "")
+		So(responses[0].Kind, ShouldEqual, "")
+		So(responses[0].Links.Self, ShouldEqual, daoList[0].Data.Links.Self)
+		So(responses[0].Links.Appointment, ShouldEqual, "")
+		So(responses[0].Appointment.AppointedOn, ShouldEqual, appointmentResourceDao.Data.AppointedOn)
+		So(responses[0].Appointment.MadeBy, ShouldEqual, appointmentResourceDao.Data.MadeBy)
+		So(responses[0].Appointment.Links.Self, ShouldEqual, appointmentResourceDao.Data.Links.Self)
+
+	})
+}
+
+func TestUnitAttachmentResourceDaoToResponse(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
-		dao := &models.AppointmentResourceDao{
-			AppointedOn: "2012-02-23",
-			MadeBy:      "company",
-			Links: models.AppointmentResourceLinksDao{
-				Self: "/self/link",
-			},
+
+		dao := &models.AttachmentResourceDao{}
+		dao.ID = "attachmentID"
+		dao.Type = "attachmentType"
+		dao.Status = "attachmentStatus"
+		dao.Links = models.AttachmentResourceLinksDao{
+			Self:     "attachment/self/Link",
+			Download: "attachment/download/link",
 		}
 
-		response := AppointmentResourceDaoToAppointedResponse(dao)
-		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
-		So(response.MadeBy, ShouldEqual, dao.MadeBy)
+		response, err := AttachmentResourceDaoToResponse(dao, "fileName", 1234, "pdf", utils.NewHelperService())
+
+		So(err, ShouldBeNil)
+		So(response.Etag, ShouldNotEqual, "")
+		So(response.File.ContentType, ShouldEqual, "pdf")
+		So(response.File.Name, ShouldEqual, "fileName")
+		So(response.File.Size, ShouldEqual, 1234)
+		So(response.File.AVStatus, ShouldEqual, "")
+		So(response.Status, ShouldEqual, dao.Status)
 		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+		So(response.Links.Download, ShouldEqual, dao.Links.Download)
+	})
+}
+
+func TestUnitAttachmentResourceDaoToFilingsResponse(t *testing.T) {
+	Convey("field mappings are correct", t, func() {
+
+		dao := &models.AttachmentResourceDao{}
+		dao.ID = "attachmentID"
+		dao.Type = "attachmentType"
+		dao.Status = "attachmentStatus"
+		dao.Links = models.AttachmentResourceLinksDao{
+			Self:     "attachment/self/Link",
+			Download: "attachment/download/link",
+		}
+
+		response := AttachmentResourceDaoToFilingsResponse(dao)
+
+		So(response.ID, ShouldEqual, dao.ID)
+		So(response.Type, ShouldEqual, dao.Type)
+		So(response.Status, ShouldEqual, dao.Status)
+		So(response.Links.Self, ShouldEqual, dao.Links.Self)
+		So(response.Links.Download, ShouldEqual, dao.Links.Download)
 	})
 }

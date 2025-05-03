@@ -7,29 +7,56 @@ import (
 
 // Service interface declares how to interact with the persistence layer regardless of underlying technology
 type Service interface {
+
 	// CreateInsolvencyResource will persist a newly created resource
-	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (error, int)
+	CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (int, error)
 
-	// GetInsolvencyResource will retrieve an Insolvency Resource
-	GetInsolvencyResource(transactionID string) (models.InsolvencyResourceDao, error)
+	// GetInsolvencyResource will retrieve an Insolvency Resource with the specified transactionID.
+	// If no insolvency resource is found then it returns nil with no error.
+	GetInsolvencyResource(transactionID string) (*models.InsolvencyResourceDao, error)
 
-	// CreatePractitionersResource will persist a newly created practitioner resource
-	CreatePractitionersResource(dao *models.PractitionerResourceDao, transactionID string) (error, int)
+	// GetInsolvencyAndExpandedPractitionerResources retrieves both the insolvency and practitioner resources,
+	// with the appointment details inline, for an insolvency case with the specified transactionID.
+	// If no insolvency resource is found then it returns nil for both resources, with no error.
+	GetInsolvencyAndExpandedPractitionerResources(transactionID string) (*models.InsolvencyResourceDao, []models.PractitionerResourceDao, error)
 
-	// GetPractitionerResources will retrieve a list of persisted practitioners
-	GetPractitionerResources(transactionID string) ([]models.PractitionerResourceDao, error)
+	// CreatePractitionerResource will persist a newly created practitioner resource
+	CreatePractitionerResource(dao *models.PractitionerResourceDao, transactionID string) (int, error)
 
-	// GetPractitionerResource will retrieve a practitioner from the insolvency resource
-	GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error)
+	// AddPractitionerToInsolvencyResource will update insolvency by adding a link to a practitioner resource
+	AddPractitionerToInsolvencyResource(transactionID string, practitionerID string, practitionerLink string) (int, error)
 
-	// DeletePractitioner will delete a practitioner from the Insolvency resource
-	DeletePractitioner(practitionerID, transactionID string) (error, int)
+	// GetPractitionerAppointment will retrieve a practitioner appointment
+	GetPractitionerAppointment(transactionID string, practitionerID string) (*models.AppointmentResourceDao, error)
 
-	// AppointPractitioner will appoint add appointment details to a practitioner resource
-	AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int)
+	// GetSinglePractitionerResource gets a specific practitioner by transactionID & practitionerID.
+	// If no insolvency case is found for the transactionID, or the insolvency case does not link to
+	// the practitionerID, then the function returns nil with no error to indicate a 'not found' result.
+	GetSinglePractitionerResource(transactionID string, practitionerID string) (*models.PractitionerResourceDao, error)
+
+	// GetAllPractitionerResourcesForTransactionID gets all practitioner resources belonging to the insolvency case with the given transactionID.
+	// If no insolvency case is found for the transactionID, or the insolvency case contains no practitioner
+	// references, then the function returns nil with no error to indicate a 'not found' result.
+	GetAllPractitionerResourcesForTransactionID(transactionID string) ([]models.PractitionerResourceDao, error)
+
+	// DeletePractitioner will delete a practitioner from the Insolvency resource with the specified transactionID and practitionerID.
+	// Any appointment data for the practitioner is also deleted. If successful it returns http.StatusNoContent.
+	// If no insolvency case is found for the transactionID, or the insolvency case does not link to
+	// the practitionerID, then the function returns http.StatusNotFound with an error.
+	DeletePractitioner(transactionID, practitionerID string) (int, error)
+
+	// CreateAppointmentResource will create appointment resource
+	CreateAppointmentResource(dao *models.AppointmentResourceDao) (int, error)
+
+	// UpdatePractitionerAppointment adds an appointment reference into the practitioner resource with the specified transactionID and practitionerID
+	UpdatePractitionerAppointment(appointmentResourceDao *models.AppointmentResourceDao, transactionID string, practitionerID string) (int, error)
 
 	// DeletePractitionerAppointment will delete the appointment for a practitioner
-	DeletePractitionerAppointment(transactionID string, practitionerID string) (error, int)
+	// and remove the appointment reference from the practitioner resource.
+	// If successful it returns http.StatusNoContent.
+	// If no insolvency case is found for the transactionID, the insolvency case does not link to
+	// the practitionerID, or the practitionerID has no appointment, then the function returns http.StatusNotFound with an error.
+	DeletePractitionerAppointment(transactionID, practitionerID, etag string) (int, error)
 
 	// AddAttachmentToInsolvencyResource will add an attachment to an insolvency resource
 	AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error)

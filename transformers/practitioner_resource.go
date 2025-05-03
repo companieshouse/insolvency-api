@@ -5,67 +5,72 @@ import (
 
 	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/models"
-	"github.com/companieshouse/insolvency-api/utils"
 )
 
 // PractitionerResourceRequestToDB transforms practitioner request model to the dao model
-func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
+func PractitionerResourceRequestToDB(req *models.PractitionerRequest, practitionerID string, transactionID string) *models.PractitionerResourceDao {
 
-	id := utils.GenerateID()
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + id)
+	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID)
 
 	// Pad IP Code with leading zeros
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
 
-	dao := &models.PractitionerResourceDao{
-		ID:              id,
-		IPCode:          req.IPCode,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		TelephoneNumber: req.TelephoneNumber,
-		Email:           req.Email,
-		Address: models.AddressResourceDao{
-			Premises:     req.Address.Premises,
-			AddressLine1: req.Address.AddressLine1,
-			AddressLine2: req.Address.AddressLine2,
-			Country:      req.Address.Country,
-			Locality:     req.Address.Locality,
-			Region:       req.Address.Region,
-			PostalCode:   req.Address.PostalCode,
-			POBox:        req.Address.POBox,
-		},
-		Role: req.Role,
-		Links: models.PractitionerResourceLinksDao{
-			Self: selfLink,
-		},
+	practitionerResourceDao := models.PractitionerResourceDao{}
+	practitionerResourceDao.TransactionID = transactionID
+	practitionerResourceDao.Data.IPCode = req.IPCode
+	practitionerResourceDao.Data.FirstName = req.FirstName
+	practitionerResourceDao.Data.LastName = req.LastName
+	practitionerResourceDao.Data.TelephoneNumber = req.TelephoneNumber
+	practitionerResourceDao.Data.Email = req.Email
+	practitionerResourceDao.Data.Address = models.AddressResourceDao{
+		Premises:     req.Address.Premises,
+		AddressLine1: req.Address.AddressLine1,
+		AddressLine2: req.Address.AddressLine2,
+		Country:      req.Address.Country,
+		Locality:     req.Address.Locality,
+		Region:       req.Address.Region,
+		PostalCode:   req.Address.PostalCode,
+		POBox:        req.Address.POBox,
+	}
+	practitionerResourceDao.Data.Role = req.Role
+	practitionerResourceDao.Data.Links = models.PractitionerResourceLinksDao{
+		Self: selfLink,
 	}
 
-	return dao
+	return &practitionerResourceDao
 }
 
 // PractitionerResourceDaoToCreatedResponse transforms the dao model to the created response model
 func PractitionerResourceDaoToCreatedResponse(model *models.PractitionerResourceDao) *models.CreatedPractitionerResource {
-	return &models.CreatedPractitionerResource{
-		IPCode:          model.IPCode,
-		FirstName:       model.FirstName,
-		LastName:        model.LastName,
-		TelephoneNumber: model.TelephoneNumber,
-		Email:           model.Email,
+	practitionerResourceDao := model.Data
+
+	practitionerResource := &models.CreatedPractitionerResource{
+		PractitionerId:  practitionerResourceDao.PractitionerId,
+		IPCode:          practitionerResourceDao.IPCode,
+		FirstName:       practitionerResourceDao.FirstName,
+		LastName:        practitionerResourceDao.LastName,
+		Email:           practitionerResourceDao.Email,
+		TelephoneNumber: practitionerResourceDao.TelephoneNumber,
+		Etag:            practitionerResourceDao.Etag,
+		Kind:            practitionerResourceDao.Kind,
 		Address: models.CreatedAddressResource{
-			Premises:     model.Address.Premises,
-			AddressLine1: model.Address.AddressLine1,
-			AddressLine2: model.Address.AddressLine2,
-			Country:      model.Address.Country,
-			Locality:     model.Address.Locality,
-			Region:       model.Address.Region,
-			PostalCode:   model.Address.PostalCode,
-			POBox:        model.Address.POBox,
+			Premises:     practitionerResourceDao.Address.Premises,
+			AddressLine1: practitionerResourceDao.Address.AddressLine1,
+			AddressLine2: practitionerResourceDao.Address.AddressLine2,
+			Country:      practitionerResourceDao.Address.Country,
+			Locality:     practitionerResourceDao.Address.Locality,
+			Region:       practitionerResourceDao.Address.Region,
+			PostalCode:   practitionerResourceDao.Address.PostalCode,
+			POBox:        practitionerResourceDao.Address.POBox,
 		},
-		Role: model.Role,
-		Links: models.CreatedPractitionerLinksResource{
-			Self: model.Links.Self,
-		},
+		Role: practitionerResourceDao.Role,
 	}
+	practitionerResource.Links.Appointment = practitionerResourceDao.Links.Appointment
+
+	practitionerResource.Links.Self = practitionerResourceDao.Links.Self
+
+	return practitionerResource
+
 }
 
 // PractitionerResourceDaoListToCreatedResponseList transforms a list of practitioner dao models to
@@ -81,27 +86,31 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 }
 
 // PractitionerAppointmentRequestToDB transforms an appointment request to a dao model
-func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
-
+func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) models.AppointmentResourceDao {
 	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
-	dao := &models.AppointmentResourceDao{
-		AppointedOn: req.AppointedOn,
-		MadeBy:      req.MadeBy,
-		Links: models.AppointmentResourceLinksDao{
-			Self: selfLink,
-		},
+
+	appointmentResourceDao := models.AppointmentResourceDao{}
+	appointmentResourceDao.TransactionID = transactionID
+	appointmentResourceDao.Data.AppointedOn = req.AppointedOn
+	appointmentResourceDao.Data.MadeBy = req.MadeBy
+	appointmentResourceDao.Data.Links = models.AppointmentResourceLinksDao{
+		Self: selfLink,
 	}
 
-	return dao
+	appointmentResourceDao.PractitionerId = practitionerID
+
+	return appointmentResourceDao
 }
 
 // PractitionerAppointmentDaoToResponse transforms an appointment dao model to a response
-func PractitionerAppointmentDaoToResponse(appointment models.AppointmentResourceDao) models.AppointedPractitionerResource {
+func PractitionerAppointmentDaoToResponse(appointment *models.AppointmentResourceDao) models.AppointedPractitionerResource {
 	return models.AppointedPractitionerResource{
-		AppointedOn: appointment.AppointedOn,
-		MadeBy:      appointment.MadeBy,
+		AppointedOn: appointment.Data.AppointedOn,
+		MadeBy:      appointment.Data.MadeBy,
 		Links: models.AppointedPractitionerLinksResource{
-			Self: appointment.Links.Self,
+			Self: appointment.Data.Links.Self,
 		},
+		Etag: appointment.Data.Etag,
+		Kind: appointment.Data.Kind,
 	}
 }

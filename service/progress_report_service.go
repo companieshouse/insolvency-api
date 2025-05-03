@@ -6,12 +6,15 @@ import (
 	"strings"
 
 	"github.com/companieshouse/chs.go/log"
+	"github.com/companieshouse/insolvency-api/constants"
 	"github.com/companieshouse/insolvency-api/dao"
 	"github.com/companieshouse/insolvency-api/models"
 	"github.com/companieshouse/insolvency-api/utils"
 )
 
-// ValidateProgressReportDetails checks that the incoming statement details are valid
+// ValidateProgressReportDetails checks that the incoming statement details are valid.
+// Returns an error based on constants.MsgCaseNotFound if insolvency case is not
+// found for transactionID
 func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *models.ProgressReportResourceDao, transactionID string, req *http.Request) (string, error) {
 	var errs []string
 
@@ -32,6 +35,9 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 		err = fmt.Errorf("error getting insolvency resource from DB: [%s]", err)
 		log.ErrorR(req, err)
 		return "", err
+	}
+	if insolvencyResource == nil {
+		return "", fmt.Errorf(constants.MsgCaseNotFound)
 	}
 
 	// Retrieve company incorporation date
@@ -63,7 +69,7 @@ func ValidateProgressReportDetails(svc dao.Service, progressReportStatementDao *
 	}
 
 	// Check if from date is after to date
-	ok, err = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
+	ok, _ = utils.IsDateBeforeDate(progressReportStatementDao.FromDate, progressReportStatementDao.ToDate)
 	if !ok {
 		errs = append(errs, fmt.Sprintf("to_date [%s] should not be before from_date [%s]", progressReportStatementDao.ToDate, progressReportStatementDao.FromDate))
 	}

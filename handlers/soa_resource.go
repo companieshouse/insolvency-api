@@ -45,6 +45,12 @@ func HandleCreateStatementOfAffairs(svc dao.Service, helperService utils.HelperS
 		// Validate the provided statement details are in the correct format
 		validationErrs, err := service.ValidateStatementDetails(svc, statementDao, transactionID, req)
 		if err != nil {
+			if err.Error() == constants.MsgCaseNotFound {
+				log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
+				m := models.NewMessageResponse(fmt.Sprintf(constants.MsgCaseForTransactionNotFound, transactionID))
+				utils.WriteJSONWithStatus(w, req, m, http.StatusNotFound)
+				return
+			}
 			log.ErrorR(req, fmt.Errorf("failed to validate statement of affairs: [%s]", err))
 			m := models.NewMessageResponse(fmt.Sprintf("there was a problem handling your request for transaction ID [%s]", transactionID))
 			utils.WriteJSONWithStatus(w, req, m, http.StatusInternalServerError)
