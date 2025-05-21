@@ -27,7 +27,7 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 			CaseType:      constants.CVL.String(),
 			CompanyName:   "companyName",
 		}
-		
+
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil)
 
 		response := InsolvencyResourceRequestToDB(incomingRequest, transactionID, mockHelperService)
@@ -38,9 +38,9 @@ func TestUnitInsolvencyResourceRequestToDB(t *testing.T) {
 		So(response.Data.CompanyName, ShouldEqual, "companyName")
 		So(response.Etag, ShouldNotBeNil)
 		So(response.Kind, ShouldEqual, "insolvency-resource#insolvency-resource")
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+constants.InsolvencyPath))
-		So(response.Links.Transaction, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID))
-		So(response.Links.ValidationStatus, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+constants.InsolvencyPath))
+		So(response.Links.Transaction, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID))
+		So(response.Links.ValidationStatus, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/validation-status"))
 	})
 
 	Convey("Etag failed to generate", t, func() {
@@ -79,8 +79,8 @@ func TestUnitInsolvencyResourceDaoToCreatedResponse(t *testing.T) {
 			},
 			Links: models.InsolvencyResourceLinksDao{
 				Self:             constants.TransactionsPath + transactionID + constants.InsolvencyPath,
-				Transaction:      fmt.Sprintf(constants.TransactionsPath + transactionID),
-				ValidationStatus: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.ValidationStatusPath),
+				Transaction:      fmt.Sprintf("%s", constants.TransactionsPath+transactionID),
+				ValidationStatus: fmt.Sprintf("%s", constants.TransactionsPath+transactionID+constants.ValidationStatusPath),
 			},
 		}
 

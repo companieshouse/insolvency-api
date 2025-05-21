@@ -80,7 +80,7 @@ func TestUnitUpdateAttachmentStatusDriver(t *testing.T) {
 
 	mt := mtest.New(t, opts)
 
-	defer mt.Close()
+	//defer mt.Close()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -221,7 +221,7 @@ func TestUnitCreateInsolvencyResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("CreateInsolvencyResource with error findone", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -253,7 +253,7 @@ func TestUnitGetInsolvencyResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetInsolvencyResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -288,7 +288,7 @@ func TestUnitCreatePractitionersResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -398,7 +398,7 @@ func TestUnitGetPractitionerResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, practitioners := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetPractitionerResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -469,7 +469,7 @@ func TestUnitGetPractitionerResourcesDriver(t *testing.T) {
 	bsonArrays = append(bsonArrays, bsonData)
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetPractitionerResources runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -558,7 +558,7 @@ func TestUnitDeletePractitionerDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("DeletePractitioner runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -649,7 +649,7 @@ func TestUnitAppointPractitionerDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("AppointPractitioner runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -744,7 +744,7 @@ func TestUnitDeletePractitionerAppointmentDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -857,7 +857,7 @@ func TestUnitAddAttachmentToInsolvencyResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("AddAttachmentToInsolvencyResource runs successfully with findone", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateSuccessResponse(
@@ -949,7 +949,7 @@ func TestUnitGetAttachmentResourcesDriver(t *testing.T) {
 	bsonAttachmentArrays = append(bsonAttachmentArrays, bsonDataAttachment)
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetAttachmentResources runs successfully", func(mt *mtest.T) {
 		bsonInsolvency := bson.D{
@@ -1019,7 +1019,7 @@ func TestUnitGetAttachmentFromInsolvencyResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetAttachmentFromInsolvencyResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1104,7 +1104,7 @@ func TestUnitDeleteAttachmentResourceDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("DeleteAttachmentResource runs successfully", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCursorResponse(1, "models.InsolvencyResourceDao", mtest.FirstBatch, bson.D{
@@ -1204,7 +1204,7 @@ func TestUnitCreateResolutionResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	resolutionResourceDao := models.ResolutionResourceDao{}
 
@@ -1284,7 +1284,7 @@ func TestUnitCreateStatementOfAffairsResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	statementOfAffairsResourceDao := models.StatementOfAffairsResourceDao{}
 
@@ -1415,7 +1415,7 @@ func TestUnitGetStatementOfAffairsResourceDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1516,7 +1516,7 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//()
 
 	mt.Run("DeleteStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1608,7 +1608,7 @@ func TestUnitCreateProgressReportResourceDriver(t *testing.T) {
 	progressReportResourceDao := models.ProgressReportResourceDao{}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("CreateProgressReportResource with error findone", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1649,7 +1649,7 @@ func TestUnitGetProgressReportResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("GetProgressReportResource runs successfully", func(mt *mtest.T) {
 		bsonprogressReport := bson.D{
@@ -1793,7 +1793,7 @@ func TestUnitDeleteProgressReportResourceDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	mt.Run("DeleteProgressReportResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
@@ -1883,7 +1883,7 @@ func TestUnitGetResolutionResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	bsonData := bson.M{
 		"id":               "ID",
@@ -2008,7 +2008,7 @@ func TestUnitDeleteResolutionResourceDriver(t *testing.T) {
 	mongoService, commandError, expectedInsolvency, opts, _ := setDriverUp()
 
 	mt := mtest.New(t, opts)
-	defer mt.Close()
+	//defer mt.Close()
 
 	bsonData := bson.M{
 		"id":               "ID",
