@@ -5,13 +5,13 @@ import (
 	"net/http"
 
 	"github.com/companieshouse/chs.go/log"
-	"github.com/companieshouse/go-sdk-manager/manager"
+	"github.com/companieshouse/insolvency-api/client"
 	"github.com/companieshouse/insolvency-api/models"
 )
 
 func CheckCompanyNameAlphaKey(companyProfileCompanyName string, insolvencyRequest *models.InsolvencyRequest, req *http.Request) (error, int) {
 
-	api, err := manager.GetPrivateSDK(req)
+	api, err := client.GetPrivateSDK(req)
 	if err != nil {
 		return fmt.Errorf("error creating private SDK to call alphakeyservice: [%v]", err.Error()), http.StatusInternalServerError
 	}
