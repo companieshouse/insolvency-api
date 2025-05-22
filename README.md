@@ -21,7 +21,7 @@ Clone Docker CHS Development and follow the steps in the README.
 
 Enable the `insolvency` module. 
 
-As this is an ERIC-routed service, call endpoints via the base url of: `http://api.chs.local:4001`. To check things are running, you might wish to try the healthcheck endpoint: `{base_url}/insolvency/healthcheck`
+As this is an ERIC-routed service, call endpoints via the base url of: `http://api.chs.local:4001`. To check things are running, you might wish to try the healthcheck endpoint: `{base_url}/insolvency-api/healthcheck`
 
 Development mode is available for this service in Docker CHS Development.
 

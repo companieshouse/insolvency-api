@@ -280,7 +280,7 @@ func TestUnitDeleteProgressReportResource(t *testing.T) {
 		_, err := MongoService.DeleteProgressReportResource("transactionID")
 
 		So(err.Error(), ShouldEqual, "there was a problem handling your request for transaction id transactionID")
-		
+
 	})
 }
 

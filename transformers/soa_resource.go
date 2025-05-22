@@ -19,7 +19,7 @@ func StatementOfAffairsResourceRequestToDB(req *models.StatementOfAffairs, trans
 		return nil
 	}
 
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + "/insolvency/statement-of-affairs")
+	selfLink := fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/statement-of-affairs")
 
 	dao := &models.StatementOfAffairsResourceDao{
 		Etag:          etag,

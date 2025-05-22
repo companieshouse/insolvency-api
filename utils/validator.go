@@ -36,7 +36,8 @@ func Validate(data interface{}) string {
 	var errs []string
 	validatorErrs := err.(validator.ValidationErrors)
 	for _, ve := range validatorErrs {
-		translatedErr := fmt.Errorf(ve.Translate(trans))
+		errFormat := ve.Translate(trans)
+		translatedErr := fmt.Errorf("%s", errFormat)
 		errs = append(errs, translatedErr.Error())
 	}
 

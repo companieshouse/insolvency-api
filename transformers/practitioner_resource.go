@@ -12,7 +12,7 @@ import (
 func PractitionerResourceRequestToDB(req *models.PractitionerRequest, transactionID string) *models.PractitionerResourceDao {
 
 	id := utils.GenerateID()
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + id)
+	selfLink := fmt.Sprintf("%s", constants.TransactionsPath+transactionID+constants.PractitionersPath+id)
 
 	// Pad IP Code with leading zeros
 	req.IPCode = fmt.Sprintf("%08s", req.IPCode)
@@ -83,7 +83,7 @@ func PractitionerResourceDaoListToCreatedResponseList(practitionerList []models.
 // PractitionerAppointmentRequestToDB transforms an appointment request to a dao model
 func PractitionerAppointmentRequestToDB(req *models.PractitionerAppointment, transactionID string, practitionerID string) *models.AppointmentResourceDao {
 
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + practitionerID + "/appointment")
+	selfLink := fmt.Sprintf("%s", constants.TransactionsPath+transactionID+constants.PractitionersPath+practitionerID+"/appointment")
 	dao := &models.AppointmentResourceDao{
 		AppointedOn: req.AppointedOn,
 		MadeBy:      req.MadeBy,
