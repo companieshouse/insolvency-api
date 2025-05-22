@@ -38,7 +38,7 @@ func Register(mainRouter *mux.Router, svc dao.Service, helperService utils.Helpe
 		RequireElevatedAPIKeyPrivilege: true,
 	}
 
-	mainRouter.HandleFunc("/insolvency/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
+	mainRouter.HandleFunc("/insolvency-api/healthcheck", healthCheck).Methods(http.MethodGet).Name("healthcheck")
 
 	// Create a public router that requires all users to be authenticated when making requests
 	publicAppRouter := mainRouter.PathPrefix("/transactions").Subrouter()
