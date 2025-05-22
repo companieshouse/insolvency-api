@@ -1499,7 +1499,6 @@ func TestUnitDeleteStatementOfAffairsResourceDriver(t *testing.T) {
 	}
 
 	mt := mtest.New(t, opts)
-	//()
 
 	mt.Run("DeleteStatementOfAffairsResource runs with error", func(mt *mtest.T) {
 		mt.AddMockResponses(mtest.CreateCommandErrorResponse(commandError))
