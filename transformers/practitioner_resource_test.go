@@ -34,7 +34,7 @@ func TestUnitPractitionerResourceRequestToDB(t *testing.T) {
 		So(response.Address.AddressLine1, ShouldEqual, incomingRequest.Address.AddressLine1)
 		So(response.Address.Locality, ShouldEqual, incomingRequest.Address.Locality)
 		So(response.Role, ShouldEqual, incomingRequest.Role)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+response.ID))
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+response.ID))
 	})
 }
 
@@ -54,7 +54,7 @@ func TestUnitPractitionerResourceDaoToCreatedResponse(t *testing.T) {
 			},
 			Role: constants.FinalLiquidator.String(),
 			Links: models.PractitionerResourceLinksDao{
-				Self: fmt.Sprintf(constants.TransactionsPath + transactionID + constants.PractitionersPath + id),
+				Self: fmt.Sprintf("%s", constants.TransactionsPath+transactionID+constants.PractitionersPath+id),
 			},
 		}
 
@@ -109,7 +109,7 @@ func TestUnitPractitionerAppointmentRequestToDB(t *testing.T) {
 
 		So(response.AppointedOn, ShouldEqual, dao.AppointedOn)
 		So(response.MadeBy, ShouldEqual, dao.MadeBy)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/practitioners/"+practitionerID+"/appointment"))
 	})
 }
 

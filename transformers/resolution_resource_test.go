@@ -31,7 +31,7 @@ func TestUnitResolutionResourceRequestToDB(t *testing.T) {
 	Convey("field mappings are correct", t, func() {
 
 		mockHelperService := mock_dao.NewHelperMockHelperService(mockCtrl)
-		
+
 		mockHelperService.EXPECT().GenerateEtag().Return("etag", nil).AnyTimes()
 
 		response := ResolutionResourceRequestToDB(req, transactionID, mockHelperService)
@@ -40,7 +40,7 @@ func TestUnitResolutionResourceRequestToDB(t *testing.T) {
 		So(response.Kind, ShouldEqual, kind)
 		So(response.DateOfResolution, ShouldEqual, req.DateOfResolution)
 		So(response.Attachments, ShouldResemble, req.Attachments)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/resolution"))
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/resolution"))
 	})
 
 	Convey("Etag failed to generate", t, func() {
@@ -89,6 +89,6 @@ func TestUnitResolutionDaoToResponse(t *testing.T) {
 		So(response.Etag, ShouldNotBeNil)
 		So(response.Kind, ShouldEqual, kind)
 		So(response.DateOfResolution, ShouldEqual, dao.DateOfResolution)
-		So(response.Links.Self, ShouldEqual, fmt.Sprintf(constants.TransactionsPath+transactionID+"/insolvency/resolution"))
+		So(response.Links.Self, ShouldEqual, fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/resolution"))
 	})
 }

@@ -6,8 +6,8 @@ package dao
 import (
 	reflect "reflect"
 
-	gomock "github.com/golang/mock/gomock"
 	"github.com/companieshouse/insolvency-api/models"
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockDAO is a mock of DAO interface.
@@ -39,7 +39,7 @@ func (m *MockDAO) CreateInsolvencyResource(dao *models.InsolvencyResourceDao) (e
 	ret := m.ctrl.Call(m, "CreateInsolvencyResource", dao)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // CreateInsolvencyResource indicates an expected call of CreateInsolvencyResource.
@@ -54,7 +54,7 @@ func (m *MockDAO) GetInsolvencyResource(transactionID string) (models.Insolvency
 	ret := m.ctrl.Call(m, "GetInsolvencyResource", transactionID)
 	ret0, _ := ret[0].(models.InsolvencyResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetInsolvencyResource indicates an expected call of GetInsolvencyResource.
@@ -69,7 +69,7 @@ func (m *MockDAO) CreatePractitionersResource(dao *models.PractitionerResourceDa
 	ret := m.ctrl.Call(m, "CreatePractitionersResource", transactionID)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // CreatePractitionersResource indicates an expected call of CreatePractitionersResource.
@@ -84,7 +84,7 @@ func (m *MockDAO) GetPractitionerResources(transactionID string) ([]models.Pract
 	ret := m.ctrl.Call(m, "GetPractitionerResources", transactionID)
 	ret0, _ := ret[0].([]models.PractitionerResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetPractitionerResources indicates an expected call of GetPractitionerResources.
@@ -96,46 +96,46 @@ func (mr *MockDAOMockRecorder) GetPractitionerResources(transactionID interface{
 // GetPractitionerResource mocks base method.
 func (m *MockDAO) GetPractitionerResource(practitionerID string, transactionID string) (models.PractitionerResourceDao, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPractitionerResource", practitionerID,transactionID)
+	ret := m.ctrl.Call(m, "GetPractitionerResource", practitionerID, transactionID)
 	ret0, _ := ret[0].(models.PractitionerResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetPractitionerResource indicates an expected call of GetPractitionerResource.
-func (mr *MockDAOMockRecorder) GetPractitionerResource(practitionerID,transactionID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) GetPractitionerResource(practitionerID, transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionerResource", reflect.TypeOf((*MockDAO)(nil).GetPractitionerResource),practitionerID, transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPractitionerResource", reflect.TypeOf((*MockDAO)(nil).GetPractitionerResource), practitionerID, transactionID)
 }
 
 // DeletePractitioner mocks base method.
 func (m *MockDAO) DeletePractitioner(practitionerID string, transactionID string) (error, int) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeletePractitioner", practitionerID,transactionID)
+	ret := m.ctrl.Call(m, "DeletePractitioner", practitionerID, transactionID)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // DeletePractitioner indicates an expected call of DeletePractitioner.
-func (mr *MockDAOMockRecorder) DeletePractitioner(practitionerID,transactionID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) DeletePractitioner(practitionerID, transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitioner", reflect.TypeOf((*MockDAO)(nil).DeletePractitioner),practitionerID, transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitioner", reflect.TypeOf((*MockDAO)(nil).DeletePractitioner), practitionerID, transactionID)
 }
 
 // AppointPractitioner mocks base method.
 func (m *MockDAO) AppointPractitioner(dao *models.AppointmentResourceDao, transactionID string, practitionerID string) (error, int) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AppointPractitioner",dao,transactionID,practitionerID)
+	ret := m.ctrl.Call(m, "AppointPractitioner", dao, transactionID, practitionerID)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // AppointPractitioner indicates an expected call of AppointPractitioner.
-func (mr *MockDAOMockRecorder) AppointPractitioner(dao,transactionID,practitionerID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) AppointPractitioner(dao, transactionID, practitionerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppointPractitioner", reflect.TypeOf((*MockDAO)(nil).AppointPractitioner),dao,transactionID,practitionerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AppointPractitioner", reflect.TypeOf((*MockDAO)(nil).AppointPractitioner), dao, transactionID, practitionerID)
 }
 
 // DeletePractitionerAppointment mocks base method.
@@ -144,28 +144,28 @@ func (m *MockDAO) DeletePractitionerAppointment(transactionID string, practition
 	ret := m.ctrl.Call(m, "DeletePractitionerAppointment", transactionID, practitionerID)
 	ret0, _ := ret[0].(error)
 	ret1, _ := ret[1].(int)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // DeletePractitionerAppointment indicates an expected call of DeletePractitionerAppointment.
-func (mr *MockDAOMockRecorder) DeletePractitionerAppointment(transactionID,practitionerID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) DeletePractitionerAppointment(transactionID, practitionerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitionerAppointment", reflect.TypeOf((*MockDAO)(nil).DeletePractitionerAppointment),transactionID,practitionerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePractitionerAppointment", reflect.TypeOf((*MockDAO)(nil).DeletePractitionerAppointment), transactionID, practitionerID)
 }
 
 // AddAttachmentToInsolvencyResource mocks base method.
 func (m *MockDAO) AddAttachmentToInsolvencyResource(transactionID string, fileID string, attachmentType string) (*models.AttachmentResourceDao, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddAttachmentToInsolvencyResource", transactionID, fileID,attachmentType)
+	ret := m.ctrl.Call(m, "AddAttachmentToInsolvencyResource", transactionID, fileID, attachmentType)
 	ret0, _ := ret[0].(*models.AttachmentResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // AddAttachmentToInsolvencyResource indicates an expected call of AddAttachmentToInsolvencyResource.
-func (mr *MockDAOMockRecorder) AddAttachmentToInsolvencyResource(transactionID,fileID,attachmentType interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) AddAttachmentToInsolvencyResource(transactionID, fileID, attachmentType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAttachmentToInsolvencyResource", reflect.TypeOf((*MockDAO)(nil).AddAttachmentToInsolvencyResource),transactionID, fileID,attachmentType)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAttachmentToInsolvencyResource", reflect.TypeOf((*MockDAO)(nil).AddAttachmentToInsolvencyResource), transactionID, fileID, attachmentType)
 }
 
 // GetAttachmentResources mocks base method.
@@ -174,13 +174,13 @@ func (m *MockDAO) GetAttachmentResources(transactionID string) ([]models.Attachm
 	ret := m.ctrl.Call(m, "GetAttachmentResources", transactionID)
 	ret0, _ := ret[0].([]models.AttachmentResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetAttachmentResources indicates an expected call of GetAttachmentResources.
 func (mr *MockDAOMockRecorder) GetAttachmentResources(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentResources", reflect.TypeOf((*MockDAO)(nil).GetAttachmentResources),transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentResources", reflect.TypeOf((*MockDAO)(nil).GetAttachmentResources), transactionID)
 }
 
 // GetAttachmentFromInsolvencyResource mocks base method.
@@ -189,148 +189,146 @@ func (m *MockDAO) GetAttachmentFromInsolvencyResource(transactionID string, file
 	ret := m.ctrl.Call(m, "GetAttachmentFromInsolvencyResource", transactionID)
 	ret0, _ := ret[0].(models.AttachmentResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetAttachmentFromInsolvencyResource indicates an expected call of GetAttachmentFromInsolvencyResource.
-func (mr *MockDAOMockRecorder) GetAttachmentFromInsolvencyResource(transactionID,fileID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) GetAttachmentFromInsolvencyResource(transactionID, fileID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentFromInsolvencyResource", reflect.TypeOf((*MockDAO)(nil).GetAttachmentFromInsolvencyResource),transactionID,fileID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAttachmentFromInsolvencyResource", reflect.TypeOf((*MockDAO)(nil).GetAttachmentFromInsolvencyResource), transactionID, fileID)
 }
 
 // DeleteAttachmentResource mocks base method.
 func (m *MockDAO) DeleteAttachmentResource(transactionID, attachmentID string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAttachmentResource", transactionID,attachmentID)
+	ret := m.ctrl.Call(m, "DeleteAttachmentResource", transactionID, attachmentID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // DeleteAttachmentResource indicates an expected call of DeleteAttachmentResource.
-func (mr *MockDAOMockRecorder) DeleteAttachmentResource(transactionID,attachmentID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) DeleteAttachmentResource(transactionID, attachmentID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachmentResource", reflect.TypeOf((*MockDAO)(nil).DeleteAttachmentResource),transactionID,attachmentID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAttachmentResource", reflect.TypeOf((*MockDAO)(nil).DeleteAttachmentResource), transactionID, attachmentID)
 }
 
 // UpdateAttachmentStatus mocks base method.
 func (m *MockDAO) UpdateAttachmentStatus(transactionID, attachmentID string, avStatus string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateAttachmentStatus", transactionID,attachmentID,avStatus)
+	ret := m.ctrl.Call(m, "UpdateAttachmentStatus", transactionID, attachmentID, avStatus)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // UpdateAttachmentStatus indicates an expected call of UpdateAttachmentStatus.
-func (mr *MockDAOMockRecorder) UpdateAttachmentStatus(transactionID,attachmentID,avStatus interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) UpdateAttachmentStatus(transactionID, attachmentID, avStatus interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockDAO)(nil).UpdateAttachmentStatus),transactionID,attachmentID,avStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAttachmentStatus", reflect.TypeOf((*MockDAO)(nil).UpdateAttachmentStatus), transactionID, attachmentID, avStatus)
 }
 
 // CreateResolutionResource mocks base method.
 func (m *MockDAO) CreateResolutionResource(dao *models.ResolutionResourceDao, transactionID string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateResolutionResource",dao, transactionID)
+	ret := m.ctrl.Call(m, "CreateResolutionResource", dao, transactionID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // CreateResolutionResource indicates an expected call of CreateResolutionResource.
-func (mr *MockDAOMockRecorder) CreateResolutionResource(dao,transactionID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) CreateResolutionResource(dao, transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResolutionResource", reflect.TypeOf((*MockDAO)(nil).CreateResolutionResource),dao,transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateResolutionResource", reflect.TypeOf((*MockDAO)(nil).CreateResolutionResource), dao, transactionID)
 }
 
 // CreateStatementOfAffairsResource mocks base method.
 func (m *MockDAO) CreateStatementOfAffairsResource(dao *models.StatementOfAffairsResourceDao, transactionID string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateStatementOfAffairsResource",dao, transactionID)
+	ret := m.ctrl.Call(m, "CreateStatementOfAffairsResource", dao, transactionID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // CreateStatementOfAffairsResource indicates an expected call of CreateStatementOfAffairsResource.
-func (mr *MockDAOMockRecorder) CreateStatementOfAffairsResource(dao,transactionID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) CreateStatementOfAffairsResource(dao, transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).CreateStatementOfAffairsResource),dao,transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).CreateStatementOfAffairsResource), dao, transactionID)
 }
 
 // GetStatementOfAffairsResource mocks base method.
-func (m *MockDAO)  GetStatementOfAffairsResource(transactionID string) (models.StatementOfAffairsResourceDao, error)  {
+func (m *MockDAO) GetStatementOfAffairsResource(transactionID string) (models.StatementOfAffairsResourceDao, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStatementOfAffairsResource", transactionID)
 	ret0, _ := ret[0].(models.StatementOfAffairsResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetStatementOfAffairsResource indicates an expected call of GetStatementOfAffairsResource.
 func (mr *MockDAOMockRecorder) GetStatementOfAffairsResource(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).GetStatementOfAffairsResource),transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).GetStatementOfAffairsResource), transactionID)
 }
 
 // DeleteStatementOfAffairsResource mocks base method.
-func (m *MockDAO)  DeleteStatementOfAffairsResource(transactionID string) (int, error)  {
+func (m *MockDAO) DeleteStatementOfAffairsResource(transactionID string) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStatementOfAffairsResource", transactionID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // DeleteStatementOfAffairsResource indicates an expected call of DeleteStatementOfAffairsResource.
 func (mr *MockDAOMockRecorder) DeleteStatementOfAffairsResource(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).DeleteStatementOfAffairsResource),transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteStatementOfAffairsResource", reflect.TypeOf((*MockDAO)(nil).DeleteStatementOfAffairsResource), transactionID)
 }
 
-
 // CreateProgressReportResource mocks base method.
-func (m *MockDAO) CreateProgressReportResource(dao *models.ProgressReportResourceDao, transactionID string) (int, error)  {
+func (m *MockDAO) CreateProgressReportResource(dao *models.ProgressReportResourceDao, transactionID string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateProgressReportResource",dao,transactionID)
+	ret := m.ctrl.Call(m, "CreateProgressReportResource", dao, transactionID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // CreateProgressReportResource indicates an expected call of CreateProgressReportResource.
-func (mr *MockDAOMockRecorder) CreateProgressReportResource(dao,transactionID interface{}) *gomock.Call {
+func (mr *MockDAOMockRecorder) CreateProgressReportResource(dao, transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProgressReportResource", reflect.TypeOf((*MockDAO)(nil).CreateProgressReportResource),dao,transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProgressReportResource", reflect.TypeOf((*MockDAO)(nil).CreateProgressReportResource), dao, transactionID)
 }
 
 // GetResolutionResource mocks base method.
-func (m *MockDAO) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error)  {
+func (m *MockDAO) GetResolutionResource(transactionID string) (models.ResolutionResourceDao, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetResolutionResource",transactionID)
+	ret := m.ctrl.Call(m, "GetResolutionResource", transactionID)
 	ret0, _ := ret[0].(models.ResolutionResourceDao)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // GetResolutionResource indicates an expected call of GetResolutionResource.
 func (mr *MockDAOMockRecorder) GetResolutionResource(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolutionResource", reflect.TypeOf((*MockDAO)(nil).GetResolutionResource),transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetResolutionResource", reflect.TypeOf((*MockDAO)(nil).GetResolutionResource), transactionID)
 }
 
 // DeleteResolutionResource mocks base method.
-func (m *MockDAO) DeleteResolutionResource(transactionID string) (int, error)  {
+func (m *MockDAO) DeleteResolutionResource(transactionID string) (int, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteResolutionResource",transactionID)
+	ret := m.ctrl.Call(m, "DeleteResolutionResource", transactionID)
 	ret0, _ := ret[0].(int)
 	ret1, _ := ret[1].(error)
-	return ret0,ret1
+	return ret0, ret1
 }
 
 // DeleteResolutionResource indicates an expected call of DeleteResolutionResource.
 func (mr *MockDAOMockRecorder) DeleteResolutionResource(transactionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteResolutionResource", reflect.TypeOf((*MockDAO)(nil).DeleteResolutionResource),transactionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteResolutionResource", reflect.TypeOf((*MockDAO)(nil).DeleteResolutionResource), transactionID)
 }
- 

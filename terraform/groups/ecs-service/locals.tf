@@ -10,7 +10,7 @@ locals {
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
   lb_listener_rule_priority  = 49
   lb_listener_paths          = ["/transactions/*/insolvency", "/transactions/*/insolvency*", "/private/transactions/*/insolvency/filings", "/insolvency*"]
-  healthcheck_path           = "/insolvency/healthcheck" #healthcheck path for insolvency api
+  healthcheck_path           = "/insolvency-api/healthcheck" #healthcheck path for insolvency api
   healthcheck_matcher        = "200"
   vpc_name                   = local.stack_secrets["vpc_name"]
   app_environment_filename   = "insolvency-api.env"

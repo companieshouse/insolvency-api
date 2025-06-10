@@ -19,7 +19,7 @@ func ResolutionResourceRequestToDB(req *models.Resolution, transactionID string,
 		return nil
 	}
 
-	selfLink := fmt.Sprintf(constants.TransactionsPath + transactionID + "/insolvency/resolution")
+	selfLink := fmt.Sprintf("%s", constants.TransactionsPath+transactionID+"/insolvency/resolution")
 
 	dao := &models.ResolutionResourceDao{
 		Etag:             etag,

@@ -11,7 +11,7 @@ import (
 
 // GenerateEtag generates a random etag which is generated on every write action
 func (*helperService) GenerateEtag() (string, error) {
-	
+
 	// Get a random number and the time in seconds and milliseconds
 	timeNow := time.Now()
 	rand.Seed(timeNow.UTC().UnixNano())
