@@ -4,7 +4,7 @@ locals {
   name_prefix                = "${local.stack_name}-${var.environment}"
   global_prefix              = "global-${var.environment}"
   service_name               = "insolvency-api"
-  container_port             = "20188"
+  container_port             = "18101"
   eric_port                  = "10000"
   docker_repo                = "insolvency-api"
   kms_alias                  = "alias/${var.aws_profile}/environment-services-kms"
