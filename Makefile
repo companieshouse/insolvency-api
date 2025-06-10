@@ -44,10 +44,7 @@ test-integration:
 
 .PHONY: test-with-coverage
 test-with-coverage:
-	@go get github.com/hexira/go-ignore-cov
-	@go build -o ${GOBIN} github.com/hexira/go-ignore-cov
 	@go test -coverpkg=./... -coverprofile=$(COVERAGE_OUT) $(TESTS)
-	@go-ignore-cov --file $(COVERAGE_OUT)
 	@go tool cover -func $(COVERAGE_OUT)
 	@make coverage-html
 
