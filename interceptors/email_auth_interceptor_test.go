@@ -74,7 +74,7 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(
 				http.MethodGet,
-				"http://localhost:4001/efs-submission-api/company-authentication/allow-list/demo@companieshouse.gov.uk?",
+				"http://localhost:4001/efs-submission-api/company-authentication/allow-list/demo@companieshouse.gov.uk",
 				httpmock.NewStringResponder(http.StatusOK, "false"),
 			)
 
@@ -90,7 +90,7 @@ func TestUnitEmailAuthIntercept(t *testing.T) {
 			defer httpmock.Reset()
 			httpmock.RegisterResponder(
 				http.MethodGet,
-				"http://localhost:4001/efs-submission-api/company-authentication/allow-list/demo@companieshouse.gov.uk?",
+				"http://localhost:4001/efs-submission-api/company-authentication/allow-list/demo@companieshouse.gov.uk",
 				httpmock.NewStringResponder(http.StatusOK, "true"),
 			)
 
