@@ -20,6 +20,8 @@ github.com/companieshouse/envconf v0.1.5 h1:Tr0OqQwN8efwHwYtyLrFhX9bLtqLrOJFTe56
 github.com/companieshouse/envconf v0.1.5/go.mod h1:0pyAKzutljmPjNsuYUVrcBN+azbhxL+/Vn7kPjf+VU4=
 github.com/companieshouse/go-sdk-manager v0.1.17 h1:4EwRxflPoeTDT0WXU85hI0L3lqEmNv+vmjYqo07mnoU=
 github.com/companieshouse/go-sdk-manager v0.1.17/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
+github.com/companieshouse/go-sdk-manager v0.1.18 h1:GUvJa9mRByTxRv1wwn6Smnl4BlYWJzYlNjm9Orl41jU=
+github.com/companieshouse/go-sdk-manager v0.1.18/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
 github.com/companieshouse/go-sdk-manager v0.1.19 h1:pAQF0rQcO3PJEE+2j9l231BjgCgUR55h28XeUTZm0io=
 github.com/companieshouse/go-sdk-manager v0.1.19/go.mod h1:iLAq8FTwwQwZYalp3cttGqoG/3814xcOQ2JRgninimQ=
 github.com/companieshouse/go-sdk-manager v0.1.20 h1:LwmjRIztYKLOrpd6u1+jv2ZuWmDI0qw2QkU0TqLkJpo=
