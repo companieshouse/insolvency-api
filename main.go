@@ -51,7 +51,7 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
-	// run server in new go routine to allow app shutdown signal wait below
+	// run server in new go routine to allow app shutdown  signal wait below
 	go func() {
 		log.Info("starting server...", log.Data{"port": cfg.BindAddr})
 		err = h.ListenAndServe()
