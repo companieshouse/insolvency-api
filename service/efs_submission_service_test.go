@@ -13,6 +13,7 @@ import (
 func TestUnitIsUserOnEfsAllowList(t *testing.T) {
 	// Function response is now dependent on config (EFS API call is bypassed if DISABLE_EFS_ALLOW_LIST_AUTH is set true)
 	cfg, _ := config.Get()
+	cfg.EnvName = "cidev"
 
 	Convey("Email auth intercept - DISABLE_EFS_ALLOW_LIST_AUTH unset or false", t, func() {
 		httpmock.Activate()
