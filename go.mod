@@ -1,6 +1,6 @@
 module github.com/companieshouse/insolvency-api
 
-go 1.24.2
+go 1.26.6
 
 require (
 	github.com/companieshouse/api-sdk-go v0.1.63

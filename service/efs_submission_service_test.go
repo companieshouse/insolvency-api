@@ -97,5 +97,22 @@ func TestUnitIsUserOnEfsAllowList(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
+		Convey("user not allowed because email address contains magic string and DISABLE_EFS_ALLOW_LIST_AUTH is toggled on in environment BUT environment name is live", func() {
+			cfg.EnvName = "live"
+			req, _ := http.NewRequest("GET", "", nil)
+
+			defer httpmock.Reset()
+
+			httpmock.RegisterResponder(
+				http.MethodGet,
+				"http://localhost:4001/efs-submission-api/company-authentication/allow-list/demo-ip-test@ch.gov.uk",
+				httpmock.NewStringResponder(http.StatusOK, "false"),
+			)
+
+			userAllowed, err := IsUserOnEfsAllowList("demo-ip-test@ch.gov.uk", req)
+			So(userAllowed, ShouldBeFalse)
+			So(err, ShouldBeNil)
+		})
+
 	})
 }

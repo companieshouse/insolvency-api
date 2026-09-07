@@ -5,12 +5,6 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/companieshouse/api-sdk-go v0.1.35/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/api-sdk-go v0.1.63 h1:yDw69z0Io0ClIyGGxOi31mImfrIbNuMx3tcUDKZa7M4=
 github.com/companieshouse/api-sdk-go v0.1.63/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.64 h1:fxg71DpZ0Ss/rcwNFLFedxYIW9kmUZ3SvfS/Z4SE2EU=
-github.com/companieshouse/api-sdk-go v0.1.64/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.65 h1:qPrrHjdDubQIUrdgKq0FKOLi9oTP7sKX6g7kGsvvWT8=
-github.com/companieshouse/api-sdk-go v0.1.65/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.67 h1:aRHEjg+NVphcCSTnhUld+3k/eChwOW/PJJgowgQQrHg=
-github.com/companieshouse/api-sdk-go v0.1.67/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/chs.go v1.2.12 h1:I7K3gLDtrqkvgT8JIHfLoL0vwNbdXH5cMYGLhG1ACh0=
@@ -20,14 +14,6 @@ github.com/companieshouse/envconf v0.1.5 h1:Tr0OqQwN8efwHwYtyLrFhX9bLtqLrOJFTe56
 github.com/companieshouse/envconf v0.1.5/go.mod h1:0pyAKzutljmPjNsuYUVrcBN+azbhxL+/Vn7kPjf+VU4=
 github.com/companieshouse/go-sdk-manager v0.1.17 h1:4EwRxflPoeTDT0WXU85hI0L3lqEmNv+vmjYqo07mnoU=
 github.com/companieshouse/go-sdk-manager v0.1.17/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
-github.com/companieshouse/go-sdk-manager v0.1.18 h1:GUvJa9mRByTxRv1wwn6Smnl4BlYWJzYlNjm9Orl41jU=
-github.com/companieshouse/go-sdk-manager v0.1.18/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
-github.com/companieshouse/go-sdk-manager v0.1.19 h1:pAQF0rQcO3PJEE+2j9l231BjgCgUR55h28XeUTZm0io=
-github.com/companieshouse/go-sdk-manager v0.1.19/go.mod h1:iLAq8FTwwQwZYalp3cttGqoG/3814xcOQ2JRgninimQ=
-github.com/companieshouse/go-sdk-manager v0.1.20 h1:LwmjRIztYKLOrpd6u1+jv2ZuWmDI0qw2QkU0TqLkJpo=
-github.com/companieshouse/go-sdk-manager v0.1.20/go.mod h1:/IveYv30J+QAi92/5fba034BwobRtNUJL4Lefpgs+9k=
-github.com/companieshouse/go-sdk-manager v0.1.22 h1:snDJAdONJPhEMpDyn+/f78m9DXZeHQ2XJh8GZQ7KKrM=
-github.com/companieshouse/go-sdk-manager v0.1.22/go.mod h1:p+KJykw2kY7s9W/u8O6jHDL0j14JgmHkTA6KBmMywfQ=
 github.com/companieshouse/go-session-handler v0.1.7 h1:45pm5M8rLaI74E/8oIDrQQ4jGG+8RqzfpH8geGaCuJQ=
 github.com/companieshouse/go-session-handler v0.1.7/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
 github.com/companieshouse/gofigure v0.1.0/go.mod h1:W7NZ4kQdDXqvqK1f7EKTc+pnnqpF1b7RcqRa17yAy2Q=

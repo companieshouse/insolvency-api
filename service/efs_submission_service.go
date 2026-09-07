@@ -26,7 +26,8 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 
 	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled AND email address contains
 	// 'magic string' in which case the API call is bypassed and a 'true' value is returned to parent
-	if cfg.IsEfsAllowListAuthDisabled {
+	// don't allow this in live though
+	if cfg.IsEfsAllowListAuthDisabled && cfg.EnvName != "live" {
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
 		isMatch, err := regexp.MatchString("ip-test", emailAddress)
 		if err != nil {

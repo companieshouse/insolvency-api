@@ -27,13 +27,21 @@ Development mode is available for this service in Docker CHS Development.
 
 `./bin/chs-dev development enable insolvency-api`
 
+Install the cross-compiler if you haven't already:
+
+`brew install filosottile/musl-cross/musl-cross`
+
+Run the build to create the /app directory and the service binary
+
+`make build`
+
 ## Running locally with Docker but without Docker CHS - Not recommended
 
-Pull image from private CH registry by running docker pull 169942020521.dkr.ecr.eu-west-1.amazonaws.com/local/insolvency-api:latest command or run the following steps to build image locally:
+Pull image from private CH registry by running docker pull 416670754337.dkr.ecr.eu-west-2.amazonaws.com/insolvency-api:latest command or run the following steps to build image locally:
 
 1.  `export SSH_PRIVATE_KEY_PASSPHRASE='[your SSH key passhprase goes here]'` (optional, set only if SSH key is passphrase protected)
-2.  `DOCKER_BUILDKIT=0 docker build --build-arg SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" --build-arg SSH_PRIVATE_KEY_PASSPHRASE -t 169942020521.dkr.ecr.eu-west-1.amazonaws.com/local/insolvency-api .`
-3.  `docker run 169942020521.dkr.ecr.eu-west-1.amazonaws.com/local/insolvency-api:latest`
+2.  `DOCKER_BUILDKIT=0 docker build --build-arg SSH_PRIVATE_KEY="$(cat ~/.ssh/id_rsa)" --build-arg SSH_PRIVATE_KEY_PASSPHRASE -t 416670754337.dkr.ecr.eu-west-2.amazonaws.com/insolvency-api .`
+3.  `docker run 416670754337.dkr.ecr.eu-west-2.amazonaws.com/insolvency-api:latest`
 
 However, this service has multiple dependencies e.g. on ERIC, Transactions API, Company Lookup, and EFS Submission API, so simply will not work in isolation.
 
@@ -52,6 +60,7 @@ The same microservice dependecy considerations apply as with local Docker builds
 | `MONGODB_URL`                   | `-`     | MongoDB URL             |
 | `INSOLVENCY_MONGODB_DATABASE`   | `-`     | MongoDB database name   |
 | `INSOLVENCY_MONGODB_COLLECTION` | `-`     | MongoDB collection name |
+| `ENV_NAME`                      | `-`     | Environment name        |
 
 ## Spec
 
