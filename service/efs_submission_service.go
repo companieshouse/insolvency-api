@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"slices"
 
 	"github.com/companieshouse/chs.go/log"
 	"github.com/companieshouse/go-sdk-manager/manager"
@@ -26,7 +27,9 @@ func IsUserOnEfsAllowList(emailAddress string, req *http.Request) (bool, error) 
 
 	// Check from Env Var or Command Line Flag if EFS Allow List Auth has been disabled AND email address contains
 	// 'magic string' in which case the API call is bypassed and a 'true' value is returned to parent
-	if cfg.IsEfsAllowListAuthDisabled {
+	// don't allow this in live though
+	allowedEnvs := []string{"docker", "cidev", "staging", "stagsbox", "livesbox"}
+	if cfg.IsEfsAllowListAuthDisabled && slices.Contains(allowedEnvs, cfg.EnvName) {
 		// Our 'magic string' to bypass EFS Allow List if it is in email address is 'ip-test'
 		isMatch, err := regexp.MatchString("ip-test", emailAddress)
 		if err != nil {

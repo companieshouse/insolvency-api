@@ -5,12 +5,6 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/companieshouse/api-sdk-go v0.1.35/go.mod h1:y7Mly0M9Jfgq/hhlWNodyWI9FcpoMZUVClS+AyaT6xY=
 github.com/companieshouse/api-sdk-go v0.1.63 h1:yDw69z0Io0ClIyGGxOi31mImfrIbNuMx3tcUDKZa7M4=
 github.com/companieshouse/api-sdk-go v0.1.63/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.64 h1:fxg71DpZ0Ss/rcwNFLFedxYIW9kmUZ3SvfS/Z4SE2EU=
-github.com/companieshouse/api-sdk-go v0.1.64/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.65 h1:qPrrHjdDubQIUrdgKq0FKOLi9oTP7sKX6g7kGsvvWT8=
-github.com/companieshouse/api-sdk-go v0.1.65/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
-github.com/companieshouse/api-sdk-go v0.1.67 h1:aRHEjg+NVphcCSTnhUld+3k/eChwOW/PJJgowgQQrHg=
-github.com/companieshouse/api-sdk-go v0.1.67/go.mod h1:EPQs0VpscYj7QFKYRlZk6T8a64py54/fqwt6QrCuYZY=
 github.com/companieshouse/chs.go v1.1.0/go.mod h1:LVtty6/5ttvNf12V/nPySaIFgfYPLeT0jymabuzmSDg=
 github.com/companieshouse/chs.go v1.2.2/go.mod h1:93vQ2qlzSbZenUOFet+pAJzxHdz+w6BF1IvJ56lvC7c=
 github.com/companieshouse/chs.go v1.2.12 h1:I7K3gLDtrqkvgT8JIHfLoL0vwNbdXH5cMYGLhG1ACh0=
@@ -20,14 +14,6 @@ github.com/companieshouse/envconf v0.1.5 h1:Tr0OqQwN8efwHwYtyLrFhX9bLtqLrOJFTe56
 github.com/companieshouse/envconf v0.1.5/go.mod h1:0pyAKzutljmPjNsuYUVrcBN+azbhxL+/Vn7kPjf+VU4=
 github.com/companieshouse/go-sdk-manager v0.1.17 h1:4EwRxflPoeTDT0WXU85hI0L3lqEmNv+vmjYqo07mnoU=
 github.com/companieshouse/go-sdk-manager v0.1.17/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
-github.com/companieshouse/go-sdk-manager v0.1.18 h1:GUvJa9mRByTxRv1wwn6Smnl4BlYWJzYlNjm9Orl41jU=
-github.com/companieshouse/go-sdk-manager v0.1.18/go.mod h1:5pdqQ4JCBs1QN1dtXd4KIACLmdu4JvYJxpx8G/bELWU=
-github.com/companieshouse/go-sdk-manager v0.1.19 h1:pAQF0rQcO3PJEE+2j9l231BjgCgUR55h28XeUTZm0io=
-github.com/companieshouse/go-sdk-manager v0.1.19/go.mod h1:iLAq8FTwwQwZYalp3cttGqoG/3814xcOQ2JRgninimQ=
-github.com/companieshouse/go-sdk-manager v0.1.20 h1:LwmjRIztYKLOrpd6u1+jv2ZuWmDI0qw2QkU0TqLkJpo=
-github.com/companieshouse/go-sdk-manager v0.1.20/go.mod h1:/IveYv30J+QAi92/5fba034BwobRtNUJL4Lefpgs+9k=
-github.com/companieshouse/go-sdk-manager v0.1.22 h1:snDJAdONJPhEMpDyn+/f78m9DXZeHQ2XJh8GZQ7KKrM=
-github.com/companieshouse/go-sdk-manager v0.1.22/go.mod h1:p+KJykw2kY7s9W/u8O6jHDL0j14JgmHkTA6KBmMywfQ=
 github.com/companieshouse/go-session-handler v0.1.7 h1:45pm5M8rLaI74E/8oIDrQQ4jGG+8RqzfpH8geGaCuJQ=
 github.com/companieshouse/go-session-handler v0.1.7/go.mod h1:2lBRj2gEzuXNdgxHqHvq01er1A0MciOsxhW4Ved36lE=
 github.com/companieshouse/gofigure v0.1.0/go.mod h1:W7NZ4kQdDXqvqK1f7EKTc+pnnqpF1b7RcqRa17yAy2Q=
@@ -36,6 +22,8 @@ github.com/companieshouse/gofigure v0.1.6/go.mod h1:IA7HSZu1Ji/kTPtLeP/Oi6N8YsNS
 github.com/companieshouse/htmlform v0.1.0/go.mod h1:fWScPVYjGyeBhYwppGaGRDtCQ5hMd3t3Q+0I6HaUZT4=
 github.com/companieshouse/private-api-sdk-go v0.1.15 h1:ioTHP8CivvkNoFSt3W1jrxcQgvMYWWDEv3rW+YVaHxA=
 github.com/companieshouse/private-api-sdk-go v0.1.15/go.mod h1:g1zvBCn8Tyc45x+5BmlHsq+BYwuekd5FLRaFOqTUu+A=
+github.com/cpuguy83/go-md2man/v2 v2.0.2 h1:p1EgwI/C7NhT0JmVkwCD2ZBK8j4aeHQX2pMHHBfMQ6w=
+github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -81,6 +69,8 @@ github.com/gorilla/schema v1.1.0/go.mod h1:kgLaKoK1FELgZqMAVxx/5cbj0kT+57qxUrAlI
 github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
 github.com/gorilla/sessions v1.2.0/go.mod h1:dk2InVEVJ0sfLlnXv9EAgkf6ecYs/i80K/zI+bUmuGM=
 github.com/hashicorp/go-uuid v1.0.1/go.mod h1:6SBZvOh/SIDV7/2o3Jml5SYk/TvGqwFJ/bN7x4byOro=
+github.com/hexira/go-ignore-cov v0.3.0 h1:8LA0HXV+SW/O6+sJuiV8ELRqpa1fi75v8Kx88ITQQUk=
+github.com/hexira/go-ignore-cov v0.3.0/go.mod h1:WiNlh6yyFS81VpwMOm861JX0R3Q8YBZ7RBLMXLd3be8=
 github.com/jarcoal/httpmock v1.0.4/go.mod h1:ATjnClrvW/3tijVmpL/va5Z3aAyGvqU3gCT8nX0Txik=
 github.com/jarcoal/httpmock v1.4.0 h1:BvhqnH0JAYbNudL2GMJKgOHe2CtKlzJ/5rWKyp+hc2k=
 github.com/jarcoal/httpmock v1.4.0/go.mod h1:ftW1xULwo+j0R0JJkJIIi7UKigZUXCLLanykgjwBXL0=
@@ -119,6 +109,8 @@ github.com/pkg/profile v1.2.1/go.mod h1:hJw3o1OdXxsrSjjVksARp5W95eeEaEfptyVZyv6J
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
+github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
+github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da/go.mod h1:gi+0XIa01GRL2eRQVjQkKGqKF3SF9vZR/HnPullcV2E=
 github.com/smarty/assertions v1.16.0 h1:EvHNkdRA4QHMrn75NZSoUQ/mAUXAYWfatfB01yTCzfY=
 github.com/smarty/assertions v1.16.0/go.mod h1:duaaFdCS0K9dnoM50iyek/eYINOZ64gbh1Xlf6LG7AI=
@@ -135,6 +127,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/unrolled/render v1.0.1/go.mod h1:gN9T0NhL4Bfbwu8ann7Ry/TGHYfosul+J0obPf6NBdM=
+github.com/urfave/cli/v2 v2.10.3 h1:oi571Fxz5aHugfBAJd5nkwSk3fzATXtMlpxdLylSCMo=
+github.com/urfave/cli/v2 v2.10.3/go.mod h1:f8iq5LtQ/bLxafbdBSLPPNsgaW0l/2fYYEHhAyPlwvo=
 github.com/vmihailenco/msgpack v4.0.4+incompatible h1:dSLoQfGFAo3F6OoNhwUmLwVgaUXK79GlxNBwueZn0xI=
 github.com/vmihailenco/msgpack v4.0.4+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/wvanbergen/kafka v0.0.0-20171203153745-e2edea948ddf/go.mod h1:nxx7XRXbR9ykhnC8lXqQyJS0rfvJGxKyKw/sT1YOttg=
@@ -147,6 +141,8 @@ github.com/xdg-go/stringprep v1.0.4 h1:XLI/Ng3O1Atzq0oBs3TWm+5ZVgkq2aqdlvP9JtoZ6
 github.com/xdg-go/stringprep v1.0.4/go.mod h1:mPGuuIYwz7CmR2bT9j4GbQqutWS1zV24gijq1dTyGkM=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
 github.com/xdg/stringprep v1.0.0/go.mod h1:Jhud4/sHMO4oL310DaZAKk9ZaJ08SJfe+sJh0HrGL1Y=
+github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 h1:bAn7/zixMGCfxrRTfdpNzjtPYqr8smhKouy9mxVdGPU=
+github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673/go.mod h1:N3UwUGtsrSj3ccvlPHLoLsHnpR27oXr4ZE984MbSER8=
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 h1:ilQV1hzziu+LLM3zUTJ0trRztfwgjqKnBWNtSRkbmwM=
 github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78/go.mod h1:aL8wCCfTfSfmXjznFBSZNN13rSJjlIOI1fUNAtF7rmI=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
@@ -207,6 +203,8 @@ golang.org/x/tools v0.0.0-20190328211700-ab21143f2384/go.mod h1:LCzVGOaR6xXOjkQ3
 golang.org/x/tools v0.0.0-20191119224855-298f0cb1881e/go.mod h1:b+2E5dAYhXwXZwtnZ6UAqBI28+e2cm9otk0dWdXHAEo=
 golang.org/x/tools v0.1.1/go.mod h1:o0xws9oXOQQZyjljx8fwUC0k7L1pTE6eaCbjGeHmOkk=
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
+golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d h1:vU5i/LfpvrRCpgM/VPfJLg5KjxD3E+hfT1SH+d9zLwg=
+golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d/go.mod h1:aiJjzUbINMkxbQROHiO6hDPo2LHcIPhhQsa9DLh0yGk=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
